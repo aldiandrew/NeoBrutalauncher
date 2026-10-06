@@ -209,7 +209,7 @@ private fun HomeScreen(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "$" + "{apps.size} APPS DETECTED",
+                        text = apps.size.toString() + " APPS DETECTED",
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black
                     )
