@@ -62,6 +62,16 @@ No repository license was declared in the GitHub metadata or a root LICENSE file
 
 Use here: reference only. No source code is reused.
 
+### Vanta Launcher
+
+Repository: https://github.com/ftwsourav/vanta-launcher
+
+License: GitHub repository metadata currently reports no declared license.
+
+Use here: design and product reference only. The reference includes a brutalist Windows Phone / Lumia-inspired launcher direction, paper tiles, live tiles, tile sizing/reordering, app drawer behavior, page navigation, motion/turnstile transitions, widgets, themes, typography, and launcher interaction patterns.
+
+No Vanta source code, assets, logos, fonts, or other repository files are copied into NeoBrutalauncher. Because the repository does not declare a license, its implementation and assets will remain reference-only unless a reusable license is explicitly established.
+
 ## Important
 
 A public GitHub repository is not automatically licensed for source-code reuse.
