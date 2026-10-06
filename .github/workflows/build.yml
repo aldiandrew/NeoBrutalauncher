@@ -28,8 +28,16 @@ jobs:
       - name: Build release APK
         run: gradle assembleRelease
 
-      - name: Upload APK
+      - name: Verify APK
+        run: |
+          test -f app/build/outputs/apk/release/app-release.apk
+          ls -lh app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: NeoBrutalauncher-release
           path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
