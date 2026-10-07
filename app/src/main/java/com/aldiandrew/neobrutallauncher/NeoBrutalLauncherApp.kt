@@ -1267,7 +1267,7 @@ private fun ClockTileContent(
 }
 
 @Composable
-private fun NeoQuoteTile(
+fun NeoQuoteTile(
     quote: String,
     modifier: Modifier = Modifier
 ) {
@@ -2118,7 +2118,7 @@ private fun ThemeButton(
 }
 
 @Composable
-private fun BrutalActionButton(
+fun BrutalActionButton(
     title: String,
     background: Color,
     modifier: Modifier = Modifier,
