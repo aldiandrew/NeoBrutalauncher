@@ -521,6 +521,12 @@ private fun HomeScreen(
         )
         .mapNotNull { appsByKey[it] }
         .take(homeAppCount.coerceIn(2, 8))
+        .sortedWith(
+            compareBy<AppInfo> {
+                tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
+                    ?: Int.MAX_VALUE
+            }
+        )
 
     val shortcutApp = appShortcutKey?.let { appsByKey[it] }
     val appTileIds = remember(launchableApps) {
