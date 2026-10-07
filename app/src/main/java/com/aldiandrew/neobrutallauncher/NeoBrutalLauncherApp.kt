@@ -2,6 +2,7 @@ package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
@@ -56,8 +60,18 @@ fun NeoBrutalLauncherApp() {
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
     var drawerOpen by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    fun refreshApps() {
         apps = repository.loadApps()
+    }
+
+    LaunchedEffect(Unit) {
+        refreshApps()
+    }
+
+    LaunchedEffect(drawerOpen) {
+        if (drawerOpen) {
+            refreshApps()
+        }
     }
 
     NeoBrutalTheme {
@@ -65,6 +79,7 @@ fun NeoBrutalLauncherApp() {
             AppDrawer(
                 apps = apps,
                 onClose = { drawerOpen = false },
+                onRefresh = { refreshApps() },
                 onLaunch = repository::launch
             )
         } else {
@@ -191,6 +206,23 @@ private fun HomeScreen(
                 AppRow(topApps.take(2), BrutalColors.Pink, BrutalColors.Cyan, onLaunch)
                 AppRow(topApps.drop(2).take(2), BrutalColors.Lime, BrutalColors.Orange, onLaunch)
                 AppRow(topApps.drop(4).take(2), BrutalColors.Purple, BrutalColors.White, onLaunch)
+            } else {
+                BrutalBlock(
+                    modifier = Modifier.fillMaxWidth(),
+                    background = BrutalColors.White,
+                    borderWidth = 3.dp,
+                    shadowX = 6.dp,
+                    shadowY = 6.dp
+                ) {
+                    Text(
+                        text = "NO LAUNCHABLE APPS DETECTED",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
             }
 
             BrutalBlock(
@@ -242,33 +274,69 @@ private fun HomeScreen(
 
     if (showAbout) {
         Dialog(onDismissRequest = { showAbout = false }) {
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Yellow,
-                borderWidth = 4.dp,
-                shadowX = 8.dp,
-                shadowY = 8.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .offset(x = 8.dp, y = 8.dp)
+                        .background(BrutalColors.Ink)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(4.dp, BrutalColors.Ink)
+                        .background(BrutalColors.Yellow)
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "ABOUT / NEO",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.5.sp,
+                        color = BrutalColors.Ink
+                    )
                     Text(
                         text = "NEO BRUTAL LAUNCHER",
-                        fontSize = 24.sp,
+                        fontSize = 26.sp,
+                        lineHeight = 28.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink
                     )
                     Text(
                         text = "A launcher that rejects the idea that your home screen has to look calm.",
                         fontSize = 15.sp,
+                        lineHeight = 19.sp,
                         fontWeight = FontWeight.Bold,
                         color = BrutalColors.Ink
                     )
                     Text(
-                        text = "V0.1 CORE BUILD",
+                        text = "CORE BUILD 0.1.0",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp,
                         color = BrutalColors.Ink
                     )
+                    BrutalBlock(
+                        modifier = Modifier.fillMaxWidth(),
+                        background = BrutalColors.Cyan,
+                        borderWidth = 3.dp,
+                        shadowX = 4.dp,
+                        shadowY = 4.dp
+                    ) {
+                        Text(
+                            text = "NEO-BRUTALISM / METRO DIRECTION",
+                            fontSize = 12.sp,
+                            lineHeight = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink
+                        )
+                    }
                 }
             }
         }
@@ -347,9 +415,11 @@ private fun AppTile(
 private fun AppDrawer(
     apps: List<AppInfo>,
     onClose: () -> Unit,
+    onRefresh: () -> Unit,
     onLaunch: (AppInfo) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
 
     val filtered = remember(apps, query) {
         if (query.isBlank()) {
@@ -383,16 +453,30 @@ private fun AppDrawer(
                 shadowX = 4.dp,
                 shadowY = 4.dp
             ) {
-                Text(
-                    text = "ALL APPS",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.sp,
-                    color = BrutalColors.Ink
-                )
+                Column {
+                    Text(
+                        text = "ALL APPS",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp,
+                        color = BrutalColors.Ink
+                    )
+                    Text(
+                        text = filtered.size.toString() + " RESULTS",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
             }
 
-            Spacer(Modifier.width(12.dp))
+            IconButton(onClick = onRefresh) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    tint = BrutalColors.Ink
+                )
+            }
 
             IconButton(onClick = onClose) {
                 Icon(
@@ -405,10 +489,46 @@ private fun AppDrawer(
 
         Spacer(Modifier.height(12.dp))
 
+        BrutalBlock(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { focusRequester.requestFocus() },
+            background = BrutalColors.Ink,
+            borderWidth = 3.dp,
+            shadowX = 4.dp,
+            shadowY = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search apps",
+                    tint = BrutalColors.White,
+                    modifier = Modifier
+                        .width(28.dp)
+                        .height(28.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "SEARCH APPS",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp,
+                    color = BrutalColors.White
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             singleLine = true,
             leadingIcon = {
                 Icon(
@@ -417,13 +537,27 @@ private fun AppDrawer(
                     tint = BrutalColors.Ink
                 )
             },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { query = "" }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear search",
+                            tint = BrutalColors.Ink
+                        )
+                    }
+                }
+            },
             placeholder = {
                 Text(
-                    text = "SEARCH APPS",
-                    fontWeight = FontWeight.Black
+                    text = "TYPE APP NAME...",
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink.copy(alpha = 0.65f)
                 )
             },
             colors = TextFieldDefaults.colors(
+                focusedTextColor = BrutalColors.Ink,
+                unfocusedTextColor = BrutalColors.Ink,
                 focusedContainerColor = BrutalColors.White,
                 unfocusedContainerColor = BrutalColors.White,
                 focusedIndicatorColor = BrutalColors.Ink,
@@ -434,47 +568,82 @@ private fun AppDrawer(
 
         Spacer(Modifier.height(14.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(
-                items = filtered,
-                key = { it.packageName + "/" + it.activityName }
-            ) { app ->
-                BrutalBlock(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onLaunch(app) },
-                    background = BrutalColors.White,
-                    borderWidth = 3.dp,
-                    shadowX = 4.dp,
-                    shadowY = 4.dp
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+        if (filtered.isEmpty()) {
+            BrutalBlock(
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Pink,
+                borderWidth = 3.dp,
+                shadowX = 5.dp,
+                shadowY = 5.dp
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = if (query.isBlank()) {
+                            "NO LAUNCHABLE APPS"
+                        } else {
+                            "NO MATCHES"
+                        },
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                    Text(
+                        text = if (query.isBlank()) {
+                            "The launcher service returned an empty app list."
+                        } else {
+                            "Try another app name or package."
+                        },
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BrutalColors.Ink
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(
+                    items = filtered,
+                    key = { it.packageName + "/" + it.activityName }
+                ) { app ->
+                    BrutalBlock(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onLaunch(app) },
+                        background = BrutalColors.White,
+                        borderWidth = 3.dp,
+                        shadowX = 4.dp,
+                        shadowY = 4.dp
                     ) {
-                        Image(
-                            bitmap = app.icon.toBitmap(80, 80).asImageBitmap(),
-                            contentDescription = app.label,
-                            modifier = Modifier
-                                .width(46.dp)
-                                .height(46.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = app.label.uppercase(),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                bitmap = app.icon.toBitmap(80, 80).asImageBitmap(),
+                                contentDescription = app.label,
+                                modifier = Modifier
+                                    .width(46.dp)
+                                    .height(46.dp)
                             )
-                            Text(
-                                text = app.packageName,
-                                fontSize = 10.sp,
-                                color = BrutalColors.Ink
-                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = app.label.uppercase(),
+                                    fontSize = 16.sp,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink
+                                )
+                                Text(
+                                    text = app.packageName,
+                                    fontSize = 10.sp,
+                                    lineHeight = 12.sp,
+                                    color = BrutalColors.Ink
+                                )
+                            }
                         }
                     }
                 }
