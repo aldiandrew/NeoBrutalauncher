@@ -2177,8 +2177,9 @@ private fun SettingsSectionTitle(title: String) {
     Text(
         text = title,
         modifier = Modifier.padding(horizontal = 2.dp),
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Black,
+        fontFamily = BrutalTypography.Display,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Normal,
         letterSpacing = 1.5.sp,
         color = MaterialTheme.colorScheme.onBackground
     )
@@ -2206,8 +2207,9 @@ private fun SettingsSwitch(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Black
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -2245,8 +2247,9 @@ private fun ThemeButton(
             text = label,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
+            fontFamily = BrutalTypography.Display,
             fontSize = 12.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Normal,
             color = MaterialTheme.colorScheme.onSurface
         )
     }
