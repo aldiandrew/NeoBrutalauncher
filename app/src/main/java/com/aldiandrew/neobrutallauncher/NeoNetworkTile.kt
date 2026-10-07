@@ -74,7 +74,8 @@ fun NeoNetworkTile(context: Context, modifier: Modifier = Modifier) {
         onDispose { runCatching { manager.unregisterNetworkCallback(callback) } }
     }
 
-    val textColor = MaterialTheme.colorScheme.onBackground
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
     val icon = when (state.primary) {
         "WIFI" -> Icons.Default.Wifi
         "MOBILE" -> Icons.Default.SignalCellular4Bar
