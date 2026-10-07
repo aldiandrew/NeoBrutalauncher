@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlin.math.abs
 
@@ -311,7 +312,7 @@ private fun NeoTileDraggable(
                     if (longPress == null) {
                         val event = currentEvent
                         val movedBeforeLongPress = event?.changes?.any {
-                            it.positionChanged()
+                            it.position != it.previousPosition
                         } == true
 
                         if (!movedBeforeLongPress) {
@@ -329,7 +330,7 @@ private fun NeoTileDraggable(
                         (rowStepPx * REORDER_THRESHOLD_RATIO).coerceAtLeast(24f)
 
                     val completed = drag(longPress.id) { change ->
-                        val dy = change.positionChange().y
+                        val dy = (change.position.y - change.previousPosition.y)
                         if (dy == 0f) return@drag
 
                         change.consume()
