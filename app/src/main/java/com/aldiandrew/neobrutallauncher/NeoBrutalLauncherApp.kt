@@ -462,7 +462,30 @@ private fun HomeScreen(
             .thenByDescending { favorites.contains(it.packageName + "/" + it.activityName) }
             .thenBy { it.label.lowercase() }
     )
-    val launchableApps = rankedApps.take(homeAppCount.coerceIn(2, 8))
+
+    val appKeys = apps.map { it.packageName + "/" + it.activityName }
+    val storedHomeOrder = preferences.homeAppOrder()
+    val stableHomeOrder = remember(appKeys) {
+        val available = appKeys.toSet()
+        val existing = storedHomeOrder.filter { it in available }
+        val missing = appKeys.filterNot { it in existing }
+        if (existing.isNotEmpty()) {
+            existing + missing
+        } else {
+            rankedApps.map { it.packageName + "/" + it.activityName }
+        }
+    }
+
+    LaunchedEffect(stableHomeOrder) {
+        preferences.setHomeAppOrder(stableHomeOrder)
+    }
+
+    val appsByKey = remember(apps) {
+        apps.associateBy { it.packageName + "/" + it.activityName }
+    }
+    val launchableApps = stableHomeOrder
+        .mapNotNull { appsByKey[it] }
+        .take(homeAppCount.coerceIn(2, 8))
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
