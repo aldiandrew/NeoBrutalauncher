@@ -564,7 +564,12 @@ private fun HomeScreen(
                                     ClockStyle.MONO -> 56.sp
                                     ClockStyle.POSTER -> 64.sp
                                 },
-                                lineHeight = 0.96.em,
+                                lineHeight = when (clockStyle) {
+                                    ClockStyle.HUGE -> 69.sp
+                                    ClockStyle.CONDENSED -> 58.sp
+                                    ClockStyle.MONO -> 54.sp
+                                    ClockStyle.POSTER -> 61.sp
+                                },
                                 fontWeight = FontWeight.Black,
                                 fontFamily = when (clockStyle) {
                                     ClockStyle.MONO -> BrutalTypography.Mono
