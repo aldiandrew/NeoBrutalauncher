@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RectangleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -82,7 +82,7 @@ fun NeoNoteTaskTile(
                 Box(
                     modifier = Modifier
                         .size(27.dp)
-                        .border(2.dp, textColor, RectangleShape)
+                        .border(2.dp, textColor, RoundedCornerShape(0.dp))
                         .clickable {
                             val clean = draft.trim()
                             if (clean.isNotEmpty()) {
@@ -115,7 +115,7 @@ fun NeoNoteTaskTile(
                             Box(
                                 modifier = Modifier
                                     .size(15.dp)
-                                    .border(2.dp, textColor, RectangleShape)
+                                    .border(2.dp, textColor, RoundedCornerShape(0.dp))
                                     .clickable { onToggleItem(actualIndex) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -133,7 +133,7 @@ fun NeoNoteTaskTile(
                             Box(
                                 modifier = Modifier
                                     .size(7.dp)
-                                    .border(2.dp, BrutalColors.Pink, RectangleShape)
+                                    .border(2.dp, BrutalColors.Pink, RoundedCornerShape(0.dp))
                             )
                         }
 
