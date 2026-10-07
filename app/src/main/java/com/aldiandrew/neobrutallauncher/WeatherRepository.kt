@@ -11,6 +11,7 @@ import android.os.CancellationSignal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -47,30 +48,56 @@ object WeatherRepository {
         locationManager: LocationManager,
         context: Context
     ): Location? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val provider = when {
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ->
-                    LocationManager.NETWORK_PROVIDER
-                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ->
-                    LocationManager.GPS_PROVIDER
-                else -> null
+        val providers = listOf(
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.GPS_PROVIDER,
+            LocationManager.PASSIVE_PROVIDER
+        )
+
+        val lastKnown = providers
+            .filter { provider ->
+                runCatching {
+                    provider == LocationManager.PASSIVE_PROVIDER ||
+                        locationManager.isProviderEnabled(provider)
+                }.getOrDefault(false)
             }
+            .mapNotNull { provider ->
+                runCatching {
+                    locationManager.getLastKnownLocation(provider)
+                }.getOrNull()
+            }
+            .maxByOrNull { it.time }
+
+        if (lastKnown != null) {
+            return lastKnown
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val provider = providers
+                .filter { it != LocationManager.PASSIVE_PROVIDER }
+                .firstOrNull { candidate ->
+                    runCatching {
+                        locationManager.isProviderEnabled(candidate)
+                    }.getOrDefault(false)
+                }
 
             if (provider != null) {
-                val current = suspendCancellableCoroutine<Location?> { continuation ->
-                    val signal = CancellationSignal()
+                val current = withTimeoutOrNull(8_000L) {
+                    suspendCancellableCoroutine<Location?> { continuation ->
+                        val signal = CancellationSignal()
 
-                    continuation.invokeOnCancellation {
-                        signal.cancel()
-                    }
+                        continuation.invokeOnCancellation {
+                            signal.cancel()
+                        }
 
-                    locationManager.getCurrentLocation(
-                        provider,
-                        signal,
-                        context.mainExecutor
-                    ) { location ->
-                        if (continuation.isActive) {
-                            continuation.resume(location)
+                        locationManager.getCurrentLocation(
+                            provider,
+                            signal,
+                            context.mainExecutor
+                        ) { location ->
+                            if (continuation.isActive) {
+                                continuation.resume(location)
+                            }
                         }
                     }
                 }
@@ -81,21 +108,7 @@ object WeatherRepository {
             }
         }
 
-        return listOf(
-            LocationManager.NETWORK_PROVIDER,
-            LocationManager.GPS_PROVIDER
-        )
-            .filter { provider ->
-                runCatching {
-                    locationManager.isProviderEnabled(provider)
-                }.getOrDefault(false)
-            }
-            .mapNotNull { provider ->
-                runCatching {
-                    locationManager.getLastKnownLocation(provider)
-                }.getOrNull()
-            }
-            .maxByOrNull { it.time }
+        return null
     }
 
     private suspend fun fetchWeather(
