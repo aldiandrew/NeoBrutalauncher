@@ -819,7 +819,7 @@ private fun HomeScreen(
                         listOf(
                             NeoTileSize.SMALL,
                             NeoTileSize.MEDIUM,
-                            NeoTileSize.TALL,
+                            NeoTileSize.HORIZONTAL,
                             NeoTileSize.WIDE
                         ).forEach { option ->
                             androidx.compose.material3.TextButton(
