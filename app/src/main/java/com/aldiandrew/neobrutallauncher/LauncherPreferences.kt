@@ -246,6 +246,27 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
+    fun homeAppOrder(): List<String> {
+        val raw = prefs.getString(KEY_HOME_APP_ORDER, null)
+        if (raw.isNullOrBlank()) return emptyList()
+
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val key = array.optString(index).trim()
+                    if (key.isNotEmpty()) add(key)
+                }
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    fun setHomeAppOrder(values: List<String>) {
+        val array = JSONArray()
+        values.filter { it.isNotBlank() }.distinct().forEach(array::put)
+        prefs.edit().putString(KEY_HOME_APP_ORDER, array.toString()).apply()
+    }
+
     fun appLaunchCounts(): Map<String, Int> {
         return prefs.getStringSet(KEY_APP_LAUNCH_COUNTS, emptySet())
             ?.mapNotNull { entry ->
@@ -352,6 +373,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_NOTE_ITEMS = "note_items"
         private const val KEY_TASK_ITEMS = "task_items"
         private const val KEY_APP_LAUNCH_COUNTS = "app_launch_counts"
+        private const val KEY_HOME_APP_ORDER = "home_app_order"
         private const val KEY_TASK_TEXT = "task_text"
     }
 }
