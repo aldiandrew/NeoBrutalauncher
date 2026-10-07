@@ -5,7 +5,9 @@ import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,17 +30,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +55,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,12 +81,28 @@ fun NeoBrutalLauncherApp() {
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
-    var showSeconds by remember { mutableStateOf(preferences.showSeconds()) }
     var showDate by remember { mutableStateOf(preferences.showDate()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
+    var showTagline by remember { mutableStateOf(preferences.showTagline()) }
+    var showAppCount by remember { mutableStateOf(preferences.showAppCount()) }
+    var favorites by remember { mutableStateOf(preferences.favorites()) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     fun refreshApps() {
         apps = repository.loadApps()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshApps()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -92,16 +115,18 @@ fun NeoBrutalLauncherApp() {
         }
     }
 
-    NeoBrutalTheme(themePreference = themePreference) {
-        when {
-            settingsOpen -> {
+    when {
+        settingsOpen -> {
+            NeoBrutalTheme(themePreference = themePreference) {
                 SettingsScreen(
                     appsCount = apps.size,
                     themePreference = themePreference,
                     use24Hour = use24Hour,
-                    showSeconds = showSeconds,
                     showDate = showDate,
                     homeAppCount = homeAppCount,
+                    showTagline = showTagline,
+                    showAppCount = showAppCount,
+                    favoritesCount = favorites.size,
                     onBack = { settingsOpen = false },
                     onThemeChange = {
                         themePreference = it
@@ -111,10 +136,6 @@ fun NeoBrutalLauncherApp() {
                         use24Hour = it
                         preferences.setUse24Hour(it)
                     },
-                    onShowSecondsChange = {
-                        showSeconds = it
-                        preferences.setShowSeconds(it)
-                    },
                     onShowDateChange = {
                         showDate = it
                         preferences.setShowDate(it)
@@ -123,61 +144,82 @@ fun NeoBrutalLauncherApp() {
                         homeAppCount = it
                         preferences.setHomeAppCount(it)
                     },
-                    onRefreshApps = { refreshApps() }
+                    onShowTaglineChange = {
+                        showTagline = it
+                        preferences.setShowTagline(it)
+                    },
+                    onShowAppCountChange = {
+                        showAppCount = it
+                        preferences.setShowAppCount(it)
+                    },
+                    onRefreshApps = { refreshApps() },
+                    onClearFavorites = {
+                        favorites = emptySet()
+                        preferences.clearFavorites()
+                    }
                 )
             }
+        }
 
-            drawerOpen -> {
+        drawerOpen -> {
+            NeoBrutalTheme(themePreference = themePreference) {
                 AppDrawer(
                     apps = apps,
+                    favorites = favorites,
                     onClose = { drawerOpen = false },
-                    onRefresh = { refreshApps() },
-                    onLaunch = repository::launch
-                )
-            }
-
-            else -> {
-                HomeScreen(
-                    apps = apps,
-                    homeAppCount = homeAppCount,
-                    use24Hour = use24Hour,
-                    showSeconds = showSeconds,
-                    showDate = showDate,
-                    onOpenDrawer = { drawerOpen = true },
-                    onOpenSettings = { settingsOpen = true },
+                    onToggleFavorite = { app ->
+                        val key = app.packageName + "/" + app.activityName
+                        val updated = favorites.toMutableSet()
+                        if (!updated.add(key)) {
+                            updated.remove(key)
+                        }
+                        favorites = updated
+                        preferences.setFavorites(updated)
+                    },
                     onLaunch = repository::launch
                 )
             }
         }
+
+        else -> {
+            HomeScreen(
+                apps = apps,
+                favorites = favorites,
+                homeAppCount = homeAppCount,
+                use24Hour = use24Hour,
+                showDate = showDate,
+                showTagline = showTagline,
+                showAppCount = showAppCount,
+                onOpenDrawer = { drawerOpen = true },
+                onOpenSettings = { settingsOpen = true },
+                onLaunch = repository::launch
+            )
+        }
     }
-}
 
 @Composable
 private fun HomeScreen(
     apps: List<AppInfo>,
+    favorites: Set<String>,
     homeAppCount: Int,
     use24Hour: Boolean,
-    showSeconds: Boolean,
     showDate: Boolean,
+    showTagline: Boolean,
+    showAppCount: Boolean,
     onOpenDrawer: () -> Unit,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit
 ) {
     var now by remember { mutableStateOf(Date()) }
 
-    LaunchedEffect(use24Hour, showSeconds) {
+    LaunchedEffect(use24Hour) {
         while (isActive) {
             now = Date()
             delay(1000L)
         }
     }
 
-    val timePattern = when {
-        use24Hour && showSeconds -> "HH:mm:ss"
-        use24Hour -> "HH:mm"
-        showSeconds -> "hh:mm:ss a"
-        else -> "hh:mm a"
-    }
+    val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
 
     val time = remember(timePattern) {
         SimpleDateFormat(timePattern, Locale.getDefault())
@@ -187,7 +229,13 @@ private fun HomeScreen(
         SimpleDateFormat("EEE / dd MMM", Locale.getDefault())
     }
 
-    val topApps = apps.take(homeAppCount)
+    val favoriteApps = apps.filter {
+        favorites.contains(it.packageName + "/" + it.activityName)
+    }
+    val remainingApps = apps.filterNot {
+        favorites.contains(it.packageName + "/" + it.activityName)
+    }
+    val topApps = (favoriteApps + remainingApps).take(homeAppCount)
 
     Box(
         modifier = Modifier
@@ -288,20 +336,22 @@ private fun HomeScreen(
                 }
             }
 
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Ink,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Text(
-                    text = "YOUR PHONE DOESN'T NEED TO LOOK CALM.",
-                    fontSize = 21.sp,
-                    lineHeight = 23.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.White
-                )
+            if (showTagline) {
+                BrutalBlock(
+                    modifier = Modifier.fillMaxWidth(),
+                    background = BrutalColors.Ink,
+                    borderWidth = 3.dp,
+                    shadowX = 5.dp,
+                    shadowY = 5.dp
+                ) {
+                    Text(
+                        text = "YOUR PHONE DOESN'T NEED TO LOOK CALM.",
+                        fontSize = 21.sp,
+                        lineHeight = 23.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.White
+                    )
+                }
             }
 
             if (topApps.isNotEmpty()) {
@@ -331,26 +381,28 @@ private fun HomeScreen(
                 }
             }
 
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.White,
-                borderWidth = 3.dp,
-                shadowX = 6.dp,
-                shadowY = 6.dp
-            ) {
-                Column {
-                    Text(
-                        text = "SYSTEM",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = apps.size.toString() + " APPS DETECTED",
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black
-                    )
+            if (showAppCount) {
+                BrutalBlock(
+                    modifier = Modifier.fillMaxWidth(),
+                    background = BrutalColors.White,
+                    borderWidth = 3.dp,
+                    shadowX = 6.dp,
+                    shadowY = 6.dp
+                ) {
+                    Column {
+                        Text(
+                            text = "SYSTEM",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = apps.size.toString() + " APPS DETECTED",
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
                 }
             }
 
@@ -450,10 +502,12 @@ private fun AppTile(
 @Composable
 private fun AppDrawer(
     apps: List<AppInfo>,
+    favorites: Set<String>,
     onClose: () -> Unit,
-    onRefresh: () -> Unit,
+    onToggleFavorite: (AppInfo) -> Unit,
     onLaunch: (AppInfo) -> Unit
 ) {
+    BackHandler(onBack = onClose)
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
@@ -468,10 +522,14 @@ private fun AppDrawer(
         }
     }
 
+    val uiBackground = MaterialTheme.colorScheme.background
+    val uiSurface = MaterialTheme.colorScheme.surface
+    val uiOnSurface = MaterialTheme.colorScheme.onSurface
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BrutalColors.Paper)
+            .background(uiBackground)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -506,33 +564,15 @@ private fun AppDrawer(
                 }
             }
 
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(8.dp))
 
-            IconButton(
-                onClick = { focusRequester.requestFocus() }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search apps",
-                    tint = BrutalColors.Ink
-                )
-            }
-
-            IconButton(onClick = onRefresh) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Refresh",
-                    tint = BrutalColors.Ink
-                )
-            }
-
-            IconButton(onClick = onClose) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = BrutalColors.Ink
-                )
-            }
+            Text(
+                text = "LONG-PRESS TO PIN",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.5.sp,
+                color = BrutalColors.Ink
+            )
         }
 
         Spacer(Modifier.height(10.dp))
@@ -566,17 +606,17 @@ private fun AppDrawer(
                 Text(
                     text = "SEARCH APPS...",
                     fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink.copy(alpha = 0.65f)
+                    color = uiOnSurface.copy(alpha = 0.65f)
                 )
             },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = BrutalColors.Ink,
                 unfocusedTextColor = BrutalColors.Ink,
-                focusedContainerColor = BrutalColors.White,
-                unfocusedContainerColor = BrutalColors.White,
-                focusedIndicatorColor = BrutalColors.Ink,
-                unfocusedIndicatorColor = BrutalColors.Ink,
-                cursorColor = BrutalColors.Ink
+                focusedContainerColor = uiSurface,
+                unfocusedContainerColor = uiSurface,
+                focusedIndicatorColor = uiOnSurface,
+                unfocusedIndicatorColor = uiOnSurface,
+                cursorColor = uiOnSurface
             )
         )
 
@@ -627,8 +667,11 @@ private fun AppDrawer(
                     BrutalBlock(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onLaunch(app) },
-                        background = BrutalColors.White,
+                            .combinedClickable(
+                                onClick = { onLaunch(app) },
+                                onLongClick = { onToggleFavorite(app) }
+                            ),
+                        background = uiSurface,
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
                         shadowY = 4.dp
@@ -651,15 +694,26 @@ private fun AppDrawer(
                                     fontSize = 16.sp,
                                     lineHeight = 18.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = uiOnSurface,
                                     maxLines = 2
                                 )
                                 Text(
                                     text = app.packageName,
                                     fontSize = 10.sp,
                                     lineHeight = 12.sp,
-                                    color = BrutalColors.Ink,
+                                    color = uiOnSurface,
                                     maxLines = 1
+                                )
+                            }
+
+                            if (favorites.contains(app.packageName + "/" + app.activityName)) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Favorite",
+                                    tint = BrutalColors.Orange,
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .height(24.dp)
                                 )
                             }
                         }
@@ -675,23 +729,31 @@ private fun SettingsScreen(
     appsCount: Int,
     themePreference: ThemePreference,
     use24Hour: Boolean,
-    showSeconds: Boolean,
     showDate: Boolean,
     homeAppCount: Int,
+    showTagline: Boolean,
+    showAppCount: Boolean,
+    favoritesCount: Int,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
-    onShowSecondsChange: (Boolean) -> Unit,
     onShowDateChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
-    onRefreshApps: () -> Unit
+    onShowTaglineChange: (Boolean) -> Unit,
+    onShowAppCountChange: (Boolean) -> Unit,
+    onRefreshApps: () -> Unit,
+    onClearFavorites: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    val uiBackground = MaterialTheme.colorScheme.background
+    val uiSurface = MaterialTheme.colorScheme.surface
+    val uiOnSurface = MaterialTheme.colorScheme.onSurface
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BrutalColors.Paper)
+            .background(uiBackground)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -749,7 +811,7 @@ private fun SettingsScreen(
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.White,
+                background = uiSurface,
                 borderWidth = 3.dp,
                 shadowX = 5.dp,
                 shadowY = 5.dp
@@ -759,7 +821,15 @@ private fun SettingsScreen(
                         text = "APP THEME",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.sp,
+                        color = uiOnSurface
+                    )
+                    Text(
+                        text = "This theme changes the launcher interface only. The home clock keeps its own appearance.",
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface.copy(alpha = 0.75f)
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -801,14 +871,6 @@ private fun SettingsScreen(
             )
 
             SettingsSwitch(
-                title = "SHOW SECONDS",
-                description = "Show seconds in the home clock.",
-                checked = showSeconds,
-                background = BrutalColors.Pink,
-                onCheckedChange = onShowSecondsChange
-            )
-
-            SettingsSwitch(
                 title = "SHOW DATE",
                 description = "Show the date below the home clock.",
                 checked = showDate,
@@ -817,6 +879,22 @@ private fun SettingsScreen(
             )
 
             SettingsSectionTitle("HOME")
+
+            SettingsSwitch(
+                title = "SHOW TAGLINE",
+                description = "Show the neo-brutalist message below the clock.",
+                checked = showTagline,
+                background = BrutalColors.Pink,
+                onCheckedChange = onShowTaglineChange
+            )
+
+            SettingsSwitch(
+                title = "SHOW APP COUNT",
+                description = "Show the detected-app count card on the home screen.",
+                checked = showAppCount,
+                background = BrutalColors.Cyan,
+                onCheckedChange = onShowAppCountChange
+            )
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -858,11 +936,42 @@ private fun SettingsScreen(
                 }
             }
 
+            SettingsSectionTitle("FAVORITES")
+
+            BrutalBlock(
+                modifier = Modifier.fillMaxWidth(),
+                background = uiSurface,
+                borderWidth = 3.dp,
+                shadowX = 5.dp,
+                shadowY = 5.dp
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "$favoritesCount PINNED APPS",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Black,
+                        color = uiOnSurface
+                    )
+                    Text(
+                        text = "Long-press any app in the drawer to pin or unpin it. Pinned apps appear first on the home screen.",
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface
+                    )
+                    BrutalActionButton(
+                        title = "CLEAR ALL PINNED APPS",
+                        background = BrutalColors.Orange,
+                        onClick = onClearFavorites
+                    )
+                }
+            }
+
             SettingsSectionTitle("APP LIST")
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.White,
+                background = uiSurface,
                 borderWidth = 3.dp,
                 shadowX = 5.dp,
                 shadowY = 5.dp
@@ -984,7 +1093,7 @@ private fun SettingsSectionTitle(title: String) {
         fontSize = 12.sp,
         fontWeight = FontWeight.Black,
         letterSpacing = 1.5.sp,
-        color = BrutalColors.Ink
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 
@@ -1040,7 +1149,7 @@ private fun ThemeButton(
 ) {
     BrutalBlock(
         modifier = modifier.clickable(onClick = onClick),
-        background = if (selected) background else BrutalColors.White,
+        background = if (selected) background else MaterialTheme.colorScheme.surface,
         borderWidth = if (selected) 4.dp else 2.dp,
         shadowX = if (selected) 4.dp else 3.dp,
         shadowY = if (selected) 4.dp else 3.dp
@@ -1051,7 +1160,7 @@ private fun ThemeButton(
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             fontWeight = FontWeight.Black,
-            color = BrutalColors.Ink
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

@@ -35,14 +35,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_24_HOUR, value).apply()
     }
 
-    fun showSeconds(): Boolean {
-        return prefs.getBoolean(KEY_SECONDS, false)
-    }
-
-    fun setShowSeconds(value: Boolean) {
-        prefs.edit().putBoolean(KEY_SECONDS, value).apply()
-    }
-
     fun showDate(): Boolean {
         return prefs.getBoolean(KEY_DATE, true)
     }
@@ -59,11 +51,41 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 6)).apply()
     }
 
+    fun showTagline(): Boolean {
+        return prefs.getBoolean(KEY_TAGLINE, true)
+    }
+
+    fun setShowTagline(value: Boolean) {
+        prefs.edit().putBoolean(KEY_TAGLINE, value).apply()
+    }
+
+    fun showAppCount(): Boolean {
+        return prefs.getBoolean(KEY_APP_COUNT, true)
+    }
+
+    fun setShowAppCount(value: Boolean) {
+        prefs.edit().putBoolean(KEY_APP_COUNT, value).apply()
+    }
+
+    fun favorites(): Set<String> {
+        return prefs.getStringSet(KEY_FAVORITES, emptySet())?.toSet().orEmpty()
+    }
+
+    fun setFavorites(values: Set<String>) {
+        prefs.edit().putStringSet(KEY_FAVORITES, values.toSet()).apply()
+    }
+
+    fun clearFavorites() {
+        prefs.edit().remove(KEY_FAVORITES).apply()
+    }
+
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
-        private const val KEY_SECONDS = "show_seconds"
         private const val KEY_DATE = "show_date"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
+        private const val KEY_TAGLINE = "show_tagline"
+        private const val KEY_APP_COUNT = "show_app_count"
+        private const val KEY_FAVORITES = "favorites"
     }
 }
