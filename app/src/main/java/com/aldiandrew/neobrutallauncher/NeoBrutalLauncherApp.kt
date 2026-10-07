@@ -552,8 +552,8 @@ private fun HomeScreen(
                                 fontWeight = FontWeight.Black,
                                 fontFamily = when (clockStyle) {
                                     ClockStyle.MONO -> BrutalTypography.Mono
-                                    ClockStyle.CONDENSED -> BrutalTypography.Black
-                                    ClockStyle.HUGE -> BrutalTypography.Black
+                                    ClockStyle.CONDENSED -> BrutalTypography.Poster
+                                    ClockStyle.HUGE -> BrutalTypography.Poster
                                     else -> BrutalTypography.Poster
                                 },
                                 color = BrutalColors.Ink,
