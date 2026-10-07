@@ -53,11 +53,11 @@ fun NeoNotesTasksTile(
 
     BrutalBlock(
         modifier = modifier,
-        background = Color.Transparent,
+        background = MaterialTheme.colorScheme.surface,
         borderWidth = 3.dp,
         borderColor = textColor,
-        shadowX = 0.dp,
-        shadowY = 0.dp
+        shadowX = 5.dp,
+        shadowY = 5.dp
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
