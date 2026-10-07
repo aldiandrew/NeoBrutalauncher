@@ -70,6 +70,8 @@ fun NeoWeatherTile(
         else -> Icons.Default.Cloud
     }
 
+    val currentWeather = weather
+
     BrutalBlock(
         modifier = modifier,
         background = BrutalColors.Cyan,
@@ -77,7 +79,7 @@ fun NeoWeatherTile(
         shadowX = 8.dp,
         shadowY = 8.dp
     ) {
-        if (weather != null) {
+        if (currentWeather != null) {
             val updatedText = lastUpdatedMillis?.let {
                 SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
             } ?: "--:--"
@@ -102,7 +104,7 @@ fun NeoWeatherTile(
                     )
                     Spacer(Modifier.height(3.dp))
                     Text(
-                        text = weather.description.uppercase(),
+                        text = currentWeather.description.uppercase(),
                         fontSize = 12.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.Black,
@@ -111,7 +113,7 @@ fun NeoWeatherTile(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${weather.temperatureC.toInt()}°",
+                        text = "${currentWeather.temperatureC.toInt()}°",
                         fontSize = 48.sp,
                         lineHeight = 48.sp,
                         fontWeight = FontWeight.Black,
@@ -119,8 +121,8 @@ fun NeoWeatherTile(
                     )
                     Spacer(Modifier.height(5.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        WeatherMetric("HUMIDITY", "${weather.humidityPercent}%")
-                        WeatherMetric("WIND", "${weather.windKph.toInt()} KM/H")
+                        WeatherMetric("HUMIDITY", "${currentWeather.humidityPercent}%")
+                        WeatherMetric("WIND", "${currentWeather.windKph.toInt()} KM/H")
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
