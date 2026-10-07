@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.RectangleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +28,7 @@ fun BrutalBlock(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val style = LocalBrutalMetrics.current
-    val shape = RoundedCornerShape(style.cornerRadius)
+    val shape = RectangleShape
     val actualBorderWidth = (borderWidth * style.borderScale).coerceAtLeast(1.dp)
     val actualShadowX = shadowX * style.shadowScale
     val actualShadowY = shadowY * style.shadowScale
@@ -38,50 +38,24 @@ fun BrutalBlock(
     Layout(
         modifier = modifier,
         content = {
-            Box(
-                modifier = Modifier.background(
-                    color = resolvedShadowColor,
-                    shape = shape
-                )
-            )
-
+            Box(modifier = Modifier.background(color = resolvedShadowColor, shape = shape))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(
-                        width = actualBorderWidth,
-                        color = resolvedBorderColor,
-                        shape = shape
-                    )
-                    .background(
-                        color = background,
-                        shape = shape
-                    )
+                    .border(actualBorderWidth, resolvedBorderColor, shape)
+                    .background(background, shape)
                     .padding(10.dp),
                 content = content
             )
         }
     ) { measurables, constraints ->
         val contentPlaceable = measurables[1].measure(constraints)
-
-        val shadowConstraints = Constraints.fixed(
-            width = contentPlaceable.width,
-            height = contentPlaceable.height
+        val shadowPlaceable = measurables[0].measure(
+            Constraints.fixed(contentPlaceable.width, contentPlaceable.height)
         )
-        val shadowPlaceable = measurables[0].measure(shadowConstraints)
-
-        layout(
-            width = contentPlaceable.width,
-            height = contentPlaceable.height
-        ) {
-            shadowPlaceable.place(
-                x = actualShadowX.roundToPx(),
-                y = actualShadowY.roundToPx()
-            )
-            contentPlaceable.place(
-                x = 0,
-                y = 0
-            )
+        layout(contentPlaceable.width, contentPlaceable.height) {
+            shadowPlaceable.place(actualShadowX.roundToPx(), actualShadowY.roundToPx())
+            contentPlaceable.place(0, 0)
         }
     }
 }
