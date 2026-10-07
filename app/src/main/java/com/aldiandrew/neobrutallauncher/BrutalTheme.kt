@@ -18,6 +18,7 @@ object BrutalColors {
     val Orange = Color(0xFFFF6B00)
     val Purple = Color(0xFF9B5CFF)
     val DarkPaper = Color(0xFF171717)
+    val DarkTile = Color(0xFF292929)
     val DarkWhite = Color(0xFFF7F7F7)
 }
 
