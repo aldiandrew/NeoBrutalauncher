@@ -92,6 +92,7 @@ fun NeoBrutalLauncherApp() {
     var showAppCount by remember { mutableStateOf(preferences.showAppCount()) }
     var showWeather by remember { mutableStateOf(preferences.showWeather()) }
     var showQuote by remember { mutableStateOf(preferences.showQuote()) }
+    var showBattery by remember { mutableStateOf(preferences.showBattery()) }
     var favorites by remember { mutableStateOf(preferences.favorites()) }
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
@@ -157,6 +158,7 @@ fun NeoBrutalLauncherApp() {
                     showAppCount = showAppCount,
                     showWeather = showWeather,
                     showQuote = showQuote,
+                    showBattery = showBattery,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     onBack = { settingsOpen = false },
@@ -208,6 +210,10 @@ fun NeoBrutalLauncherApp() {
                         showQuote = it
                         preferences.setShowQuote(it)
                     },
+                    onShowBatteryChange = {
+                        showBattery = it
+                        preferences.setShowBattery(it)
+                    },
                     onRefreshApps = { refreshApps() },
                     onClearFavorites = {
                         favorites = emptySet()
@@ -249,6 +255,7 @@ fun NeoBrutalLauncherApp() {
                     showAppCount = showAppCount,
                     showWeather = showWeather,
                     showQuote = showQuote,
+                    showBattery = showBattery,
                     onOpenDrawer = { drawerOpen = true },
                     onOpenSettings = { settingsOpen = true },
                     onLaunch = repository::launch,
@@ -261,8 +268,7 @@ fun NeoBrutalLauncherApp() {
                     onTileSizeChange = { tileId, size ->
                         tileSizes = tileSizes + (tileId to size)
                         preferences.setTileSizes(tileSizes)
-                    },
-                    onTileLongPress = { selectedTile = it }
+                    }
                 )
             }
         }
@@ -280,6 +286,7 @@ private fun HomeScreen(
     showAppCount: Boolean,
     showWeather: Boolean,
     showQuote: Boolean,
+    showBattery: Boolean,
     onOpenDrawer: () -> Unit,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
@@ -544,6 +551,22 @@ private fun HomeScreen(
                         )
                     }
 
+                    if (showBattery) {
+                        add(
+                            NeoTileSpec(
+                                id = "battery",
+                                size = tileSizes["battery"] ?: NeoTileSize.TWO_BY_TWO,
+                                label = "BATTERY"
+                            ) {
+                                BatteryTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.Orange
+                                )
+                            }
+                        )
+                    }
+
                     if (showAppCount) {
                         add(
                             NeoTileSpec(
@@ -617,7 +640,7 @@ private fun HomeScreen(
                 },
                 positions = tilePositions,
                 onPositionsChange = onTilePositionsChange,
-                onTileLongPress = { onTileLongPress(it) },
+                onTileLongPress = { selectedTile = it },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -1127,6 +1150,7 @@ private fun SettingsScreen(
     showAppCount: Boolean,
     showWeather: Boolean,
     showQuote: Boolean,
+    showBattery: Boolean,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     onBack: () -> Unit,
@@ -1139,6 +1163,7 @@ private fun SettingsScreen(
     onShowWeatherChange: (Boolean) -> Unit,
     onRequestWeatherPermission: () -> Unit,
     onShowQuoteChange: (Boolean) -> Unit,
+    onShowBatteryChange: (Boolean) -> Unit,
     onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
@@ -1323,6 +1348,14 @@ private fun SettingsScreen(
                 checked = showQuote,
                 background = BrutalColors.Lime,
                 onCheckedChange = onShowQuoteChange
+            )
+
+            SettingsSwitch(
+                title = "SHOW BATTERY",
+                description = "Show an event-driven battery tile. It updates only when Android reports a battery change.",
+                checked = showBattery,
+                background = BrutalColors.Orange,
+                onCheckedChange = onShowBatteryChange
             )
 
             BrutalBlock(
