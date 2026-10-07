@@ -49,12 +49,13 @@ fun AppsPage(
     favorites: Set<String>,
     onToggleFavorite: (AppInfo) -> Unit,
     onLaunch: (AppInfo) -> Unit,
+    onOpenHome: () -> Unit,
     onOpenSettings: () -> Unit,
     onRefresh: () -> Unit
 ) {
     var query by remember { mutableStateOf("") }
 
-    BackHandler(onBack = onOpenSettings)
+    BackHandler(onBack = onOpenHome)
 
     val filtered = remember(apps, query) {
         if (query.isBlank()) {
@@ -114,11 +115,18 @@ fun AppsPage(
 
             Spacer(Modifier.width(8.dp))
 
-            IconButton(onClick = onRefresh) {
+            BrutalBlock(
+                modifier = Modifier.height(48.dp).width(48.dp).clickable(onClick = onRefresh),
+                background = BrutalColors.Yellow,
+                borderWidth = 3.dp,
+                shadowX = 3.dp,
+                shadowY = 3.dp
+            ) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Refresh apps",
-                    tint = uiOnSurface
+                    tint = BrutalColors.Ink,
+                    modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
             }
 
