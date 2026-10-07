@@ -1,6 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -54,7 +55,6 @@ fun AppsPage(
         apps.sortedBy { it.label.lowercase() }
     }
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
 
     fun firstIndexForLetter(letter: Char): Int {
