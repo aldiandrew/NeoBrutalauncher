@@ -21,6 +21,23 @@ object BrutalColors {
     val DarkPaper = Color(0xFF171717)
     val DarkTile = Color(0xFF292929)
     val DarkWhite = Color(0xFFF7F7F7)
+
+    fun appPalette(seed: Int = 0): List<Color> {
+        val base = listOf(
+            Pink,
+            Cyan,
+            Lime,
+            Orange,
+            Purple,
+            White,
+            Yellow,
+            Pink
+        )
+        val shift = Math.floorMod(seed, base.size)
+        return List(base.size) { index ->
+            base[(index + shift) % base.size]
+        }
+    }
 }
 
 private val LightScheme = lightColorScheme(
