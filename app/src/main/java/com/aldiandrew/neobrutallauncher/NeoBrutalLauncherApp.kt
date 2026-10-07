@@ -1895,10 +1895,11 @@ private fun ThemeButton(
 private fun BrutalActionButton(
     title: String,
     background: Color,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     BrutalBlock(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         background = background,
