@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RectangleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -69,11 +69,11 @@ fun BrutalLabel(
 ) {
     Box(
         modifier = modifier
-            .background(background, RectangleShape)
+            .background(background, RoundedCornerShape(0.dp))
             .border(
                 width = 2.dp * LocalBrutalMetrics.current.borderScale,
                 color = BrutalColors.Ink,
-                shape = RectangleShape
+                shape = RoundedCornerShape(0.dp)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
@@ -96,11 +96,11 @@ fun BrutalTape(
 ) {
     Box(
         modifier = modifier
-            .background(background, RectangleShape)
+            .background(background, RoundedCornerShape(0.dp))
             .border(
                 width = 2.dp * LocalBrutalMetrics.current.borderScale,
                 color = BrutalColors.Ink,
-                shape = RectangleShape
+                shape = RoundedCornerShape(0.dp)
             )
             .padding(horizontal = 10.dp, vertical = 5.dp)
     ) {
@@ -123,11 +123,11 @@ fun BrutalStamp(
 ) {
     Column(
         modifier = modifier
-            .background(background, RectangleShape)
+            .background(background, RoundedCornerShape(0.dp))
             .border(
                 width = 3.dp * LocalBrutalMetrics.current.borderScale,
                 color = BrutalColors.Ink,
-                shape = RectangleShape
+                shape = RoundedCornerShape(0.dp)
             )
             .padding(8.dp),
         horizontalAlignment = Alignment.Start
