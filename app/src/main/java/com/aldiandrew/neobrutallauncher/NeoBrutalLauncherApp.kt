@@ -474,28 +474,53 @@ private fun HomeScreen(
                                 shadowX = 8.dp,
                                 shadowY = 8.dp
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize()
+                                BoxWithConstraints(
+                                    modifier = Modifier.fillMaxSize().padding(9.dp)
                                 ) {
-                                    Text(
-                                        text = time.format(now),
-                                        fontSize = 58.sp,
-                                        lineHeight = 58.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = BrutalColors.Ink
-                                    )
+                                    val compact = minOf(maxWidth, maxHeight)
 
-                                    if (showDate) {
-                                        Spacer(Modifier.height(4.dp))
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
                                         Text(
-                                            text = date.format(now).uppercase(),
-                                            fontSize = 16.sp,
+                                            text = time.format(now),
+                                            fontSize = when {
+                                                compact < 78.dp -> 12.sp
+                                                compact < 155.dp -> 31.sp
+                                                else -> 58.sp
+                                            },
+                                            lineHeight = when {
+                                                compact < 78.dp -> 13.sp
+                                                compact < 155.dp -> 32.sp
+                                                else -> 59.sp
+                                            },
                                             fontWeight = FontWeight.Black,
-                                            letterSpacing = 1.5.sp,
-                                            color = BrutalColors.Ink
+                                            color = BrutalColors.Ink,
+                                            maxLines = 1
                                         )
-                                    }
 
+                                        if (showDate) {
+                                            Spacer(Modifier.height(if (compact < 155.dp) 3.dp else 5.dp))
+                                            Text(
+                                                text = date.format(now).uppercase(),
+                                                fontSize = when {
+                                                    compact < 78.dp -> 6.sp
+                                                    compact < 155.dp -> 9.sp
+                                                    else -> 16.sp
+                                                },
+                                                lineHeight = when {
+                                                    compact < 78.dp -> 7.sp
+                                                    compact < 155.dp -> 10.sp
+                                                    else -> 17.sp
+                                                },
+                                                fontWeight = FontWeight.Black,
+                                                letterSpacing = if (compact < 155.dp) 0.sp else 1.5.sp,
+                                                color = BrutalColors.Ink,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -547,16 +572,26 @@ private fun HomeScreen(
                                     shadowX = 5.dp,
                                     shadowY = 5.dp
                                 ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
+                                    BoxWithConstraints(
+                                        modifier = Modifier.fillMaxSize().padding(9.dp),
                                         contentAlignment = Alignment.CenterStart
                                     ) {
+                                        val compact = minOf(maxWidth, maxHeight)
                                         Text(
                                             text = "YOUR PHONE DOESN'T NEED TO LOOK CALM.",
-                                            fontSize = 21.sp,
-                                            lineHeight = 23.sp,
+                                            fontSize = when {
+                                                compact < 78.dp -> 8.sp
+                                                compact < 155.dp -> 14.sp
+                                                else -> 21.sp
+                                            },
+                                            lineHeight = when {
+                                                compact < 78.dp -> 9.sp
+                                                compact < 155.dp -> 15.sp
+                                                else -> 23.sp
+                                            },
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.White
+                                            color = BrutalColors.White,
+                                            maxLines = if (compact < 78.dp) 5 else 4
                                         )
                                     }
                                 }
@@ -656,24 +691,49 @@ private fun HomeScreen(
                                     shadowX = 6.dp,
                                     shadowY = 6.dp
                                 ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center
+                                    BoxWithConstraints(
+                                        modifier = Modifier.fillMaxSize().padding(9.dp),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = "SYSTEM",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Black,
-                                            letterSpacing = 1.sp,
-                                            color = BrutalColors.Ink
-                                        )
-                                        Spacer(Modifier.height(2.dp))
-                                        Text(
-                                            text = apps.size.toString() + " APPS DETECTED",
-                                            fontSize = 25.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Ink
-                                        )
+                                        val compact = minOf(maxWidth, maxHeight)
+                                        if (compact < 78.dp) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text(
+                                                    text = apps.size.toString(),
+                                                    fontSize = 20.sp,
+                                                    lineHeight = 20.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = BrutalColors.Ink
+                                                )
+                                                Text(
+                                                    text = "APPS",
+                                                    fontSize = 7.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = BrutalColors.Ink
+                                                )
+                                            }
+                                        } else {
+                                            Column(
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = "SYSTEM",
+                                                    fontSize = if (compact < 155.dp) 11.sp else 14.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    letterSpacing = 1.sp,
+                                                    color = BrutalColors.Ink
+                                                )
+                                                Spacer(Modifier.height(2.dp))
+                                                Text(
+                                                    text = apps.size.toString() + " APPS DETECTED",
+                                                    fontSize = if (compact < 155.dp) 19.sp else 25.sp,
+                                                    lineHeight = if (compact < 155.dp) 20.sp else 26.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = BrutalColors.Ink,
+                                                    maxLines = 1
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -759,22 +819,44 @@ private fun NeoQuoteTile(
         shadowX = 6.dp,
         shadowY = 6.dp
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text(
-                text = "NEO QUOTE",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-                color = BrutalColors.White
-            )
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().padding(9.dp)
+        ) {
+            val compact = minOf(maxWidth, maxHeight)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(if (compact < 100.dp) 3.dp else 5.dp)
+            ) {
+                Text(
+                    text = "NEO QUOTE",
+                    fontSize = if (compact < 78.dp) 7.sp else if (compact < 155.dp) 10.sp else 11.sp,
+                    lineHeight = if (compact < 78.dp) 8.sp else 12.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = if (compact < 155.dp) 0.sp else 1.sp,
+                    color = BrutalColors.White,
+                    maxLines = 1
+                )
 
-            Text(
-                text = "“$quote”",
-                fontSize = 17.sp,
-                lineHeight = 21.sp,
-                fontWeight = FontWeight.Black,
-                color = BrutalColors.White
-            )
+                Text(
+                    text = "“$quote”",
+                    fontSize = when {
+                        compact < 78.dp -> 7.sp
+                        compact < 155.dp -> 12.sp
+                        else -> 17.sp
+                    },
+                    lineHeight = when {
+                        compact < 78.dp -> 8.sp
+                        compact < 155.dp -> 14.sp
+                        else -> 21.sp
+                    },
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.White,
+                    maxLines = when {
+                        compact < 78.dp -> 5
+                        compact < 155.dp -> 5
+                        else -> 6
+                    }
+                )
+            }
         }
     }
 }
