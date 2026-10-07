@@ -1,91 +1,61 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlin.math.max
-import kotlin.math.roundToInt
 
+/**
+ * Four Metro-style sizes matching the Vanta model:
+ * SMALL 1×1, MEDIUM 2×2, WIDE 4×2, LARGE 4×4.
+ *
+ * Layout is row-based. There is intentionally no free-form (x/y) placement.
+ * Tiles are kept in one order and greedily packed into 4-column rows, so
+ * every drag immediately closes gaps instead of creating holes.
+ */
 enum class NeoTileSize(
     val columns: Int,
     val rows: Int,
     val label: String
 ) {
-    ONE_BY_ONE(
-        columns = 1,
-        rows = 1,
-        label = "1×1"
-    ),
-    TWO_BY_ONE(
-        columns = 2,
-        rows = 1,
-        label = "2×1"
-    ),
-    ONE_BY_TWO(
-        columns = 1,
-        rows = 2,
-        label = "1×2"
-    ),
-    TWO_BY_TWO(
-        columns = 2,
-        rows = 2,
-        label = "2×2"
-    ),
-    THREE_BY_TWO(
-        columns = 3,
-        rows = 2,
-        label = "3×2"
-    ),
-    TWO_BY_THREE(
-        columns = 2,
-        rows = 3,
-        label = "2×3"
-    ),
-    THREE_BY_THREE(
-        columns = 3,
-        rows = 3,
-        label = "3×3"
-    ),
-    FOUR_BY_ONE(
-        columns = 4,
-        rows = 1,
-        label = "4×1"
-    ),
-    FOUR_BY_TWO(
-        columns = 4,
-        rows = 2,
-        label = "4×2"
-    ),
-    FOUR_BY_THREE(
-        columns = 4,
-        rows = 3,
-        label = "4×3"
-    ),
-    FOUR_BY_FOUR(
-        columns = 4,
-        rows = 4,
-        label = "4×4"
-    )
+    SMALL(1, 1, "SMALL"),
+    MEDIUM(2, 2, "MEDIUM"),
+    WIDE(4, 2, "WIDE"),
+    LARGE(4, 4, "LARGE");
+
+    fun next(): NeoTileSize = when (this) {
+        SMALL -> MEDIUM
+        MEDIUM -> WIDE
+        WIDE -> LARGE
+        LARGE -> SMALL
+    }
 }
 
+enum class TileContentMode(val label: String) {
+    ICON("ICON"),
+    ICON_TEXT("ICON + TEXT"),
+    TEXT("TEXT")
+}
+
+/**
+ * Kept as a compatibility format for existing saved preferences.
+ * The grid now treats these values only as an ordering hint.
+ */
 data class NeoTilePosition(
     val column: Int,
     val row: Int
@@ -98,257 +68,118 @@ data class NeoTileSpec(
     val content: @Composable () -> Unit
 )
 
-private data class NeoTilePlacement(
-    val column: Int,
-    val row: Int
-)
+private const val TILE_COLUMNS = 4
+private val TileRowHeight = 112.dp
+private val LargeTileRowHeight = 234.dp
+private const val DRAG_REORDER_THRESHOLD = 56f
 
-private fun calculateCompactPlacementsAfterMove(
+/**
+ * Convert the old persisted (column,row) map into one stable linear order.
+ * Missing positions fall back to the current tile declaration order.
+ */
+private fun orderedTiles(
     tiles: List<NeoTileSpec>,
-    currentPositions: Map<String, NeoTilePosition>,
-    movedTileId: String,
-    movedPosition: NeoTilePosition,
-    columns: Int
-): Map<String, NeoTilePlacement> {
-    val occupancy = mutableListOf<BooleanArray>()
-    val placements = linkedMapOf<String, NeoTilePlacement>()
-
-    fun ensureRows(requiredRows: Int) {
-        while (occupancy.size < requiredRows) {
-            occupancy.add(BooleanArray(columns))
-        }
-    }
-
-    fun canPlace(column: Int, row: Int, width: Int, height: Int): Boolean {
-        if (column < 0 || row < 0 || column + width > columns) {
-            return false
-        }
-
-        ensureRows(row + height)
-
-        for (r in row until row + height) {
-            for (c in column until column + width) {
-                if (occupancy[r][c]) {
-                    return false
-                }
-            }
-        }
-
-        return true
-    }
-
-    fun occupy(column: Int, row: Int, width: Int, height: Int) {
-        for (r in row until row + height) {
-            for (c in column until column + width) {
-                occupancy[r][c] = true
-            }
-        }
-    }
-
-    fun place(tile: NeoTileSpec, position: NeoTilePosition) {
-        placements[tile.id] = NeoTilePlacement(position.column, position.row)
-        occupy(
-            position.column,
-            position.row,
-            tile.size.columns,
-            tile.size.rows
-        )
-    }
-
-    val movedTile = tiles.firstOrNull { it.id == movedTileId }
-        ?: return calculateNeoTilePlacements(
-            tiles = tiles,
-            positions = currentPositions + (movedTileId to movedPosition),
-            columns = columns
-        )
-
-    val safeMovedPosition = NeoTilePosition(
-        column = movedPosition.column.coerceIn(
-            0,
-            columns - movedTile.size.columns
-        ),
-        row = movedPosition.row.coerceAtLeast(0)
+    positions: Map<String, NeoTilePosition>
+): List<NeoTileSpec> {
+    val declared = tiles.withIndex().associate { it.value.id to it.index }
+    return tiles.sortedWith(
+        compareBy<NeoTileSpec> {
+            positions[it.id]?.row ?: Int.MAX_VALUE
+        }.thenBy {
+            positions[it.id]?.column ?: Int.MAX_VALUE
+        }.thenBy {
+            declared[it.id] ?: Int.MAX_VALUE
+        }.thenBy { it.id }
     )
-
-    ensureRows(
-        safeMovedPosition.row + movedTile.size.rows
-    )
-    place(movedTile, safeMovedPosition)
-
-    val previousPlacementOrder = tiles
-        .filterNot { it.id == movedTileId }
-        .sortedWith(
-            compareBy<NeoTileSpec> {
-                currentPositions[it.id]?.row ?: Int.MAX_VALUE
-            }.thenBy {
-                currentPositions[it.id]?.column ?: Int.MAX_VALUE
-            }.thenBy { it.id }
-        )
-
-    previousPlacementOrder.forEach { tile ->
-        var found = false
-        var row = 0
-
-        while (!found) {
-            ensureRows(row + tile.size.rows)
-
-            for (column in 0..(columns - tile.size.columns)) {
-                if (
-                    canPlace(
-                        column = column,
-                        row = row,
-                        width = tile.size.columns,
-                        height = tile.size.rows
-                    )
-                ) {
-                    place(
-                        tile,
-                        NeoTilePosition(
-                            column = column,
-                            row = row
-                        )
-                    )
-                    found = true
-                    break
-                }
-            }
-
-            if (!found) {
-                row++
-            }
-        }
-    }
-
-    return placements
 }
 
-private fun calculateNeoTilePlacements(
-    tiles: List<NeoTileSpec>,
-    positions: Map<String, NeoTilePosition>,
-    columns: Int,
-    priorityTileId: String? = null
-): Map<String, NeoTilePlacement> {
-    val occupancy = mutableListOf<BooleanArray>()
-    val placements = linkedMapOf<String, NeoTilePlacement>()
+/**
+ * Vanta-style greedy row packing. A full-width tile closes the current row.
+ */
+private fun packRows(tiles: List<NeoTileSpec>): List<List<NeoTileSpec>> {
+    val rows = mutableListOf<List<NeoTileSpec>>()
+    var row = mutableListOf<NeoTileSpec>()
+    var used = 0
 
-    fun ensureRows(requiredRows: Int) {
-        while (occupancy.size < requiredRows) {
-            occupancy.add(BooleanArray(columns))
+    for (tile in tiles) {
+        val span = tile.size.columns
+
+        if (span == TILE_COLUMNS && row.isNotEmpty()) {
+            rows += row
+            row = mutableListOf()
+            used = 0
+        }
+
+        if (used + span > TILE_COLUMNS && row.isNotEmpty()) {
+            rows += row
+            row = mutableListOf()
+            used = 0
+        }
+
+        row += tile
+        used += span
+
+        if (span == TILE_COLUMNS) {
+            rows += row
+            row = mutableListOf()
+            used = 0
         }
     }
 
-    fun canPlace(
-        startColumn: Int,
-        startRow: Int,
-        width: Int,
-        height: Int
-    ): Boolean {
-        if (startColumn < 0 || startColumn + width > columns || startRow < 0) {
-            return false
+    if (row.isNotEmpty()) rows += row
+    return rows
+}
+
+private fun positionsForOrder(
+    ordered: List<NeoTileSpec>
+): Map<String, NeoTilePosition> {
+    val result = linkedMapOf<String, NeoTilePosition>()
+    var rowIndex = 0
+    var column = 0
+
+    for (tile in ordered) {
+        val span = tile.size.columns
+
+        if (span == TILE_COLUMNS) {
+            if (column != 0) rowIndex++
+            result[tile.id] = NeoTilePosition(0, rowIndex)
+            rowIndex += if (tile.size == NeoTileSize.LARGE) 2 else 1
+            column = 0
+            continue
         }
 
-        ensureRows(startRow + height)
-
-        for (row in startRow until startRow + height) {
-            for (column in startColumn until startColumn + width) {
-                if (occupancy[row][column]) {
-                    return false
-                }
-            }
+        if (column + span > TILE_COLUMNS) {
+            rowIndex++
+            column = 0
         }
 
-        return true
-    }
+        result[tile.id] = NeoTilePosition(column, rowIndex)
+        column += span
 
-    fun occupy(
-        startColumn: Int,
-        startRow: Int,
-        width: Int,
-        height: Int
-    ) {
-        for (row in startRow until startRow + height) {
-            for (column in startColumn until startColumn + width) {
-                occupancy[row][column] = true
-            }
-        }
-    }
-
-    fun placeAt(
-        tile: NeoTileSpec,
-        position: NeoTilePosition
-    ) {
-        placements[tile.id] = NeoTilePlacement(
-            column = position.column,
-            row = position.row
-        )
-        occupy(
-            startColumn = position.column,
-            startRow = position.row,
-            width = tile.size.columns,
-            height = tile.size.rows
-        )
-    }
-
-    val orderedTiles = if (priorityTileId != null) {
-        buildList {
-            tiles.firstOrNull { it.id == priorityTileId }?.let(::add)
-            tiles.filterNot { it.id == priorityTileId }.forEach(::add)
-        }
-    } else {
-        tiles
-    }
-
-    val deferred = mutableListOf<NeoTileSpec>()
-
-    orderedTiles.forEach { tile ->
-        val requested = positions[tile.id]
-
-        if (
-            requested != null &&
-            canPlace(
-                startColumn = requested.column,
-                startRow = requested.row,
-                width = tile.size.columns,
-                height = tile.size.rows
-            )
-        ) {
-            placeAt(tile, requested)
-        } else {
-            deferred += tile
+        if (column == TILE_COLUMNS) {
+            rowIndex++
+            column = 0
         }
     }
 
-    deferred.forEach { tile ->
-        val width = tile.size.columns
-        val height = tile.size.rows
+    return result
+}
 
-        var found = false
-        var row = 0
+private fun moveItem(
+    list: List<NeoTileSpec>,
+    id: String,
+    delta: Int
+): List<NeoTileSpec> {
+    val from = list.indexOfFirst { it.id == id }
+    if (from < 0) return list
 
-        while (!found) {
-            ensureRows(row + height)
+    val to = (from + delta).coerceIn(0, list.lastIndex)
+    if (from == to) return list
 
-            for (column in 0..(columns - width)) {
-                if (canPlace(column, row, width, height)) {
-                    placeAt(
-                        tile = tile,
-                        position = NeoTilePosition(
-                            column = column,
-                            row = row
-                        )
-                    )
-                    found = true
-                    break
-                }
-            }
-
-            if (!found) {
-                row++
-            }
-        }
+    return list.toMutableList().apply {
+        val item = removeAt(from)
+        add(to, item)
     }
-
-    return placements
 }
 
 @Composable
@@ -358,137 +189,81 @@ fun NeoTileGrid(
     onPositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onTileLongPress: (NeoTileSpec) -> Unit = {},
     modifier: Modifier = Modifier,
-    columns: Int = 4,
     gap: Dp = 10.dp
 ) {
-    require(columns > 0) {
-        "Tile grid must have at least one column"
+    val baseOrder = remember(tiles, positions) {
+        orderedTiles(tiles, positions)
     }
+    var dragOrder by remember(baseOrder) { mutableStateOf(baseOrder) }
+    var draggedId by remember { mutableStateOf<String?>(null) }
 
-    tiles.forEach { tile ->
-        require(tile.size.columns <= columns) {
-            "Tile size is wider than the tile grid"
-        }
-    }
+    val rows = packRows(dragOrder)
 
-    var gridWidthPx by remember { mutableStateOf(0) }
-
-    val placements = calculateNeoTilePlacements(
-        tiles = tiles,
-        positions = positions,
-        columns = columns
-    )
-
-    Layout(
-        modifier = modifier.onGloballyPositioned {
-            if (gridWidthPx != it.size.width) {
-                gridWidthPx = it.size.width
+    ColumnWithRows(
+        rows = rows,
+        gap = gap,
+        modifier = modifier,
+        draggedId = draggedId,
+        onDraggedIdChange = { draggedId = it },
+        onReorder = { id, delta ->
+            val updated = moveItem(dragOrder, id, delta)
+            if (updated != dragOrder) {
+                dragOrder = updated
             }
         },
-        content = {
-            tiles.forEach { tile ->
-                val basePlacement = placements[tile.id] ?: NeoTilePlacement(
-                    column = 0,
-                    row = 0
-                )
+        onDrop = {
+            onPositionsChange(positionsForOrder(dragOrder))
+            draggedId = null
+        },
+        onLongPress = onTileLongPress
+    )
+}
 
-                NeoTileDraggable(
-                    tile = tile,
-                    basePlacement = basePlacement,
-                    gridWidthPx = gridWidthPx,
-                    columns = columns,
-                    gap = gap,
-                    onDrop = { targetPosition ->
-                        val committedPlacements = calculateCompactPlacementsAfterMove(
-                            tiles = tiles,
-                            currentPositions = positions,
-                            movedTileId = tile.id,
-                            movedPosition = targetPosition,
-                            columns = columns
-                        )
-
-                        val committedPositions = committedPlacements.mapValues { (_, placement) ->
-                            NeoTilePosition(
-                                column = placement.column,
-                                row = placement.row
-                            )
-                        }
-
-                        onPositionsChange(committedPositions)
-                    },
-                    onLongPress = {
-                        onTileLongPress(tile)
-                    }
-                )
+@Composable
+private fun ColumnWithRows(
+    rows: List<List<NeoTileSpec>>,
+    gap: Dp,
+    modifier: Modifier,
+    draggedId: String?,
+    onDraggedIdChange: (String?) -> Unit,
+    onReorder: (String, Int) -> Unit,
+    onDrop: () -> Unit,
+    onLongPress: (NeoTileSpec) -> Unit
+) {
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(gap)
+    ) {
+        rows.forEach { row ->
+            val rowHeight = if (row.any { it.size == NeoTileSize.LARGE }) {
+                LargeTileRowHeight
+            } else {
+                TileRowHeight
             }
-        }
-    ) { measurables, constraints ->
-        val availableWidth = constraints.maxWidth
-        val gapPx = gap.roundToPx()
-        val cellWidth = if (columns == 1) {
-            availableWidth
-        } else {
-            max(
-                1,
-                (availableWidth - gapPx * (columns - 1)) / columns
-            )
-        }
-        val cellHeight = cellWidth
 
-        val measurePlacements = calculateNeoTilePlacements(
-            tiles = tiles,
-            positions = positions,
-            columns = columns
-        )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(Modifier)
+                    .apply { },
+                horizontalArrangement = Arrangement.spacedBy(gap)
+            ) {
+                row.forEach { tile ->
+                    val latestDraggedId by rememberUpdatedState(draggedId)
 
-        val tileById = tiles.associateBy { it.id }
-        val maxRow = measurePlacements.maxOfOrNull { (tileId, placement) ->
-            placement.row + (tileById[tileId]?.size?.rows ?: 0)
-        } ?: 0
-
-        val placeables = measurables.mapIndexed { index, measurable ->
-            val size = tiles[index].size
-
-            val width = cellWidth * size.columns + gapPx * (size.columns - 1)
-            val height = cellHeight * size.rows + gapPx * (size.rows - 1)
-
-            measurable.measure(
-                Constraints.fixed(
-                    width = width,
-                    height = height
-                )
-            )
-        }
-
-        val layoutWidth = if (constraints.hasBoundedWidth) {
-            constraints.maxWidth
-        } else {
-            cellWidth * columns + gapPx * (columns - 1)
-        }
-
-        val layoutHeight = if (maxRow == 0) {
-            0
-        } else {
-            cellHeight * maxRow + gapPx * (maxRow - 1)
-        }
-
-        layout(
-            width = layoutWidth,
-            height = layoutHeight
-        ) {
-            placeables.forEachIndexed { index, placeable ->
-                val tile = tiles[index]
-                val placement = measurePlacements[tile.id] ?: NeoTilePlacement(
-                    column = 0,
-                    row = 0
-                )
-                val x = placement.column * (cellWidth + gapPx)
-                val y = placement.row * (cellHeight + gapPx)
-
-                placeable.place(
-                    x = x,
-                    y = y
-                )
+                    NeoTileDraggable(
+                        tile = tile,
+                        modifier = Modifier
+                            .weight(tile.size.columns.toFloat())
+                            .fillMaxHeight(),
+                        rowHeight = rowHeight,
+                        isDragging = latestDraggedId == tile.id,
+                        onDragState = onDraggedIdChange,
+                        onReorder = onReorder,
+                        onDrop = onDrop,
+                        onLongPress = { onLongPress(tile) }
+                    )
+                }
             }
         }
     }
@@ -497,97 +272,73 @@ fun NeoTileGrid(
 @Composable
 private fun NeoTileDraggable(
     tile: NeoTileSpec,
-    basePlacement: NeoTilePlacement,
-    gridWidthPx: Int,
-    columns: Int,
-    gap: Dp,
-    onDrop: (NeoTilePosition) -> Unit,
+    modifier: Modifier,
+    rowHeight: Dp,
+    isDragging: Boolean,
+    onDragState: (String?) -> Unit,
+    onReorder: (String, Int) -> Unit,
+    onDrop: () -> Unit,
     onLongPress: () -> Unit
 ) {
-    var dragOffset by remember(tile.id) {
-        mutableStateOf(Offset.Zero)
-    }
-    var dragging by remember(tile.id) {
-        mutableStateOf(false)
-    }
-    var totalDragDistance by remember(tile.id) {
-        mutableStateOf(0f)
-    }
+    var dragOffsetY by remember(tile.id) { mutableFloatStateOf(0f) }
+    var accumulatedY by remember(tile.id) { mutableFloatStateOf(0f) }
+    var moved by remember(tile.id) { mutableStateOf(false) }
 
-    val latestBasePlacement by rememberUpdatedState(basePlacement)
+    val latestOnReorder by rememberUpdatedState(onReorder)
     val latestOnDrop by rememberUpdatedState(onDrop)
-    val density = LocalDensity.current
-    val gapPx = with(density) {
-        gap.toPx()
-    }
+    val latestOnLongPress by rememberUpdatedState(onLongPress)
+    val threshold = rowHeight.value * 0.5f
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .zIndex(if (dragging) 10f else 0f)
+        modifier = modifier
+            .zIndex(if (isDragging) 10f else 0f)
             .graphicsLayer {
-                translationX = dragOffset.x
-                translationY = dragOffset.y
-                alpha = if (dragging) 0.94f else 1f
+                translationY = dragOffsetY
+                scaleX = if (isDragging) 1.05f else 1f
+                scaleY = if (isDragging) 1.05f else 1f
+                alpha = if (isDragging) 0.96f else 1f
+                shadowElevation = if (isDragging) 18f else 0f
             }
-            .pointerInput(tile.id, gridWidthPx, columns, gapPx) {
+            .pointerInput(tile.id) {
                 detectDragGesturesAfterLongPress(
                     onDragStart = {
-                        dragging = true
-                        dragOffset = Offset.Zero
-                        totalDragDistance = 0f
+                        dragOffsetY = 0f
+                        accumulatedY = 0f
+                        moved = false
+                        onDragState(tile.id)
                     },
                     onDragCancel = {
-                        dragging = false
-                        dragOffset = Offset.Zero
+                        dragOffsetY = 0f
+                        accumulatedY = 0f
+                        moved = false
+                        onDragState(null)
                     },
                     onDragEnd = {
-                        val menuThresholdPx = with(density) {
-                            24.dp.toPx()
+                        val wasMoved = moved
+                        dragOffsetY = 0f
+                        accumulatedY = 0f
+                        moved = false
+                        if (!wasMoved) {
+                            latestOnLongPress()
                         }
-
-                        if (totalDragDistance < menuThresholdPx) {
-                            onLongPress()
-                        } else if (gridWidthPx > 0) {
-                            val base = latestBasePlacement
-                            val cellWidth = if (columns == 1) {
-                                gridWidthPx.toFloat()
-                            } else {
-                                max(
-                                    1f,
-                                    (gridWidthPx - gapPx * (columns - 1)) / columns.toFloat()
-                                )
-                            }
-                            val step = cellWidth + gapPx
-
-                            if (step > 0f) {
-                                val targetColumn = (
-                                    (base.column * step + dragOffset.x) / step
-                                ).roundToInt().coerceIn(
-                                    0,
-                                    columns - tile.size.columns
-                                )
-                                val targetRow = (
-                                    (base.row * step + dragOffset.y) / step
-                                ).roundToInt().coerceAtLeast(0)
-
-                                latestOnDrop(
-                                    NeoTilePosition(
-                                        column = targetColumn,
-                                        row = targetRow
-                                    )
-                                )
-                            }
-                        }
-
-                        dragging = false
-                        dragOffset = Offset.Zero
-                        totalDragDistance = 0f
+                        latestOnDrop()
                     },
                     onDrag = { change, amount ->
                         change.consume()
-                        totalDragDistance += amount.getDistance()
-                        dragOffset += amount
+                        val dy = amount.y
+                        dragOffsetY += dy
+                        accumulatedY += dy
+
+                        while (accumulatedY >= threshold) {
+                            latestOnReorder(tile.id, 1)
+                            accumulatedY -= threshold
+                            moved = true
+                        }
+                        while (accumulatedY <= -threshold) {
+                            latestOnReorder(tile.id, -1)
+                            accumulatedY += threshold
+                            moved = true
+                        }
                     }
                 )
             }
@@ -595,4 +346,3 @@ private fun NeoTileDraggable(
         tile.content()
     }
 }
-
