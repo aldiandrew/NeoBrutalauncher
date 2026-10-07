@@ -497,8 +497,10 @@ private fun HomeScreen(
 
                         add(
                             NeoTileSpec(
-                                id = "app_${app.packageName}_${app.activityName}",
-                                size = NeoTileSize.TWO_BY_TWO
+                                id = "app_" + app.packageName + "_" + app.activityName,
+                                size = tileSizes["app_" + app.packageName + "_" + app.activityName]
+                                    ?: NeoTileSize.TWO_BY_TWO,
+                                label = app.label.uppercase()
                             ) {
                                 AppTile(
                                     app = app,
@@ -633,7 +635,11 @@ private fun HomeScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
                         text = "SIZE: " + tile.size.label,
                         fontWeight = FontWeight.Black
