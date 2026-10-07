@@ -1403,7 +1403,7 @@ private fun SettingsScreen(
                 ) {
                     listOf(0, 4, 8, 16).forEach { radius ->
                         ThemeButton(
-                            label = "\${radius}DP",
+                            label = "${radius}DP",
                             selected = cornerRadius == radius,
                             background = BrutalColors.White,
                             modifier = Modifier.weight(1f),
