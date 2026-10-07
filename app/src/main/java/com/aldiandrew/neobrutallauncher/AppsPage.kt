@@ -100,13 +100,14 @@ fun AppsPage(
                 Column {
                     Text(
                         text = "APPS",
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.Black,
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
                         letterSpacing = 1.sp,
                         color = BrutalColors.Ink
                     )
                     Text(
-                        text = sortedApps.size.toString() + " APPS / LONG-PRESS TO PIN",
+                        text = sortedApps.size.toString() + " APPS / LONG-PRESS TO PIN TO HOME",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 0.6.sp,
