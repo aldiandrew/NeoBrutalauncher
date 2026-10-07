@@ -687,6 +687,14 @@ private fun WeatherContent(
     context: android.content.Context
 ) {
 
+    val weatherLive = rememberLiveTileData(
+        tileId = "weather",
+        refreshIntervalMillis = 15 * 60 * 1000L,
+        loader = {
+            WeatherRepository.loadCurrentWeather(context)
+        }
+    )
+
     val weatherIcon = when (weatherLive.value?.weatherCode) {
         0 -> Icons.Default.WbSunny
         1, 2, 3, 45, 48 -> Icons.Default.Cloud
@@ -696,14 +704,6 @@ private fun WeatherContent(
         95, 96, 99 -> Icons.Default.Thunderstorm
         else -> Icons.Default.Cloud
     }
-
-    val weatherLive = rememberLiveTileData(
-        tileId = "weather",
-        refreshIntervalMillis = 15 * 60 * 1000L,
-        loader = {
-            WeatherRepository.loadCurrentWeather(context)
-        }
-    )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(2.dp)
