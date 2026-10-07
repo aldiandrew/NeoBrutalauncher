@@ -278,8 +278,7 @@ fun NeoTileGrid(
                                         draggedId = null
                                         dragDelta = Offset.Zero
                                     }
-                                ) { change, amount ->
-                                    change.consumePositionChange()
+                                ) { _, amount ->
                                     dragDelta += amount
                                 }
                             },
