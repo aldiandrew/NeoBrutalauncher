@@ -44,9 +44,18 @@ private val DarkScheme = darkColorScheme(
 )
 
 @Composable
-fun NeoBrutalTheme(content: @Composable () -> Unit) {
+fun NeoBrutalTheme(
+    themePreference: ThemePreference = ThemePreference.SYSTEM,
+    content: @Composable () -> Unit
+) {
+    val isDark = when (themePreference) {
+        ThemePreference.SYSTEM -> isSystemInDarkTheme()
+        ThemePreference.LIGHT -> false
+        ThemePreference.DARK -> true
+    }
+
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkScheme else LightScheme,
+        colorScheme = if (isDark) DarkScheme else LightScheme,
         content = content
     )
 }
