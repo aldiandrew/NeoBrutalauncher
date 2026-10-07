@@ -176,7 +176,6 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 brutalityLevel = brutalityLevel,
-                cornerRadius = cornerRadius.dp
             ) {
                 SettingsScreen(
                     appsCount = apps.size,
@@ -284,7 +283,6 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 brutalityLevel = brutalityLevel,
-                cornerRadius = cornerRadius.dp
             ) {
                 LauncherPageHost(
                     currentPage = currentPage,
@@ -1313,7 +1311,6 @@ private fun SettingsScreen(
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
     brutalityLevel: BrutalityLevel,
-    cornerRadius: Int,
     clockStyle: ClockStyle,
     wallpaperUri: String?,
     favoritesCount: Int,
@@ -1331,7 +1328,6 @@ private fun SettingsScreen(
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onBrutalityLevelChange: (BrutalityLevel) -> Unit,
-    onCornerRadiusChange: (Int) -> Unit,
     onClockStyleChange: (ClockStyle) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
