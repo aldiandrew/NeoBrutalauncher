@@ -1,6 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
 import android.content.Context
+import org.json.JSONArray
 
 enum class ThemePreference {
     SYSTEM,
@@ -44,11 +45,11 @@ class LauncherPreferences(context: Context) {
     }
 
     fun homeAppCount(): Int {
-        return prefs.getInt(KEY_HOME_APP_COUNT, 5).let { value -> if (value in listOf(3, 5, 7)) value else 5 }
+        return prefs.getInt(KEY_HOME_APP_COUNT, 6).coerceIn(2, 8)
     }
 
     fun setHomeAppCount(value: Int) {
-        prefs.edit().putInt(KEY_HOME_APP_COUNT, if (value in listOf(3, 5, 7)) value else 5).apply()
+        prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 8)).apply()
     }
 
     fun showTagline(): Boolean {
@@ -218,14 +219,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_BRUTALITY_LEVEL, value.name).apply()
     }
 
-    fun cornerRadius(): Int {
-        return prefs.getInt(KEY_CORNER_RADIUS, 0).coerceIn(0, 16)
-    }
-
-    fun setCornerRadius(value: Int) {
-        prefs.edit().putInt(KEY_CORNER_RADIUS, value.coerceIn(0, 16)).apply()
-    }
-
     fun clockStyle(): ClockStyle {
         return runCatching {
             ClockStyle.valueOf(
@@ -278,20 +271,55 @@ class LauncherPreferences(context: Context) {
             .apply()
     }
 
-    fun noteText(): String {
-        return prefs.getString(KEY_NOTE_TEXT, "") ?: ""
+    fun noteItems(): List<NeoListItem> = readItems(KEY_NOTE_ITEMS, KEY_NOTE_TEXT)
+
+    fun setNoteItems(values: List<NeoListItem>) {
+        writeItems(KEY_NOTE_ITEMS, values)
     }
 
-    fun setNoteText(value: String) {
-        prefs.edit().putString(KEY_NOTE_TEXT, value).apply()
+    fun taskItems(): List<NeoListItem> = readItems(KEY_TASK_ITEMS, KEY_TASK_TEXT)
+
+    fun setTaskItems(values: List<NeoListItem>) {
+        writeItems(KEY_TASK_ITEMS, values)
     }
 
-    fun taskText(): String {
-        return prefs.getString(KEY_TASK_TEXT, "") ?: ""
+    private fun readItems(key: String, legacyKey: String): List<NeoListItem> {
+        val raw = prefs.getString(key, null)
+
+        if (!raw.isNullOrBlank()) {
+            return runCatching {
+                val array = JSONArray(raw)
+                buildList {
+                    for (index in 0 until array.length()) {
+                        val item = array.optJSONObject(index) ?: continue
+                        val text = item.optString("text").trim()
+                        if (text.isNotEmpty()) {
+                            add(
+                                NeoListItem(
+                                    text = text,
+                                    checked = item.optBoolean("checked", false)
+                                )
+                            )
+                        }
+                    }
+                }
+            }.getOrDefault(emptyList())
+        }
+
+        val legacy = prefs.getString(legacyKey, "")?.trim().orEmpty()
+        return if (legacy.isBlank()) emptyList() else listOf(NeoListItem(legacy))
     }
 
-    fun setTaskText(value: String) {
-        prefs.edit().putString(KEY_TASK_TEXT, value).apply()
+    private fun writeItems(key: String, values: List<NeoListItem>) {
+        val array = JSONArray()
+        values.filter { it.text.isNotBlank() }.forEach { item ->
+            array.put(
+                org.json.JSONObject()
+                    .put("text", item.text)
+                    .put("checked", item.checked)
+            )
+        }
+        prefs.edit().putString(key, array.toString()).apply()
     }
 
     fun chaosSeed(): Int {
@@ -317,11 +345,12 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TILE_SIZES = "tile_sizes"
         private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
         private const val KEY_BRUTALITY_LEVEL = "brutality_level"
-        private const val KEY_CORNER_RADIUS = "corner_radius"
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
         private const val KEY_CHAOS_SEED = "chaos_seed"
         private const val KEY_NOTE_TEXT = "note_text"
+        private const val KEY_NOTE_ITEMS = "note_items"
+        private const val KEY_TASK_ITEMS = "task_items"
         private const val KEY_APP_LAUNCH_COUNTS = "app_launch_counts"
         private const val KEY_TASK_TEXT = "task_text"
     }
