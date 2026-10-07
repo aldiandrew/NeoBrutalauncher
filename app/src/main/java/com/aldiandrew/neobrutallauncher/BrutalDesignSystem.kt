@@ -50,12 +50,19 @@ data class BrutalMetrics(
 val LocalBrutalMetrics = staticCompositionLocalOf { BrutalMetrics() }
 
 object BrutalTypography {
-    val Bricolage = FontFamily(
-        Font(R.font.bricolage_grotesque_regular, FontWeight.Normal),
-        Font(R.font.bricolage_grotesque_bold, FontWeight.Bold),
-        Font(R.font.bricolage_grotesque_extrabold, FontWeight.ExtraBold)
+    // Display: condensed, heavy headlines for tile headers and labels.
+    val Display = FontFamily(
+        Font(R.font.anton_regular, FontWeight.Normal)
     )
-    val Poster = Bricolage
+
+    // Body: geometric, highly readable text for descriptions and editable content.
+    val Body = FontFamily(
+        Font(R.font.space_grotesk_regular, FontWeight.Normal),
+        Font(R.font.space_grotesk_bold, FontWeight.Bold)
+    )
+
+    val Bricolage = Body
+    val Poster = Display
     val Mono = FontFamily.Monospace
     val Black = FontWeight.ExtraBold
     val ExtraBold = FontWeight.ExtraBold
