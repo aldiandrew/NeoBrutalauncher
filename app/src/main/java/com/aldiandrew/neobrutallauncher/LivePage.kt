@@ -85,7 +85,12 @@ fun LivePage(
                 shadowY = 7.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = "LIVE", fontSize = 25.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        text = "LIVE",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Normal
+                    )
                     Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black)
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
@@ -131,7 +136,12 @@ fun LivePage(
                 shadowY = 0.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = "LIVE ACTIVITY", fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        text = "LIVE ACTIVITY",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
                     liveApps.forEachIndexed { index, app ->
                         val count = launchCounts[app.packageName + "/" + app.activityName] ?: 0
                         Row(
@@ -177,7 +187,12 @@ fun LivePage(
                 shadowY = 0.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(text = "LATEST NOTES / TASKS", fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        text = "LATEST NOTES / TASKS",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
                     if (notes.isEmpty() && tasks.isEmpty()) {
                         Text(
                             text = "NO LOCAL ACTIVITY YET",
@@ -212,7 +227,8 @@ fun LivePage(
         item {
             NeoQuoteTile(
                 quote = NeoQuotes.pairForToday().second,
-                modifier = Modifier.fillMaxWidth().height(170.dp)
+                modifier = Modifier.fillMaxWidth().height(190.dp),
+                emphasized = true
             )
         }
     }
