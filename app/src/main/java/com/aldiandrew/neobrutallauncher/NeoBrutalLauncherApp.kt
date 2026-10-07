@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -50,8 +49,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +58,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -510,7 +506,6 @@ private fun AppDrawer(
 ) {
     BackHandler(onBack = onClose)
     var query by remember { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
 
     val filtered = remember(apps, query) {
         if (query.isBlank()) {
@@ -581,9 +576,7 @@ private fun AppDrawer(
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             leadingIcon = {
                 Icon(
@@ -591,17 +584,6 @@ private fun AppDrawer(
                     contentDescription = "Search",
                     tint = BrutalColors.Ink
                 )
-            },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { query = "" }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Clear search",
-                            tint = BrutalColors.Ink
-                        )
-                    }
-                }
             },
             placeholder = {
                 Text(
