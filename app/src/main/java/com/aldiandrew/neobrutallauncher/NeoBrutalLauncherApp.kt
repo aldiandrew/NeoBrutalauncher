@@ -196,6 +196,7 @@ fun NeoBrutalLauncherApp() {
             )
         }
     }
+}
 
 @Composable
 private fun HomeScreen(
