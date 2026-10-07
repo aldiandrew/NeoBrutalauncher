@@ -64,8 +64,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -89,6 +87,7 @@ fun NeoBrutalLauncherApp() {
     var showWeather by remember { mutableStateOf(preferences.showWeather()) }
     var showQuote by remember { mutableStateOf(preferences.showQuote()) }
     var favorites by remember { mutableStateOf(preferences.favorites()) }
+    var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
 
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -245,7 +244,12 @@ fun NeoBrutalLauncherApp() {
                     showQuote = showQuote,
                     onOpenDrawer = { drawerOpen = true },
                     onOpenSettings = { settingsOpen = true },
-                    onLaunch = repository::launch
+                    onLaunch = repository::launch,
+                    tilePositions = tilePositions,
+                    onTilePositionsChange = { updated ->
+                        tilePositions = updated
+                        preferences.setTilePositions(updated)
+                    }
                 )
             }
         }
@@ -265,7 +269,9 @@ private fun HomeScreen(
     showQuote: Boolean,
     onOpenDrawer: () -> Unit,
     onOpenSettings: () -> Unit,
-    onLaunch: (AppInfo) -> Unit
+    onLaunch: (AppInfo) -> Unit,
+    tilePositions: Map<String, NeoTilePosition>,
+    onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit
 ) {
     BackHandler(onBack = {})
 
@@ -277,13 +283,7 @@ private fun HomeScreen(
             BrutalColors.Ink
         }
 
-    val clockLive = rememberLiveTileData(
-        tileId = "clock",
-        refreshIntervalMillis = 1000L,
-        initialValue = Date(),
-        loader = { Date() }
-    )
-    val now = clockLive.value ?: Date()
+    val now = rememberMinuteClock()
 
     val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
 
@@ -589,6 +589,8 @@ private fun HomeScreen(
                         }
                     )
                 },
+                positions = tilePositions,
+                onPositionsChange = onTilePositionsChange,
                 modifier = Modifier.fillMaxWidth()
             )
 

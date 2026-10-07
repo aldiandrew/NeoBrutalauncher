@@ -5,10 +5,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import java.util.Date
 
 data class LiveTileState<T>(
     val value: T?,
@@ -47,23 +52,33 @@ fun <T> rememberLiveTileData(
         )
     }
 
-    LaunchedEffect(tileId, refreshIntervalMillis) {
-        while (isActive) {
-            loading = true
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val latestLoader by rememberUpdatedState(loader)
 
-            try {
-                value = loader()
-                error = null
-                lastUpdatedMillis = System.currentTimeMillis()
-            } catch (cancellationException: CancellationException) {
-                throw cancellationException
-            } catch (throwable: Throwable) {
-                error = throwable
-            } finally {
-                loading = false
+    LaunchedEffect(tileId, refreshIntervalMillis, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (isActive) {
+                val startedAtMillis = System.currentTimeMillis()
+                loading = true
+
+                try {
+                    value = latestLoader()
+                    error = null
+                    lastUpdatedMillis = System.currentTimeMillis()
+                } catch (cancellationException: CancellationException) {
+                    throw cancellationException
+                } catch (throwable: Throwable) {
+                    error = throwable
+                } finally {
+                    loading = false
+                }
+
+                val elapsedMillis = System.currentTimeMillis() - startedAtMillis
+                delay(
+                    (refreshIntervalMillis - elapsedMillis)
+                        .coerceAtLeast(0L)
+                )
             }
-
-            delay(refreshIntervalMillis)
         }
     }
 
@@ -73,4 +88,31 @@ fun <T> rememberLiveTileData(
         error = error,
         lastUpdatedMillis = lastUpdatedMillis
     )
+}
+
+@Composable
+fun rememberMinuteClock(
+    initialValue: Date = Date()
+): Date {
+    var value by remember {
+        mutableStateOf(initialValue)
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (isActive) {
+                val now = Date()
+                value = now
+
+                val millisToNextMinute =
+                    60_000L - (now.time % 60_000L)
+
+                delay(millisToNextMinute + 50L)
+            }
+        }
+    }
+
+    return value
 }

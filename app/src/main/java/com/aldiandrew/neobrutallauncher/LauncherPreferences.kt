@@ -95,6 +95,55 @@ class LauncherPreferences(context: Context) {
         prefs.edit().remove(KEY_FAVORITES).apply()
     }
 
+    fun tilePositions(): Map<String, NeoTilePosition> {
+        return prefs.getStringSet(KEY_TILE_POSITIONS, emptySet())
+            ?.mapNotNull { entry ->
+                val parts = entry.split("|")
+                if (parts.size != 3) {
+                    return@mapNotNull null
+                }
+
+                val tileId = parts[0]
+                val column = parts[1].toIntOrNull()
+                val row = parts[2].toIntOrNull()
+
+                if (
+                    tileId.isBlank() ||
+                    column == null ||
+                    row == null ||
+                    column < 0 ||
+                    row < 0
+                ) {
+                    null
+                } else {
+                    tileId to NeoTilePosition(
+                        column = column,
+                        row = row
+                    )
+                }
+            }
+            ?.toMap()
+            .orEmpty()
+    }
+
+    fun setTilePositions(values: Map<String, NeoTilePosition>) {
+        val encoded = values.mapNotNull { (tileId, position) ->
+            if (
+                tileId.isBlank() ||
+                position.column < 0 ||
+                position.row < 0
+            ) {
+                null
+            } else {
+                tileId + "|" + position.column + "|" + position.row
+            }
+        }.toSet()
+
+        prefs.edit()
+            .putStringSet(KEY_TILE_POSITIONS, encoded)
+            .apply()
+    }
+
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
@@ -105,5 +154,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_WEATHER = "show_weather"
         private const val KEY_QUOTE = "show_quote"
         private const val KEY_FAVORITES = "favorites"
+        private const val KEY_TILE_POSITIONS = "tile_positions"
     }
 }
