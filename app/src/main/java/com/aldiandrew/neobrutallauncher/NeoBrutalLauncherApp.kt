@@ -616,11 +616,11 @@ private fun HomeScreen(
             item(key = "clock") {
                 BrutalBlock(
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                    background = MaterialTheme.colorScheme.background,
+                    background = MaterialTheme.colorScheme.surface,
                     borderWidth = 3.dp,
                     borderColor = MaterialTheme.colorScheme.onBackground,
-                    shadowX = 0.dp,
-                    shadowY = 0.dp
+                    shadowX = 5.dp,
+                    shadowY = 5.dp
                 ) {
                     BoxWithConstraints(
                         modifier = Modifier.fillMaxSize().padding(13.dp),
@@ -1077,11 +1077,11 @@ private fun NeoAddAppTile(
     ) {
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
-            background = Color.Transparent,
+            background = MaterialTheme.colorScheme.surface,
             borderWidth = 3.dp,
             borderColor = textColor,
-            shadowX = 0.dp,
-            shadowY = 0.dp
+            shadowX = 5.dp,
+            shadowY = 5.dp
         ) {
             if (app == null || iconBitmap == null) {
                 Column(
