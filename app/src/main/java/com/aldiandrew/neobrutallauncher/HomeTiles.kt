@@ -311,9 +311,10 @@ private fun NeoTileDraggable(
 
                     if (longPress == null) {
                         val event = currentEvent
-                        val movedBeforeLongPress = event?.changes?.any {
-                            it.position != it.previousPosition
-                        } == true
+                        val movedBeforeLongPress =
+                            event?.changes?.any { change ->
+                                change.position != change.previousPosition
+                            } == true
 
                         if (!movedBeforeLongPress) {
                             latestClick?.invoke()
@@ -329,9 +330,19 @@ private fun NeoTileDraggable(
                     val threshold =
                         (rowStepPx * REORDER_THRESHOLD_RATIO).coerceAtLeast(24f)
 
-                    val completed = drag(longPress.id) { change ->
-                        val dy = (change.position.y - change.previousPosition.y)
-                        if (dy == 0f) return@drag
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == longPress.id }
+                            ?: break
+
+                        if (!change.pressed) {
+                            break
+                        }
+
+                        val dy = change.position.y - change.previousPosition.y
+                        if (dy == 0f) {
+                            continue
+                        }
 
                         change.consume()
                         dragOffsetY += dy
@@ -354,20 +365,14 @@ private fun NeoTileDraggable(
                         }
                     }
 
-                    if (completed) {
-                        if (!moved) {
-                            latestOnLongPress()
-                        }
-                        dragOffsetY = 0f
-                        accumulatedY = 0f
-                        moved = false
-                        latestOnDrop()
-                    } else {
-                        dragOffsetY = 0f
-                        accumulatedY = 0f
-                        moved = false
-                        latestOnDragState(null)
+                    if (!moved) {
+                        latestOnLongPress()
                     }
+
+                    dragOffsetY = 0f
+                    accumulatedY = 0f
+                    moved = false
+                    latestOnDrop()
                 }
             }
     ) {
