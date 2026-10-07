@@ -391,14 +391,11 @@ private fun HomeScreen(
                             color = BrutalColors.Ink
                         )
                     }
-                }
-            }
 
-            if (showWeather) {
-                HomeWeatherTile(
-                    context = context,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    if (showWeather) {
+                        WeatherContent(context = context)
+                    }
+                }
             }
 
             if (showQuote) {
@@ -507,9 +504,8 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun HomeWeatherTile(
-    context: android.content.Context,
-    modifier: Modifier = Modifier
+private fun WeatherContent(
+    context: android.content.Context
 ) {
     var weather by remember { mutableStateOf<WeatherData?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -528,51 +524,45 @@ private fun HomeWeatherTile(
         }
     }
 
-    BrutalBlock(
-        modifier = modifier,
-        background = BrutalColors.Cyan,
-        borderWidth = 3.dp,
-        shadowX = 6.dp,
-        shadowY = 6.dp
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = "WEATHER",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-                color = BrutalColors.Ink
-            )
+        Text(
+            text = "WEATHER",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp,
+            color = BrutalColors.Ink
+        )
 
-            when {
-                weather != null -> {
-                    Text(
-                        text = "${weather!!.temperatureC.toInt()}°C · ${weather!!.description}",
-                        fontSize = 18.sp,
-                        lineHeight = 21.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
-                    )
-                }
+        when {
+            weather != null -> {
+                Text(
+                    text = "${weather!!.temperatureC.toInt()}°C · ${weather!!.description}",
+                    fontSize = 18.sp,
+                    lineHeight = 21.sp,
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink
+                )
+            }
 
-                error != null -> {
-                    Text(
-                        text = "LOCATION / NETWORK NEEDED",
-                        fontSize = 13.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
-                    )
-                }
+            error != null -> {
+                Text(
+                    text = "LOCATION / NETWORK NEEDED",
+                    fontSize = 13.sp,
+                    lineHeight = 16.sp,
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink
+                )
+            }
 
-                else -> {
-                    Text(
-                        text = "LOADING WEATHER...",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
-                    )
-                }
+            else -> {
+                Text(
+                    text = "LOADING WEATHER...",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink
+                )
             }
         }
     }
