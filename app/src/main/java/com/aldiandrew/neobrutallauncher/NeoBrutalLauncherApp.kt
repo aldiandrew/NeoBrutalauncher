@@ -291,8 +291,6 @@ private fun LauncherPageHost(
     onPageChange: (Int) -> Unit,
     content: @Composable () -> Unit
 ) {
-    var accumulatedX by remember { mutableStateOf(0f) }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
