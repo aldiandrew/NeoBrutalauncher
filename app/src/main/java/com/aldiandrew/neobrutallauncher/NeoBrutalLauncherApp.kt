@@ -273,6 +273,7 @@ fun NeoBrutalLauncherApp() {
                                 preferences.setFavorites(updated)
                             },
                             onLaunch = repository::launch,
+                            onOpenHome = { currentPage = 0 },
                             onOpenSettings = { settingsOpen = true },
                             onRefresh = { refreshApps() }
                         )
@@ -575,7 +576,7 @@ private fun HomeScreen(
                             ) {
                                 BrutalBlock(
                                     modifier = Modifier.fillMaxSize(),
-                                    background = darkTileBackground,
+                                    background = BrutalColors.Purple,
                                     borderWidth = 3.dp,
                                     shadowX = 5.dp,
                                     shadowY = 5.dp
