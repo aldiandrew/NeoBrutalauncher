@@ -502,11 +502,23 @@ private fun HomeScreen(
         preferences.setHomeAppOrder(stableHomeOrder)
     }
 
+    // A pinned app is a Home launchable app, so pinning also clears a prior removal.
+    LaunchedEffect(favorites, excludedHomeApps) {
+        val cleaned = excludedHomeApps - favorites
+        if (cleaned != excludedHomeApps) {
+            excludedHomeApps = cleaned
+            preferences.setExcludedHomeApps(cleaned)
+        }
+    }
+
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
     val launchableApps = stableHomeOrder
         .filterNot { excludedHomeApps.contains(it) }
+        .sortedWith(
+            compareByDescending<String> { favorites.contains(it) }
+        )
         .mapNotNull { appsByKey[it] }
         .take(homeAppCount.coerceIn(2, 8))
 
@@ -548,6 +560,7 @@ private fun HomeScreen(
                     ) {
                         Text(
                             text = "NEO / HOME",
+                            fontFamily = BrutalTypography.Display,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp,
@@ -557,7 +570,7 @@ private fun HomeScreen(
 
                     Box(
                         modifier = Modifier
-                            .width(82.dp)
+                            .width(106.dp)
                             .clickable(onClick = onOpenSettings)
                     ) {
                         BrutalBlock(
@@ -567,14 +580,28 @@ private fun HomeScreen(
                             shadowX = 4.dp,
                             shadowY = 4.dp
                         ) {
-                            Text(
-                                text = "V0.1",
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink
-                            )
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Settings",
+                                    tint = BrutalColors.Ink,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    text = "SETTINGS",
+                                    fontFamily = BrutalTypography.Display,
+                                    modifier = Modifier,
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = BrutalColors.Ink
+                                )
+                            }
                         }
                     }
                 }
@@ -1088,6 +1115,7 @@ private fun NeoAddAppTile(
                         text = app.label.uppercase(),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
+                        fontFamily = BrutalTypography.Display,
                         fontSize = when {
                             app.label.length > 18 -> 8.sp
                             app.label.length > 11 -> 9.sp
@@ -1439,8 +1467,8 @@ private fun AppTile(
             modifier = Modifier.fillMaxSize(),
             background = background,
             borderWidth = 3.dp,
-            shadowX = 0.dp,
-            shadowY = 0.dp
+            shadowX = 5.dp,
+            shadowY = 5.dp
         ) {
             when (contentMode) {
                 TileContentMode.ICON -> {
@@ -1485,6 +1513,7 @@ private fun AppTile(
                             text = app.label.uppercase(),
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = if (isSmall) TextAlign.Center else TextAlign.Start,
+                            fontFamily = BrutalTypography.Display,
                             fontSize = textSize,
                             lineHeight = (textSize.value * 1.08f).sp,
                             fontWeight = FontWeight.Black,
@@ -1512,6 +1541,7 @@ private fun AppTile(
                                 text = app.label.uppercase(),
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
+                                fontFamily = BrutalTypography.Display,
                                 fontSize = textSize,
                                 lineHeight = (textSize.value * 1.08f).sp,
                                 fontWeight = FontWeight.Black,
@@ -1534,6 +1564,7 @@ private fun AppTile(
                             Text(
                                 text = app.label.uppercase(),
                                 modifier = Modifier.weight(1f),
+                                fontFamily = BrutalTypography.Display,
                                 fontSize = textSize,
                                 lineHeight = (textSize.value * 1.08f).sp,
                                 fontWeight = FontWeight.Black,
