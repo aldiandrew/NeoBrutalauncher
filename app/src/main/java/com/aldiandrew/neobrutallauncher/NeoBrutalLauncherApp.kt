@@ -11,9 +11,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -56,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -98,7 +101,7 @@ fun NeoBrutalLauncherApp() {
     var favorites by remember { mutableStateOf(preferences.favorites()) }
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
-    var tileContentModes by remember { mutableStateOf(preferences.tileContentModes()) }
+    var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
 
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -156,6 +159,7 @@ fun NeoBrutalLauncherApp() {
                     showWeather = showWeather,
                     showQuote = showQuote,
                     showBattery = showBattery,
+                    appTileContentMode = appTileContentMode,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     onBack = { settingsOpen = false },
@@ -211,6 +215,10 @@ fun NeoBrutalLauncherApp() {
                         showBattery = it
                         preferences.setShowBattery(it)
                     },
+                    onAppTileContentModeChange = {
+                        appTileContentMode = it
+                        preferences.setAppTileContentMode(it)
+                    },
                     onRefreshApps = { refreshApps() },
                     onClearFavorites = {
                         favorites = emptySet()
@@ -241,7 +249,6 @@ fun NeoBrutalLauncherApp() {
                             showWeather = showWeather,
                             showQuote = showQuote,
                             showBattery = showBattery,
-                            onOpenApps = { currentPage = 1; refreshApps() },
                             onOpenSettings = { settingsOpen = true },
                             onLaunch = repository::launch,
                             tilePositions = tilePositions,
@@ -254,11 +261,6 @@ fun NeoBrutalLauncherApp() {
                                 tileSizes = tileSizes + (tileId to size)
                                 preferences.setTileSizes(tileSizes)
                             },
-                            tileContentModes = tileContentModes,
-                            onTileContentModeChange = { tileId, mode ->
-                                tileContentModes = tileContentModes + (tileId to mode)
-                                preferences.setTileContentModes(tileContentModes)
-                            }
                         )
                     } else {
                         AppsPage(
@@ -274,9 +276,7 @@ fun NeoBrutalLauncherApp() {
                                 preferences.setFavorites(updated)
                             },
                             onLaunch = repository::launch,
-                            onOpenHome = { currentPage = 0 },
-                            onOpenSettings = { settingsOpen = true },
-                            onRefresh = { refreshApps() }
+                            onOpenHome = { currentPage = 0 }
                         )
                     }
                 }
@@ -294,60 +294,42 @@ private fun LauncherPageHost(
     Box(
         modifier = Modifier
             .fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 62.dp)
-        ) {
-            androidx.compose.animation.Crossfade(
-                targetState = currentPage,
-                label = "launcherPage"
-            ) {
-                content()
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .height(62.dp)
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            listOf("HOME", "APPS").forEachIndexed { index, label ->
-                BrutalBlock(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onPageChange(index) },
-                    background = when {
-                        index == currentPage -> when (index) {
-                            0 -> BrutalColors.Yellow
-                            else -> BrutalColors.Cyan
-                        }
-                        else -> if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) {
-                            BrutalColors.DarkTile
-                        } else {
-                            BrutalColors.White
-                        }
+            .pointerInput(currentPage) {
+                var totalX = 0f
+                var totalY = 0f
+                detectDragGestures(
+                    onDragStart = {
+                        totalX = 0f
+                        totalY = 0f
                     },
-                    borderWidth = if (index == currentPage) 4.dp else 2.dp,
-                    shadowX = 3.dp,
-                    shadowY = 3.dp
-                ) {
-                    Text(
-                        text = label,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (index == currentPage) BrutalColors.Ink else MaterialTheme.colorScheme.onSurface
-                    )
+                    onDragCancel = {
+                        totalX = 0f
+                        totalY = 0f
+                    },
+                    onDragEnd = {
+                        val horizontal = abs(totalX) > abs(totalY)
+                        if (horizontal && abs(totalX) >= 96f) {
+                            when {
+                                totalX < 0f && currentPage == 0 -> onPageChange(1)
+                                totalX > 0f && currentPage == 1 -> onPageChange(0)
+                            }
+                        }
+                        totalX = 0f
+                        totalY = 0f
+                    }
+                ) { change, amount ->
+                    totalX += amount.x
+                    totalY += amount.y
+
+                    // Only consume horizontal gestures. Vertical tile drags remain owned
+                    // by the tile gesture handler.
+                    if (abs(totalX) > abs(totalY) && abs(totalX) > 8f) {
+                        change.consume()
+                    }
                 }
             }
-        }
+    ) {
+        content()
     }
 }
 
@@ -363,15 +345,12 @@ private fun HomeScreen(
     showWeather: Boolean,
     showQuote: Boolean,
     showBattery: Boolean,
-    onOpenApps: () -> Unit,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
     onTileSizeChange: (String, NeoTileSize) -> Unit,
-    tileContentModes: Map<String, TileContentMode>,
-    onTileContentModeChange: (String, TileContentMode) -> Unit
 ) {
     BackHandler(onBack = {})
 
@@ -386,6 +365,7 @@ private fun HomeScreen(
     val now = rememberMinuteClock()
 
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
+    var weatherRefreshToken by remember { mutableIntStateOf(0) }
 
     val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
 
@@ -523,10 +503,12 @@ private fun HomeScreen(
                             NeoTileSpec(
                                 id = "weather",
                                 size = tileSizes["weather"] ?: NeoTileSize.WIDE,
-                                label = "WEATHER"
+                                label = "WEATHER",
+                                onClick = { weatherRefreshToken++ }
                             ) {
                                 NeoWeatherTile(
                                     context = context,
+                                    refreshToken = weatherRefreshToken,
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
@@ -596,16 +578,14 @@ private fun HomeScreen(
                                 id = "app_" + app.packageName + "_" + app.activityName,
                                 size = tileSizes["app_" + app.packageName + "_" + app.activityName]
                                     ?: NeoTileSize.MEDIUM,
-                                label = app.label.uppercase()
+                                label = app.label.uppercase(),
+                                onClick = { onLaunch(app) }
                             ) {
-                                val appTileId = "app_" + app.packageName + "_" + app.activityName
                                 AppTile(
                                     app = app,
                                     background = tileColor,
                                     modifier = Modifier.fillMaxSize(),
-                                    onClick = { onLaunch(app) },
-                                    contentMode = tileContentModes[appTileId] ?: TileContentMode.ICON_TEXT,
-                                    randomSeed = appTileId.hashCode()
+                                    contentMode = appTileContentMode
                                 )
                             }
                         )
@@ -748,32 +728,6 @@ private fun HomeScreen(
                         }
                     }
 
-                    if (tile.id.startsWith("app_")) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "CONTENT",
-                            fontWeight = FontWeight.Black
-                        )
-                        listOf(
-                            TileContentMode.ICON,
-                            TileContentMode.ICON_TEXT,
-                            TileContentMode.TEXT
-                        ).forEach { mode ->
-                            androidx.compose.material3.TextButton(
-                                onClick = {
-                                    onTileContentModeChange(tile.id, mode)
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = mode.label,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Black
-                                )
-                            }
-                        }
-                    }
                 }
             },
             confirmButton = {
@@ -828,96 +782,93 @@ private fun AppTile(
     background: Color,
     modifier: Modifier,
     onClick: () -> Unit,
-    contentMode: TileContentMode,
-    randomSeed: Int
+    contentMode: TileContentMode
 ) {
-    val random = remember(app.packageName, contentMode, randomSeed) {
-        kotlin.random.Random(randomSeed + contentMode.ordinal * 997)
-    }
+    BoxWithConstraints(modifier = modifier) {
+        val compactSize = minOf(maxWidth, maxHeight)
+        val iconSize = (compactSize * 0.52f).coerceIn(38.dp, 78.dp)
 
-    val alignments = listOf(
-        Alignment.Center,
-        Alignment.TopStart,
-        Alignment.TopEnd,
-        Alignment.BottomStart,
-        Alignment.BottomEnd,
-        Alignment.CenterStart,
-        Alignment.CenterEnd
-    )
-    val contentAlignment = alignments[random.nextInt(alignments.size)]
-    val padding = (8 + random.nextInt(17)).dp
-    val iconDp = (48 + random.nextInt(49)).dp
-    val baseTextSize = when (contentMode) {
-        TileContentMode.ICON -> 0
-        TileContentMode.ICON_TEXT -> 24
-        TileContentMode.TEXT -> 34
-    }
-    val textSize = (baseTextSize + random.nextInt(9)).sp
-    val textWeight = if (random.nextBoolean()) FontWeight.Black else FontWeight.ExtraBold
-    val tilt = if (random.nextBoolean()) -1.5f else 1.5f
+        val baseTextSize = when {
+            compactSize < 100.dp -> 10f
+            compactSize < 180.dp -> 15f
+            else -> 22f
+        }
 
-    BrutalBlock(
-        modifier = modifier.clickable(onClick = onClick),
-        background = background,
-        borderWidth = 3.dp,
-        shadowX = 5.dp,
-        shadowY = 5.dp
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = contentAlignment
+        val textScale = when {
+            app.label.length > 24 -> 0.58f
+            app.label.length > 18 -> 0.68f
+            app.label.length > 12 -> 0.82f
+            else -> 1f
+        }
+
+        val textSize = (baseTextSize * textScale).coerceAtLeast(9f).sp
+        val iconBitmap = remember(app.packageName) {
+            app.icon.toBitmap(96, 96).asImageBitmap()
+        }
+
+        BrutalBlock(
+            modifier = Modifier.fillMaxSize().clickable(onClick = onClick),
+            background = background,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
         ) {
-            when (contentMode) {
-                TileContentMode.ICON -> {
-                    Image(
-                        bitmap = app.icon.toBitmap(128, 128).asImageBitmap(),
-                        contentDescription = app.label,
-                        modifier = Modifier
-                            .width(iconDp)
-                            .height(iconDp)
-                            .graphicsLayer {
-                                rotationZ = tilt
-                            }
-                    )
-                }
-
-                TileContentMode.ICON_TEXT -> {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                when (contentMode) {
+                    TileContentMode.ICON -> {
                         Image(
-                            bitmap = app.icon.toBitmap(128, 128).asImageBitmap(),
+                            bitmap = iconBitmap,
                             contentDescription = app.label,
                             modifier = Modifier
-                                .width(iconDp)
-                                .height(iconDp)
-                                .graphicsLayer {
-                                    rotationZ = tilt
-                                }
-                        )
-                        Text(
-                            text = app.label.uppercase(),
-                            fontSize = textSize,
-                            lineHeight = textSize * 0.9f,
-                            fontWeight = textWeight,
-                            color = BrutalColors.Ink,
-                            maxLines = 2
+                                .width(iconSize)
+                                .height(iconSize)
                         )
                     }
-                }
 
-                TileContentMode.TEXT -> {
-                    Text(
-                        text = app.label.uppercase(),
-                        fontSize = textSize,
-                        lineHeight = textSize * 0.88f,
-                        fontWeight = textWeight,
-                        color = BrutalColors.Ink,
-                        maxLines = 3
-                    )
+                    TileContentMode.ICON_TEXT -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = app.label,
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = app.label.uppercase(),
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = textSize,
+                                lineHeight = textSize,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2
+                            )
+                        }
+                    }
+
+                    TileContentMode.TEXT -> {
+                        Text(
+                            text = app.label.uppercase(),
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = textSize,
+                            lineHeight = textSize,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink,
+                            textAlign = TextAlign.Center,
+                            maxLines = 3
+                        )
+                    }
                 }
             }
         }
@@ -936,6 +887,7 @@ private fun SettingsScreen(
     showWeather: Boolean,
     showQuote: Boolean,
     showBattery: Boolean,
+    appTileContentMode: TileContentMode,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     onBack: () -> Unit,
@@ -949,6 +901,7 @@ private fun SettingsScreen(
     onRequestWeatherPermission: () -> Unit,
     onShowQuoteChange: (Boolean) -> Unit,
     onShowBatteryChange: (Boolean) -> Unit,
+    onAppTileContentModeChange: (TileContentMode) -> Unit,
     onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
@@ -1177,6 +1130,57 @@ private fun SettingsScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                                 onClick = { onHomeAppCountChange(count) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            SettingsSectionTitle("APP TILES")
+
+            BrutalBlock(
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Lime,
+                borderWidth = 3.dp,
+                shadowX = 5.dp,
+                shadowY = 5.dp
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "APP TILE CONTENT",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "Choose one layout for every app tile on the home screen.",
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            TileContentMode.ICON,
+                            TileContentMode.ICON_TEXT,
+                            TileContentMode.TEXT
+                        ).forEach { mode ->
+                            ThemeButton(
+                                label = when (mode) {
+                                    TileContentMode.ICON -> "ICON"
+                                    TileContentMode.ICON_TEXT -> "ICON + TEXT"
+                                    TileContentMode.TEXT -> "TEXT"
+                                },
+                                selected = appTileContentMode == mode,
+                                background = when (mode) {
+                                    TileContentMode.ICON -> BrutalColors.Cyan
+                                    TileContentMode.ICON_TEXT -> BrutalColors.Yellow
+                                    TileContentMode.TEXT -> BrutalColors.Pink
+                                },
+                                modifier = Modifier.weight(1f),
+                                onClick = { onAppTileContentModeChange(mode) }
                             )
                         }
                     }
