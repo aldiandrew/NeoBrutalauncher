@@ -34,12 +34,14 @@ enum class NeoTileSize(
 ) {
     SMALL(1, 1, "SMALL"),
     MEDIUM(2, 2, "MEDIUM"),
+    TALL(1, 3, "TALL 1x3"),
     WIDE(4, 2, "WIDE"),
     LARGE(4, 4, "LARGE");
 
     fun next(): NeoTileSize = when (this) {
         SMALL -> MEDIUM
-        MEDIUM -> WIDE
+        MEDIUM -> TALL
+        TALL -> WIDE
         WIDE -> LARGE
         LARGE -> SMALL
     }
