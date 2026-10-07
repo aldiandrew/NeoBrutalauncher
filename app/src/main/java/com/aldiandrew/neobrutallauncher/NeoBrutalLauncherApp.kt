@@ -528,7 +528,7 @@ private fun WeatherContent(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(
-            text = "WEATHER",
+            text = "WEATHER / OPEN-METEO",
             fontSize = 11.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 1.sp,
