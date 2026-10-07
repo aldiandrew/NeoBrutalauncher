@@ -20,7 +20,9 @@ import kotlin.coroutines.resume
 data class WeatherData(
     val temperatureC: Double,
     val weatherCode: Int,
-    val description: String
+    val description: String,
+    val humidityPercent: Int,
+    val windKph: Double
 )
 
 object WeatherRepository {
@@ -119,7 +121,7 @@ object WeatherRepository {
             "https://api.open-meteo.com/v1/forecast" +
                 "?latitude=$latitude" +
                 "&longitude=$longitude" +
-                "&current=temperature_2m,weather_code" +
+                &current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m +
                 "&timezone=auto"
 
         val connection =
@@ -145,11 +147,15 @@ object WeatherRepository {
             val current = JSONObject(response).getJSONObject("current")
             val temperature = current.getDouble("temperature_2m")
             val weatherCode = current.getInt("weather_code")
+            val humidity = current.getInt("relative_humidity_2m")
+            val windKph = current.getDouble("wind_speed_10m")
 
             WeatherData(
                 temperatureC = temperature,
                 weatherCode = weatherCode,
-                description = weatherDescription(weatherCode)
+                description = weatherDescription(weatherCode),
+                humidityPercent = humidity,
+                windKph = windKph
             )
         } finally {
             connection.disconnect()
