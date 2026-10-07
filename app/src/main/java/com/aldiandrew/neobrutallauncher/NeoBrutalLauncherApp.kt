@@ -267,7 +267,15 @@ private fun HomeScreen(
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit
 ) {
+    BackHandler(onBack = {})
+
     val context = androidx.compose.ui.platform.LocalContext.current
+    val darkTileBackground =
+        if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) {
+            BrutalColors.DarkTile
+        } else {
+            BrutalColors.Ink
+        }
 
     val clockLive = rememberLiveTileData(
         tileId = "clock",
@@ -432,7 +440,7 @@ private fun HomeScreen(
                             ) {
                                 BrutalBlock(
                                     modifier = Modifier.fillMaxSize(),
-                                    background = BrutalColors.Ink,
+                                    background = darkTileBackground,
                                     borderWidth = 3.dp,
                                     shadowX = 5.dp,
                                     shadowY = 5.dp
@@ -558,7 +566,7 @@ private fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clickable(onClick = onOpenDrawer),
-                                background = BrutalColors.Ink,
+                                background = darkTileBackground,
                                 borderWidth = 4.dp,
                                 shadowX = 8.dp,
                                 shadowY = 8.dp
@@ -729,8 +737,9 @@ private fun AppTile(
         shadowY = 5.dp
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Image(
                 bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
@@ -779,6 +788,12 @@ private fun AppDrawer(
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
+    val darkTileBackground =
+        if (uiBackground == BrutalColors.DarkPaper) {
+            BrutalColors.DarkTile
+        } else {
+            BrutalColors.Ink
+        }
 
     Column(
         modifier = Modifier
@@ -840,7 +855,7 @@ private fun AppDrawer(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = BrutalColors.Ink
+                    tint = uiOnSurface
                 )
             },
             placeholder = {
@@ -1335,7 +1350,7 @@ private fun SettingsScreen(
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Ink,
+                background = darkTileBackground,
                 borderWidth = 3.dp,
                 shadowX = 5.dp,
                 shadowY = 5.dp
