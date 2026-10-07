@@ -452,12 +452,20 @@ private fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                if (wallpaperUri == null) MaterialTheme.colorScheme.background
+                else Color.Transparent
+            )
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             )
     ) {
+        BrutalWallpaper(
+            uriString = wallpaperUri,
+            modifier = Modifier.fillMaxSize()
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -535,54 +543,15 @@ private fun HomeScreen(
                                 shadowX = 8.dp,
                                 shadowY = 8.dp
                             ) {
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxSize().padding(9.dp)
-                                ) {
-                                    val compact = minOf(maxWidth, maxHeight)
-
-                                    Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            text = time.format(now),
-                                            fontSize = when {
-                                                compact < 78.dp -> 12.sp
-                                                compact < 155.dp -> 31.sp
-                                                else -> 58.sp
-                                            },
-                                            lineHeight = when {
-                                                compact < 78.dp -> 13.sp
-                                                compact < 155.dp -> 32.sp
-                                                else -> 59.sp
-                                            },
-                                            fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Ink,
-                                            maxLines = 1
-                                        )
-
-                                        if (showDate) {
-                                            Spacer(Modifier.height(if (compact < 155.dp) 3.dp else 5.dp))
-                                            Text(
-                                                text = date.format(now).uppercase(),
-                                                fontSize = when {
-                                                    compact < 78.dp -> 6.sp
-                                                    compact < 155.dp -> 9.sp
-                                                    else -> 16.sp
-                                                },
-                                                lineHeight = when {
-                                                    compact < 78.dp -> 7.sp
-                                                    compact < 155.dp -> 10.sp
-                                                    else -> 17.sp
-                                                },
-                                                fontWeight = FontWeight.Black,
-                                                letterSpacing = if (compact < 155.dp) 0.sp else 1.5.sp,
-                                                color = BrutalColors.Ink,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
-                                }
+                                ClockTileContent(
+                                    now = now,
+                                    time = time,
+                                    date = date,
+                                    use24Hour = use24Hour,
+                                    showDate = showDate,
+                                    style = clockStyle,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                         }
                     )
@@ -661,16 +630,8 @@ private fun HomeScreen(
                     }
 
                     topApps.forEachIndexed { index, app ->
-                        val tileColor = when (index % 8) {
-                            0 -> BrutalColors.Pink
-                            1 -> BrutalColors.Cyan
-                            2 -> BrutalColors.Lime
-                            3 -> BrutalColors.Orange
-                            4 -> BrutalColors.Purple
-                            5 -> BrutalColors.White
-                            6 -> BrutalColors.Yellow
-                            else -> BrutalColors.Pink
-                        }
+                        val tilePalette = BrutalColors.appPalette(chaosSeed)
+                        val tileColor = tilePalette[index % tilePalette.size]
 
                         add(
                             NeoTileSpec(
