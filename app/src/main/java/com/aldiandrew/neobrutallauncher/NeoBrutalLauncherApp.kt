@@ -310,6 +310,10 @@ fun NeoBrutalLauncherApp() {
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = repository::launch,
+                            onHomeAppCountChange = { updated ->
+                                homeAppCount = updated
+                                preferences.setHomeAppCount(updated)
+                            },
                             tilePositions = tilePositions,
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
@@ -445,6 +449,7 @@ private fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
+    onHomeAppCountChange: (Int) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
@@ -935,7 +940,7 @@ private fun HomeScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = if (locked) {
-                            "BOTTOM APP IS FIXED TO WIDE 4x2"
+                            "BOTTOM APP IS FIXED TO 4x1"
                         } else {
                             "SIZE: " + tile.size.label
                         },
@@ -978,12 +983,10 @@ private fun HomeScreen(
                                 }
                                 if (app != null) {
                                     val key = app.packageName + "/" + app.activityName
-                                    excludedHomeApps = excludedHomeApps + key
-                                    preferences.setExcludedHomeApps(excludedHomeApps)
-                                    tileSizes = tileSizes - tile.id
-                                    preferences.setTileSizes(tileSizes)
-                                    homeAppCount = (homeAppCount - 1).coerceAtLeast(2)
-                                    preferences.setHomeAppCount(homeAppCount)
+                                    val updatedExcluded = excludedHomeApps + key
+                                    excludedHomeApps = updatedExcluded
+                                    preferences.setExcludedHomeApps(updatedExcluded)
+                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
                                 }
                                 selectedTile = null
                             }
@@ -1023,11 +1026,22 @@ private fun FixedSmallTile(
 
 @Composable
 private fun NeoAddAppTile(
+    app: AppInfo?,
     modifier: Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
-    Box(modifier = modifier.clickable(onClick = onClick)) {
+    val iconBitmap = remember(app?.packageName, app?.activityName) {
+        app?.icon?.toBitmap(96, 96)?.asImageBitmap()
+    }
+
+    Box(
+        modifier = modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick
+        )
+    ) {
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
             background = Color.Transparent,
@@ -1036,24 +1050,56 @@ private fun NeoAddAppTile(
             shadowX = 0.dp,
             shadowY = 0.dp
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "+ APP",
-                    fontSize = 16.sp,
-                    lineHeight = 17.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor
-                )
-                Text(
-                    text = "ADD",
-                    fontSize = 7.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor
-                )
+            if (app == null || iconBitmap == null) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "+ APP",
+                        fontSize = 16.sp,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor
+                    )
+                    Text(
+                        text = "SET SHORTCUT",
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        bitmap = iconBitmap,
+                        contentDescription = app.label,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = app.label.uppercase(),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontSize = when {
+                            app.label.length > 18 -> 8.sp
+                            app.label.length > 11 -> 9.sp
+                            else -> 11.sp
+                        },
+                        lineHeight = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
