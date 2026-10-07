@@ -1364,7 +1364,8 @@ private fun ClockTileContent(
 @Composable
 fun NeoQuoteTile(
     quote: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    emphasized: Boolean = false
 ) {
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val quoteBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Purple
@@ -1381,38 +1382,70 @@ fun NeoQuoteTile(
             modifier = Modifier.fillMaxSize().padding(9.dp)
         ) {
             val compact = minOf(maxWidth, maxHeight)
+            val headerSize = if (emphasized) 12.sp else {
+                when {
+                    compact < 78.dp -> 7.sp
+                    compact < 155.dp -> 10.sp
+                    else -> 11.sp
+                }
+            }
+
+            val availableHeight = (maxHeight.value - if (emphasized) 43f else 30f)
+                .coerceAtLeast(18f)
+            var quoteSize = if (emphasized) {
+                minOf(34f, maxWidth.value * 0.11f, availableHeight * 0.34f)
+            } else {
+                when {
+                    compact < 78.dp -> 7f
+                    compact < 155.dp -> 12f
+                    else -> 17f
+                }
+            }.coerceAtLeast(7f)
+
+            while (quoteSize > 9f) {
+                val estimatedCharsPerLine =
+                    (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
+                val estimatedLines =
+                    ((quote.length + estimatedCharsPerLine - 1) / estimatedCharsPerLine)
+                        .coerceAtLeast(1)
+                val neededHeight = estimatedLines * quoteSize * 1.08f
+                if (neededHeight <= availableHeight) break
+                quoteSize -= 1f
+            }
+
+            val charsPerLine =
+                (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
+            val estimatedLines =
+                ((quote.length + charsPerLine - 1) / charsPerLine)
+                    .coerceAtLeast(1)
+                    .coerceAtMost(if (emphasized) 6 else 6)
+
             Column(
-                verticalArrangement = Arrangement.spacedBy(if (compact < 100.dp) 3.dp else 5.dp)
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(if (emphasized) 6.dp else 5.dp)
             ) {
                 Text(
                     text = "NEO QUOTE",
-                    fontSize = if (compact < 78.dp) 7.sp else if (compact < 155.dp) 10.sp else 11.sp,
-                    lineHeight = if (compact < 78.dp) 8.sp else 12.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = if (compact < 155.dp) 0.sp else 1.sp,
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = headerSize,
+                    lineHeight = headerSize,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = if (emphasized) 0.5.sp else 1.sp,
                     color = quoteText,
                     maxLines = 1
                 )
 
                 Text(
                     text = "“$quote”",
-                    fontSize = when {
-                        compact < 78.dp -> 7.sp
-                        compact < 155.dp -> 12.sp
-                        else -> 17.sp
-                    },
-                    lineHeight = when {
-                        compact < 78.dp -> 8.sp
-                        compact < 155.dp -> 14.sp
-                        else -> 21.sp
-                    },
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.White,
-                    maxLines = when {
-                        compact < 78.dp -> 5
-                        compact < 155.dp -> 5
-                        else -> 6
-                    }
+                    modifier = Modifier.fillMaxWidth(),
+                    fontFamily = BrutalTypography.Body,
+                    fontSize = quoteSize.sp,
+                    lineHeight = (quoteSize * 1.08f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = quoteText,
+                    maxLines = estimatedLines,
+                    softWrap = true,
+                    overflow = TextOverflow.Clip
                 )
             }
         }
