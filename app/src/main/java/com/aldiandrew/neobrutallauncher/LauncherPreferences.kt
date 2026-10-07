@@ -189,32 +189,18 @@ class LauncherPreferences(context: Context) {
             .apply()
     }
 
-    fun tileContentModes(): Map<String, TileContentMode> {
-        return prefs.getStringSet(KEY_TILE_CONTENT_MODES, emptySet())
-            ?.mapNotNull { entry ->
-                val index = entry.lastIndexOf("|")
-                if (index <= 0) {
-                    return@mapNotNull null
-                }
-
-                val tileId = entry.substring(0, index)
-                val mode = runCatching {
-                    TileContentMode.valueOf(entry.substring(index + 1))
-                }.getOrNull()
-
-                if (tileId.isBlank() || mode == null) null else tileId to mode
-            }
-            ?.toMap()
-            .orEmpty()
+    fun appTileContentMode(): TileContentMode {
+        return runCatching {
+            TileContentMode.valueOf(
+                prefs.getString(KEY_APP_TILE_CONTENT_MODE, TileContentMode.ICON_TEXT.name)
+                    ?: TileContentMode.ICON_TEXT.name
+            )
+        }.getOrDefault(TileContentMode.ICON_TEXT)
     }
 
-    fun setTileContentModes(values: Map<String, TileContentMode>) {
-        val encoded = values.mapNotNull { (tileId, mode) ->
-            if (tileId.isBlank()) null else tileId + "|" + mode.name
-        }.toSet()
-
+    fun setAppTileContentMode(value: TileContentMode) {
         prefs.edit()
-            .putStringSet(KEY_TILE_CONTENT_MODES, encoded)
+            .putString(KEY_APP_TILE_CONTENT_MODE, value.name)
             .apply()
     }
 
@@ -231,6 +217,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_TILE_POSITIONS = "tile_positions"
         private const val KEY_TILE_SIZES = "tile_sizes"
-        private const val KEY_TILE_CONTENT_MODES = "tile_content_modes"
+        private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
     }
 }
