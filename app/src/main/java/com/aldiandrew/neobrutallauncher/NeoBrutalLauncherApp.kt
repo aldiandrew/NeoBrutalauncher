@@ -346,6 +346,7 @@ private fun HomeScreen(
     showWeather: Boolean,
     showQuote: Boolean,
     showBattery: Boolean,
+    appTileContentMode: TileContentMode,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
