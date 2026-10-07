@@ -34,15 +34,50 @@ enum class NeoTileSize(
         rows = 1,
         label = "1×1"
     ),
+    TWO_BY_ONE(
+        columns = 2,
+        rows = 1,
+        label = "2×1"
+    ),
+    ONE_BY_TWO(
+        columns = 1,
+        rows = 2,
+        label = "1×2"
+    ),
     TWO_BY_TWO(
         columns = 2,
         rows = 2,
         label = "2×2"
     ),
+    THREE_BY_TWO(
+        columns = 3,
+        rows = 2,
+        label = "3×2"
+    ),
+    TWO_BY_THREE(
+        columns = 2,
+        rows = 3,
+        label = "2×3"
+    ),
+    THREE_BY_THREE(
+        columns = 3,
+        rows = 3,
+        label = "3×3"
+    ),
+    FOUR_BY_ONE(
+        columns = 4,
+        rows = 1,
+        label = "4×1"
+    ),
     FOUR_BY_TWO(
         columns = 4,
         rows = 2,
         label = "4×2"
+    ),
+    FOUR_BY_THREE(
+        columns = 4,
+        rows = 3,
+        label = "4×3"
     ),
     FOUR_BY_FOUR(
         columns = 4,
