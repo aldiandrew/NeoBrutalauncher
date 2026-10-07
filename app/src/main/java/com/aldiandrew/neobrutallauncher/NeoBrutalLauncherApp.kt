@@ -825,35 +825,6 @@ private fun NeoQuoteTile(
 }
 
 @Composable
-private fun AppRow(
-    apps: List<AppInfo>,
-    firstColor: Color,
-    secondColor: Color,
-    onLaunch: (AppInfo) -> Unit
-) {
-    if (apps.size < 2) return
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        AppTile(
-            app = apps[0],
-            background = firstColor,
-            modifier = Modifier.weight(1f),
-            onClick = { onLaunch(apps[0]) }
-        )
-        AppTile(
-            app = apps[1],
-            background = secondColor,
-            modifier = Modifier.weight(1f),
-            onClick = { onLaunch(apps[1]) }
-        )
-    }
-}
-
-@Composable
-@Composable
 private fun AppTile(
     app: AppInfo,
     background: Color,
