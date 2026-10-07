@@ -3,6 +3,7 @@ package com.aldiandrew.neobrutallauncher
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.consume
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -427,30 +427,3 @@ private fun NeoTileDraggable(
     }
 }
 
-@Composable
-private fun AppRow(
-    apps: List<AppInfo>,
-    firstColor: androidx.compose.ui.graphics.Color,
-    secondColor: androidx.compose.ui.graphics.Color,
-    onLaunch: (AppInfo) -> Unit
-) {
-    if (apps.size < 2) return
-
-    androidx.compose.foundation.layout.Row(
-        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
-    ) {
-        AppTile(
-            app = apps[0],
-            background = firstColor,
-            modifier = Modifier.weight(1f),
-            onClick = { onLaunch(apps[0]) }
-        )
-        AppTile(
-            app = apps[1],
-            background = secondColor,
-            modifier = Modifier.weight(1f),
-            onClick = { onLaunch(apps[1]) }
-        )
-    }
-}
