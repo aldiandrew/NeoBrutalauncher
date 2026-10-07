@@ -73,7 +73,7 @@ fun NeoBrutalTheme(
         MaterialTheme(colorScheme = if (isDark) DarkScheme else LightScheme) {
             CompositionLocalProvider(
                 LocalTextStyle provides LocalTextStyle.current.copy(
-                    fontFamily = BrutalTypography.Bricolage
+                    fontFamily = BrutalTypography.Body
                 )
             ) {
                 content()
