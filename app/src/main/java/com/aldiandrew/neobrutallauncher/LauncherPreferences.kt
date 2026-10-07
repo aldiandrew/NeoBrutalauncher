@@ -253,6 +253,22 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
+    fun noteText(): String {
+        return prefs.getString(KEY_NOTE_TEXT, "") ?: ""
+    }
+
+    fun setNoteText(value: String) {
+        prefs.edit().putString(KEY_NOTE_TEXT, value).apply()
+    }
+
+    fun taskText(): String {
+        return prefs.getString(KEY_TASK_TEXT, "") ?: ""
+    }
+
+    fun setTaskText(value: String) {
+        prefs.edit().putString(KEY_TASK_TEXT, value).apply()
+    }
+
     fun chaosSeed(): Int {
         return prefs.getInt(KEY_CHAOS_SEED, 0)
     }
@@ -280,5 +296,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
         private const val KEY_CHAOS_SEED = "chaos_seed"
+        private const val KEY_NOTE_TEXT = "note_text"
+        private const val KEY_TASK_TEXT = "task_text"
     }
 }

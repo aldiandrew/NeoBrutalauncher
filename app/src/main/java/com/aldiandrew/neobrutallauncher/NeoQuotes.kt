@@ -19,6 +19,13 @@ object NeoQuotes {
         "Simple shapes become bold when hierarchy is fearless."
     )
 
+    fun pairForToday(): Pair<String, String> {
+        val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+        val first = quotes[day % quotes.size]
+        val second = quotes[(day + 1) % quotes.size]
+        return first to second
+    }
+
     fun forToday(): String {
         val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
         return quotes[day % quotes.size]

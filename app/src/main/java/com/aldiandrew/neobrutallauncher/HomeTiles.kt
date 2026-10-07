@@ -213,7 +213,7 @@ fun NeoTileGrid(
                     targetValue = placement.x,
                     animationSpec = spring(
                         dampingRatio = 0.82f,
-                        stiffness = 520f
+                        stiffness = 390f
                     ),
                     label = "tile-x"
                 )
@@ -221,7 +221,7 @@ fun NeoTileGrid(
                     targetValue = placement.y,
                     animationSpec = spring(
                         dampingRatio = 0.82f,
-                        stiffness = 520f
+                        stiffness = 390f
                     ),
                     label = "tile-y"
                 )
@@ -229,7 +229,7 @@ fun NeoTileGrid(
                     targetValue = placement.width,
                     animationSpec = spring(
                         dampingRatio = 0.9f,
-                        stiffness = 650f
+                        stiffness = 480f
                     ),
                     label = "tile-width"
                 )
@@ -237,7 +237,7 @@ fun NeoTileGrid(
                     targetValue = placement.height,
                     animationSpec = spring(
                         dampingRatio = 0.9f,
-                        stiffness = 650f
+                        stiffness = 480f
                     ),
                     label = "tile-height"
                 )

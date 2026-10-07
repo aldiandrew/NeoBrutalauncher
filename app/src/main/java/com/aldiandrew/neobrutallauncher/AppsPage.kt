@@ -152,6 +152,10 @@ fun AppsPage(
                             items = sortedApps,
                             key = { it.packageName + "/" + it.activityName }
                         ) { app ->
+                            val iconBitmap = remember(app.packageName) {
+                                app.icon.toBitmap(96, 96).asImageBitmap()
+                            }
+
                             BrutalBlock(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -171,7 +175,7 @@ fun AppsPage(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Image(
-                                        bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                        bitmap = iconBitmap,
                                         contentDescription = app.label,
                                         modifier = Modifier
                                             .width(50.dp)
