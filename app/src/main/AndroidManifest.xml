@@ -16,7 +16,8 @@
         android:label="Neo Brutal Launcher"
         android:icon="@drawable/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NeoBrutLauncher">
+        android:theme="@style/Theme.NeoBrutLauncher"
+        android:enableOnBackInvokedCallback="false">
 
         <activity
             android:name=".MainActivity"
