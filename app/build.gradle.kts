@@ -1,3 +1,5 @@
+import java.net.URL
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -43,6 +45,43 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+val neoBrutalFontBase =
+    "https://raw.githubusercontent.com/ateliertriay/bricolage/84745e5b96261ae5f8c6c856e262fe78d1d6efdd/fonts/ttf/"
+
+val neoBrutalFonts = mapOf(
+    "bricolage_grotesque_regular.ttf" to "BricolageGrotesque-Regular.ttf",
+    "bricolage_grotesque_bold.ttf" to "BricolageGrotesque-Bold.ttf",
+    "bricolage_grotesque_extrabold.ttf" to "BricolageGrotesque-ExtraBold.ttf"
+)
+
+val downloadNeoBrutalFonts by tasks.registering {
+    outputs.files(
+        neoBrutalFonts.keys.map { fileName ->
+            layout.projectDirectory.file("src/main/res/font/$fileName").asFile
+        }
+    )
+
+    doLast {
+        val destination = layout.projectDirectory.dir("src/main/res/font").asFile
+        destination.mkdirs()
+
+        neoBrutalFonts.forEach { (fileName, upstreamName) ->
+            val target = destination.resolve(fileName)
+            if (!target.exists() || target.length() == 0L) {
+                URL(neoBrutalFontBase + upstreamName).openStream().use { input ->
+                    target.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(downloadNeoBrutalFonts)
 }
 
 dependencies {
