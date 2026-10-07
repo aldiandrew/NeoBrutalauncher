@@ -863,7 +863,7 @@ private fun HomeScreen(
                         )
                     } else {
                         LazyColumn(
-                            modifier = Modifier.heightIn(max = 420.dp),
+                            modifier = Modifier.height(420.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             items(
