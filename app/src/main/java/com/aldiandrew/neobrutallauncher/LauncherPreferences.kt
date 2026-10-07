@@ -204,6 +204,63 @@ class LauncherPreferences(context: Context) {
             .apply()
     }
 
+
+    fun brutalityLevel(): BrutalityLevel {
+        return runCatching {
+            BrutalityLevel.valueOf(
+                prefs.getString(KEY_BRUTALITY_LEVEL, BrutalityLevel.BRUTAL.name)
+                    ?: BrutalityLevel.BRUTAL.name
+            )
+        }.getOrDefault(BrutalityLevel.BRUTAL)
+    }
+
+    fun setBrutalityLevel(value: BrutalityLevel) {
+        prefs.edit().putString(KEY_BRUTALITY_LEVEL, value.name).apply()
+    }
+
+    fun cornerRadius(): Int {
+        return prefs.getInt(KEY_CORNER_RADIUS, 0).coerceIn(0, 16)
+    }
+
+    fun setCornerRadius(value: Int) {
+        prefs.edit().putInt(KEY_CORNER_RADIUS, value.coerceIn(0, 16)).apply()
+    }
+
+    fun clockStyle(): ClockStyle {
+        return runCatching {
+            ClockStyle.valueOf(
+                prefs.getString(KEY_CLOCK_STYLE, ClockStyle.POSTER.name)
+                    ?: ClockStyle.POSTER.name
+            )
+        }.getOrDefault(ClockStyle.POSTER)
+    }
+
+    fun setClockStyle(value: ClockStyle) {
+        prefs.edit().putString(KEY_CLOCK_STYLE, value.name).apply()
+    }
+
+    fun wallpaperUri(): String? {
+        return prefs.getString(KEY_WALLPAPER_URI, null)
+    }
+
+    fun setWallpaperUri(value: String?) {
+        prefs.edit().apply {
+            if (value == null) {
+                remove(KEY_WALLPAPER_URI)
+            } else {
+                putString(KEY_WALLPAPER_URI, value)
+            }
+        }.apply()
+    }
+
+    fun chaosSeed(): Int {
+        return prefs.getInt(KEY_CHAOS_SEED, 0)
+    }
+
+    fun setChaosSeed(value: Int) {
+        prefs.edit().putInt(KEY_CHAOS_SEED, value).apply()
+    }
+
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
@@ -218,5 +275,10 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TILE_POSITIONS = "tile_positions"
         private const val KEY_TILE_SIZES = "tile_sizes"
         private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
+        private const val KEY_BRUTALITY_LEVEL = "brutality_level"
+        private const val KEY_CORNER_RADIUS = "corner_radius"
+        private const val KEY_CLOCK_STYLE = "clock_style"
+        private const val KEY_WALLPAPER_URI = "wallpaper_uri"
+        private const val KEY_CHAOS_SEED = "chaos_seed"
     }
 }
