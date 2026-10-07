@@ -103,12 +103,32 @@ fun NeoBrutalLauncherApp() {
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
+    var brutalityLevel by remember { mutableStateOf(preferences.brutalityLevel()) }
+    var cornerRadius by remember { mutableStateOf(preferences.cornerRadius()) }
+    var clockStyle by remember { mutableStateOf(preferences.clockStyle()) }
+    var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
+    var chaosSeed by remember { mutableStateOf(preferences.chaosSeed()) }
 
     var locationPermissionGranted by remember {
         mutableStateOf(
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED
         )
+    }
+
+    val wallpaperPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            wallpaperUri = uri.toString()
+            preferences.setWallpaperUri(uri.toString())
+        }
     }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -148,7 +168,11 @@ fun NeoBrutalLauncherApp() {
 
     when {
         settingsOpen -> {
-            NeoBrutalTheme(themePreference = themePreference) {
+            NeoBrutalTheme(
+                themePreference = themePreference,
+                brutalityLevel = brutalityLevel,
+                cornerRadius = cornerRadius.dp
+            ) {
                 SettingsScreen(
                     appsCount = apps.size,
                     themePreference = themePreference,
@@ -161,6 +185,10 @@ fun NeoBrutalLauncherApp() {
                     showQuote = showQuote,
                     showBattery = showBattery,
                     appTileContentMode = appTileContentMode,
+                    brutalityLevel = brutalityLevel,
+                    cornerRadius = cornerRadius,
+                    clockStyle = clockStyle,
+                    wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     onBack = { settingsOpen = false },
@@ -220,6 +248,29 @@ fun NeoBrutalLauncherApp() {
                         appTileContentMode = it
                         preferences.setAppTileContentMode(it)
                     },
+                    onBrutalityLevelChange = {
+                        brutalityLevel = it
+                        preferences.setBrutalityLevel(it)
+                    },
+                    onCornerRadiusChange = {
+                        cornerRadius = it
+                        preferences.setCornerRadius(it)
+                    },
+                    onClockStyleChange = {
+                        clockStyle = it
+                        preferences.setClockStyle(it)
+                    },
+                    onChooseWallpaper = {
+                        wallpaperPickerLauncher.launch(arrayOf("image/*"))
+                    },
+                    onClearWallpaper = {
+                        wallpaperUri = null
+                        preferences.setWallpaperUri(null)
+                    },
+                    onChaosPalette = {
+                        chaosSeed = (chaosSeed + 1).coerceAtLeast(1)
+                        preferences.setChaosSeed(chaosSeed)
+                    },
                     onRefreshApps = { refreshApps() },
                     onClearFavorites = {
                         favorites = emptySet()
@@ -230,7 +281,11 @@ fun NeoBrutalLauncherApp() {
         }
 
         else -> {
-            NeoBrutalTheme(themePreference = themePreference) {
+            NeoBrutalTheme(
+                themePreference = themePreference,
+                brutalityLevel = brutalityLevel,
+                cornerRadius = cornerRadius.dp
+            ) {
                 LauncherPageHost(
                     currentPage = currentPage,
                     onPageChange = {
@@ -251,6 +306,9 @@ fun NeoBrutalLauncherApp() {
                             showQuote = showQuote,
                             showBattery = showBattery,
                             appTileContentMode = appTileContentMode,
+                            clockStyle = clockStyle,
+                            wallpaperUri = wallpaperUri,
+                            chaosSeed = chaosSeed,
                             onOpenSettings = { settingsOpen = true },
                             onLaunch = repository::launch,
                             tilePositions = tilePositions,
@@ -348,6 +406,9 @@ private fun HomeScreen(
     showQuote: Boolean,
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
+    clockStyle: ClockStyle,
+    wallpaperUri: String?,
+    chaosSeed: Int,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
@@ -972,6 +1033,10 @@ private fun SettingsScreen(
     showQuote: Boolean,
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
+    brutalityLevel: BrutalityLevel,
+    cornerRadius: Int,
+    clockStyle: ClockStyle,
+    wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     onBack: () -> Unit,
@@ -986,6 +1051,12 @@ private fun SettingsScreen(
     onShowQuoteChange: (Boolean) -> Unit,
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
+    onBrutalityLevelChange: (BrutalityLevel) -> Unit,
+    onCornerRadiusChange: (Int) -> Unit,
+    onClockStyleChange: (ClockStyle) -> Unit,
+    onChooseWallpaper: () -> Unit,
+    onClearWallpaper: () -> Unit,
+    onChaosPalette: () -> Unit,
     onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
