@@ -2,6 +2,7 @@ package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,12 +40,28 @@ fun NeoWeatherTile(
     refreshToken: Int,
     modifier: Modifier = Modifier
 ) {
-    var weather by remember { mutableStateOf<WeatherData?>(null) }
-    var loading by remember { mutableStateOf(true) }
+    var weather by remember {
+        mutableStateOf(WeatherRepository.cachedWeather())
+    }
+    var loading by remember { mutableStateOf(weather == null) }
     var error by remember { mutableStateOf<Throwable?>(null) }
-    var lastUpdatedMillis by remember { mutableStateOf<Long?>(null) }
+    var lastUpdatedMillis by remember {
+        mutableStateOf(if (weather != null) System.currentTimeMillis() else null)
+    }
 
     LaunchedEffect(refreshToken) {
+        val cached = WeatherRepository.cachedWeather()
+
+        if (refreshToken == 0 && cached != null) {
+            weather = cached
+            loading = false
+            error = null
+            if (lastUpdatedMillis == null) {
+                lastUpdatedMillis = System.currentTimeMillis()
+            }
+            return@LaunchedEffect
+        }
+
         loading = true
         error = null
 
@@ -60,7 +77,8 @@ fun NeoWeatherTile(
         loading = false
     }
 
-    val icon = when (weather?.weatherCode) {
+    val currentWeather = weather
+    val icon = when (currentWeather?.weatherCode) {
         0 -> Icons.Default.WbSunny
         1, 2, 3, 45, 48 -> Icons.Default.Cloud
         51, 53, 55, 56, 57 -> Icons.Default.Opacity
@@ -70,8 +88,6 @@ fun NeoWeatherTile(
         else -> Icons.Default.Cloud
     }
 
-    val currentWeather = weather
-
     BrutalBlock(
         modifier = modifier,
         background = BrutalColors.Cyan,
@@ -79,100 +95,178 @@ fun NeoWeatherTile(
         shadowX = 8.dp,
         shadowY = 8.dp
     ) {
-        if (currentWeather != null) {
-            val updatedText = lastUpdatedMillis?.let {
-                SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
-            } ?: "--:--"
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val compact = minOf(maxWidth, maxHeight)
 
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (currentWeather != null) {
+                val updatedText = lastUpdatedMillis?.let {
+                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
+                } ?: "--:--"
+
+                when {
+                    compact < 78.dp -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "${currentWeather.temperatureC.toInt()}°",
+                                fontSize = 18.sp,
+                                lineHeight = 18.sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 1
+                            )
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = currentWeather.description,
+                                tint = BrutalColors.Ink,
+                                modifier = Modifier.width(28.dp).height(28.dp)
+                            )
+                            Text(
+                                text = "${currentWeather.humidityPercent}% • ${currentWeather.windKph.toInt()}K",
+                                fontSize = 7.sp,
+                                lineHeight = 8.sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
+                    compact < 155.dp -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(9.dp),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = currentWeather.description.uppercase(),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 1
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = currentWeather.description,
+                                    tint = BrutalColors.Ink,
+                                    modifier = Modifier.width(48.dp).height(48.dp)
+                                )
+                                Text(
+                                    text = "${currentWeather.temperatureC.toInt()}°",
+                                    fontSize = 31.sp,
+                                    lineHeight = 31.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = 1
+                                )
+                            }
+                            Text(
+                                text = "H ${currentWeather.humidityPercent}%   W ${currentWeather.windKph.toInt()}K",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Row(
+                            modifier = Modifier.fillMaxSize().padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "WEATHER",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.5.sp,
+                                    color = BrutalColors.Ink
+                                )
+                                Spacer(Modifier.height(3.dp))
+                                Text(
+                                    text = currentWeather.description.uppercase(),
+                                    fontSize = 12.sp,
+                                    lineHeight = 14.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = 1
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = "${currentWeather.temperatureC.toInt()}°",
+                                    fontSize = 48.sp,
+                                    lineHeight = 48.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = 1
+                                )
+                                Spacer(Modifier.height(5.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    WeatherMetric("HUMIDITY", "${currentWeather.humidityPercent}%")
+                                    WeatherMetric("WIND", "${currentWeather.windKph.toInt()} KM/H")
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "UPDATED $updatedText • TAP TO REFRESH",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink.copy(alpha = 0.72f),
+                                    maxLines = 1
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier.width(88.dp).height(88.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = currentWeather.description,
+                                    tint = BrutalColors.Ink,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxSize().padding(10.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "WEATHER",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.5.sp,
-                        color = BrutalColors.Ink
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        text = currentWeather.description.uppercase(),
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        text = when {
+                            loading -> "LOADING"
+                            error != null -> "ERROR"
+                            else -> "NO WEATHER"
+                        },
+                        fontSize = if (compact < 100.dp) 12.sp else 20.sp,
+                        lineHeight = if (compact < 100.dp) 13.sp else 22.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
-                        maxLines = 1
+                        maxLines = 2
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(5.dp))
                     Text(
-                        text = "${currentWeather.temperatureC.toInt()}°",
-                        fontSize = 48.sp,
-                        lineHeight = 48.sp,
+                        text = if (compact < 100.dp) "TAP" else "TAP TO REFRESH",
+                        fontSize = if (compact < 100.dp) 8.sp else 10.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink
                     )
-                    Spacer(Modifier.height(5.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        WeatherMetric("HUMIDITY", "${currentWeather.humidityPercent}%")
-                        WeatherMetric("WIND", "${currentWeather.windKph.toInt()} KM/H")
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "UPDATED $updatedText  •  TAP TO REFRESH",
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink.copy(alpha = 0.72f),
-                        maxLines = 1
-                    )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .width(88.dp)
-                        .height(88.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = weather.description,
-                        tint = BrutalColors.Ink,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = when {
-                        loading -> "LOADING WEATHER..."
-                        error != null -> "WEATHER ERROR"
-                        else -> "WEATHER UNAVAILABLE"
-                    },
-                    fontSize = 20.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = "TAP WEATHER TILE TO TRY AGAIN",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
             }
         }
     }
