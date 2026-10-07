@@ -3,6 +3,7 @@ package com.aldiandrew.neobrutallauncher
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import java.util.Locale
 
 class AppRepository(private val context: Context) {
 
@@ -12,7 +13,8 @@ class AppRepository(private val context: Context) {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
 
-        return packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        return packageManager
+            .queryIntentActivities(intent, PackageManager.MATCH_ALL)
             .mapNotNull { resolveInfo ->
                 val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
                 val label = resolveInfo.loadLabel(packageManager)?.toString()?.trim().orEmpty()
@@ -26,7 +28,7 @@ class AppRepository(private val context: Context) {
                 )
             }
             .distinctBy { it.packageName + "/" + it.activityName }
-            .sortedBy { it.label.lowercase() }
+            .sortedBy { it.label.lowercase(Locale.getDefault()) }
     }
 
     fun launch(app: AppInfo) {
