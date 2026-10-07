@@ -111,7 +111,7 @@ fun NeoWeatherTile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "${currentWeather.temperatureC.toInt()}°",
+                                text = "${currentWeather!!.temperatureC.toInt()}°",
                                 fontSize = 18.sp,
                                 lineHeight = 18.sp,
                                 fontWeight = FontWeight.Black,
@@ -120,12 +120,12 @@ fun NeoWeatherTile(
                             )
                             Icon(
                                 imageVector = icon,
-                                contentDescription = currentWeather.description,
+                                contentDescription = currentWeather!!.description,
                                 tint = BrutalColors.Ink,
                                 modifier = Modifier.width(28.dp).height(28.dp)
                             )
                             Text(
-                                text = "${currentWeather.humidityPercent}% • ${currentWeather.windKph.toInt()}K",
+                                text = "${currentWeather!!.humidityPercent}% • ${currentWeather!!.windKph.toInt()}K",
                                 fontSize = 7.sp,
                                 lineHeight = 8.sp,
                                 fontWeight = FontWeight.Black,
@@ -142,7 +142,7 @@ fun NeoWeatherTile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = currentWeather.description.uppercase(),
+                                text = currentWeather!!.description.uppercase(),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Ink,
@@ -154,12 +154,12 @@ fun NeoWeatherTile(
                             ) {
                                 Icon(
                                     imageVector = icon,
-                                    contentDescription = currentWeather.description,
+                                    contentDescription = currentWeather!!.description,
                                     tint = BrutalColors.Ink,
                                     modifier = Modifier.width(48.dp).height(48.dp)
                                 )
                                 Text(
-                                    text = "${currentWeather.temperatureC.toInt()}°",
+                                    text = "${currentWeather!!.temperatureC.toInt()}°",
                                     fontSize = 31.sp,
                                     lineHeight = 31.sp,
                                     fontWeight = FontWeight.Black,
@@ -168,7 +168,7 @@ fun NeoWeatherTile(
                                 )
                             }
                             Text(
-                                text = "H ${currentWeather.humidityPercent}%   W ${currentWeather.windKph.toInt()}K",
+                                text = "H ${currentWeather!!.humidityPercent}%   W ${currentWeather!!.windKph.toInt()}K",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Ink,
@@ -196,7 +196,7 @@ fun NeoWeatherTile(
                                 )
                                 Spacer(Modifier.height(3.dp))
                                 Text(
-                                    text = currentWeather.description.uppercase(),
+                                    text = currentWeather!!.description.uppercase(),
                                     fontSize = 12.sp,
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Black,
@@ -205,7 +205,7 @@ fun NeoWeatherTile(
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    text = "${currentWeather.temperatureC.toInt()}°",
+                                    text = "${currentWeather!!.temperatureC.toInt()}°",
                                     fontSize = 48.sp,
                                     lineHeight = 48.sp,
                                     fontWeight = FontWeight.Black,
@@ -214,8 +214,8 @@ fun NeoWeatherTile(
                                 )
                                 Spacer(Modifier.height(5.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    WeatherMetric("HUMIDITY", "${currentWeather.humidityPercent}%")
-                                    WeatherMetric("WIND", "${currentWeather.windKph.toInt()} KM/H")
+                                    WeatherMetric("HUMIDITY", "${currentWeather!!.humidityPercent}%")
+                                    WeatherMetric("WIND", "${currentWeather!!.windKph.toInt()} KM/H")
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Text(
@@ -233,7 +233,7 @@ fun NeoWeatherTile(
                             ) {
                                 Icon(
                                     imageVector = icon,
-                                    contentDescription = currentWeather.description,
+                                    contentDescription = currentWeather!!.description,
                                     tint = BrutalColors.Ink,
                                     modifier = Modifier.fillMaxSize()
                                 )
