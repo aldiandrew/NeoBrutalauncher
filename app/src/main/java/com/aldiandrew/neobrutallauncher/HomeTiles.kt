@@ -20,6 +20,7 @@ enum class NeoTileSize(
     SMALL(1, 1, "SMALL"),
     HORIZONTAL(2, 1, "2x1"),
     MEDIUM(2, 2, "MEDIUM"),
+    THREE_BY_ONE(3, 1, "3x1"),
     FOUR_BY_ONE(4, 1, "4x1"),
     WIDE(4, 2, "WIDE"),
     LARGE(4, 4, "LARGE");
@@ -27,7 +28,8 @@ enum class NeoTileSize(
     fun next(): NeoTileSize = when (this) {
         SMALL -> HORIZONTAL
         HORIZONTAL -> MEDIUM
-        MEDIUM -> FOUR_BY_ONE
+        MEDIUM -> THREE_BY_ONE
+        THREE_BY_ONE -> FOUR_BY_ONE
         FOUR_BY_ONE -> WIDE
         WIDE -> LARGE
         LARGE -> SMALL

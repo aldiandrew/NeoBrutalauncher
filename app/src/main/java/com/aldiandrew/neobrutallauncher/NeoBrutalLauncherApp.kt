@@ -287,7 +287,7 @@ fun NeoBrutalLauncherApp() {
                 LauncherPageHost(
                     currentPage = currentPage,
                     onPageChange = {
-                        currentPage = it.coerceIn(0, 3)
+                        currentPage = it.coerceIn(0, 2)
                         if (currentPage == 1) refreshApps()
                     }
                 ) { page ->
@@ -310,10 +310,6 @@ fun NeoBrutalLauncherApp() {
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = repository::launch,
-                            onHomeAppCountChange = { updated ->
-                                homeAppCount = updated
-                                preferences.setHomeAppCount(updated)
-                            },
                             tilePositions = tilePositions,
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
@@ -343,13 +339,6 @@ fun NeoBrutalLauncherApp() {
                             onLaunch = repository::launch,
                             onOpenHome = { currentPage = 0 }
                         )
-                    } else if (page == 2) {
-                        FocusPage(
-                            apps = apps,
-                            favorites = favorites,
-                            onLaunch = repository::launch,
-                            onOpenHome = { currentPage = 0 }
-                        )
                     } else {
                         LivePage(
                             apps = apps,
@@ -371,7 +360,7 @@ private fun LauncherPageHost(
 ) {
     val pagerState = rememberPagerState(
         initialPage = currentPage,
-        pageCount = { 4 }
+        pageCount = { 3 }
     )
 
     LaunchedEffect(currentPage) {
@@ -408,7 +397,7 @@ private fun LauncherPageHost(
             horizontalArrangement = Arrangement.spacedBy(7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(4) { index ->
+            repeat(3) { index ->
                 Box(
                     modifier = Modifier
                         .width(10.dp)
@@ -426,7 +415,6 @@ private fun LauncherPageHost(
                 text = when (pagerState.currentPage) {
                     0 -> "HOME"
                     1 -> "APPS"
-                    2 -> "FOCUS"
                     else -> "LIVE"
                 },
                 fontSize = 8.sp,
@@ -457,7 +445,6 @@ private fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
-    onHomeAppCountChange: (Int) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
@@ -474,6 +461,8 @@ private fun HomeScreen(
     var taskItems by remember { mutableStateOf(preferences.taskItems()) }
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
     var showAppPicker by remember { mutableStateOf(false) }
+    var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
+    var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
     val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
     val time = remember(timePattern) { SimpleDateFormat(timePattern, Locale.getDefault()) }
@@ -512,8 +501,11 @@ private fun HomeScreen(
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
     val launchableApps = stableHomeOrder
+        .filterNot { excludedHomeApps.contains(it) }
         .mapNotNull { appsByKey[it] }
         .take(homeAppCount.coerceIn(2, 8))
+
+    val shortcutApp = appShortcutKey?.let { appsByKey[it] }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
@@ -721,12 +713,12 @@ private fun HomeScreen(
                             launchableApps.forEachIndexed { index, app ->
                                 val id = "app_" + app.packageName + "_" + app.activityName
                                 val defaultSize = when {
-                                    index == launchableApps.lastIndex -> NeoTileSize.WIDE
+                                    index == launchableApps.lastIndex -> NeoTileSize.FOUR_BY_ONE
                                     index < 2 -> NeoTileSize.MEDIUM
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = if (index == launchableApps.lastIndex) {
-                                    NeoTileSize.WIDE
+                                    NeoTileSize.FOUR_BY_ONE
                                 } else {
                                     tileSizes[id] ?: defaultSize
                                 }
@@ -761,46 +753,41 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "notes") {
-                NeoNoteTaskTile(
-                    kind = NoteTaskKind.NOTES,
-                    items = noteItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4.8f),
-                    onAddItem = { text ->
+            item(key = "notes-tasks") {
+                NeoNotesTasksTile(
+                    notes = noteItems,
+                    tasks = taskItems,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(2f),
+                    onAddNote = { text ->
                         val updated = noteItems + NeoListItem(text = text)
                         noteItems = updated
                         preferences.setNoteItems(updated)
                     },
-                    onItemTextChange = { index, text ->
-                        noteItems = noteItems.mapIndexed { itemIndex, item ->
+                    onEditNote = { index, text ->
+                        val updated = noteItems.mapIndexed { itemIndex, item ->
                             if (itemIndex == index) item.copy(text = text) else item
                         }
-                        preferences.setNoteItems(noteItems)
-                    }
-                )
-            }
-
-            item(key = "tasks") {
-                NeoNoteTaskTile(
-                    kind = NoteTaskKind.TASKS,
-                    items = taskItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4.8f),
-                    onAddItem = { text ->
+                        noteItems = updated
+                        preferences.setNoteItems(updated)
+                    },
+                    onAddTask = { text ->
                         val updated = taskItems + NeoListItem(text = text)
                         taskItems = updated
                         preferences.setTaskItems(updated)
                     },
-                    onItemTextChange = { index, text ->
-                        taskItems = taskItems.mapIndexed { itemIndex, item ->
+                    onEditTask = { index, text ->
+                        val updated = taskItems.mapIndexed { itemIndex, item ->
                             if (itemIndex == index) item.copy(text = text) else item
                         }
-                        preferences.setTaskItems(taskItems)
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
                     },
-                    onToggleItem = { index ->
-                        taskItems = taskItems.mapIndexed { itemIndex, item ->
+                    onToggleTask = { index ->
+                        val updated = taskItems.mapIndexed { itemIndex, item ->
                             if (itemIndex == index) item.copy(checked = !item.checked) else item
                         }
-                        preferences.setTaskItems(taskItems)
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
                     }
                 )
             }
@@ -811,8 +798,12 @@ private fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     NeoAddAppTile(
+                        app = shortcutApp,
                         modifier = Modifier.weight(1f).aspectRatio(1f),
-                        onClick = { showAppPicker = true }
+                        onClick = {
+                            shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
+                        },
+                        onLongClick = { showAppPicker = true }
                     )
                     val quotePair = NeoQuotes.pairForToday()
                     NeoQuoteTilePlain(
@@ -829,23 +820,20 @@ private fun HomeScreen(
     }
 
     if (showAppPicker) {
-        val homeKeys = stableHomeOrder
-            .take(homeAppCount.coerceIn(2, 8))
-            .toSet()
         val sortedPickerApps = apps.sortedBy { it.label.lowercase() }
 
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showAppPicker = false },
             title = {
                 Text(
-                    text = "ADD APP / HOME",
+                    text = "APP SHORTCUT",
                     fontWeight = FontWeight.Black
                 )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "SELECT ONE APP TO ADD TO HOME (${homeKeys.size}/8)",
+                        text = "SELECT THE APP USED BY THE + APP SHORTCUT TILE.",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Black
                     )
@@ -853,12 +841,6 @@ private fun HomeScreen(
                     if (sortedPickerApps.isEmpty()) {
                         Text(
                             text = "NO LAUNCHABLE APPS",
-                            fontWeight = FontWeight.Black
-                        )
-                    } else if (homeKeys.size >= 8) {
-                        Text(
-                            text = "HOME IS FULL. REDUCE HOME APP COUNT IN SETTINGS FIRST.",
-                            fontSize = 11.sp,
                             fontWeight = FontWeight.Black
                         )
                     } else {
@@ -871,28 +853,24 @@ private fun HomeScreen(
                                 key = { it.packageName + "/" + it.activityName }
                             ) { app ->
                                 val key = app.packageName + "/" + app.activityName
-                                val onHome = homeKeys.contains(key)
+                                val selected = key == appShortcutKey
 
                                 BrutalBlock(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable(enabled = !onHome) {
-                                            val updatedOrder =
-                                                stableHomeOrder
-                                                    .filterNot { it == key } + key
-                                            stableHomeOrder = updatedOrder
-                                            preferences.setHomeAppOrder(updatedOrder)
-                                            onHomeAppCountChange(homeAppCount + 1)
+                                        .clickable {
+                                            appShortcutKey = key
+                                            preferences.setAppShortcutKey(key)
                                             showAppPicker = false
                                         },
-                                    background = if (onHome) {
-                                        MaterialTheme.colorScheme.surface
+                                    background = if (selected) {
+                                        BrutalColors.Yellow
                                     } else {
-                                        BrutalColors.Paper
+                                        MaterialTheme.colorScheme.background
                                     },
                                     borderWidth = 2.dp,
-                                    shadowX = if (onHome) 0.dp else 3.dp,
-                                    shadowY = if (onHome) 0.dp else 3.dp
+                                    shadowX = if (selected) 0.dp else 3.dp,
+                                    shadowY = if (selected) 0.dp else 3.dp
                                 ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -903,12 +881,16 @@ private fun HomeScreen(
                                             modifier = Modifier.weight(1f),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.onSurface,
+                                            color = if (selected) {
+                                                BrutalColors.Ink
+                                            } else {
+                                                MaterialTheme.colorScheme.onBackground
+                                            },
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         Text(
-                                            text = if (onHome) "ON HOME" else "ADD",
+                                            text = if (selected) "SELECTED" else "USE",
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Black,
                                             color = BrutalColors.Orange
@@ -918,13 +900,23 @@ private fun HomeScreen(
                             }
                         }
                     }
+
+                    if (appShortcutKey != null) {
+                        androidx.compose.material3.TextButton(
+                            onClick = {
+                                appShortcutKey = null
+                                preferences.setAppShortcutKey(null)
+                                showAppPicker = false
+                            }
+                        ) {
+                            Text("CLEAR SHORTCUT", fontWeight = FontWeight.Black)
+                        }
+                    }
                 }
             },
             confirmButton = {
-                androidx.compose.material3.TextButton(
-                    onClick = { showAppPicker = false }
-                ) {
-                    Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                androidx.compose.material3.TextButton(onClick = { showAppPicker = false }) {
+                    Text("CLOSE", fontWeight = FontWeight.Black)
                 }
             }
         )
@@ -954,6 +946,7 @@ private fun HomeScreen(
                             NeoTileSize.SMALL,
                             NeoTileSize.HORIZONTAL,
                             NeoTileSize.MEDIUM,
+                            NeoTileSize.THREE_BY_ONE,
                             NeoTileSize.FOUR_BY_ONE,
                             NeoTileSize.WIDE
                         ).forEach { option ->
@@ -976,8 +969,36 @@ private fun HomeScreen(
                 }
             },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { selectedTile = null }) {
-                    Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!locked && homeAppCount > 2) {
+                        androidx.compose.material3.TextButton(
+                            onClick = {
+                                val app = launchableApps.firstOrNull {
+                                    "app_" + it.packageName + "_" + it.activityName == tile.id
+                                }
+                                if (app != null) {
+                                    val key = app.packageName + "/" + app.activityName
+                                    excludedHomeApps = excludedHomeApps + key
+                                    preferences.setExcludedHomeApps(excludedHomeApps)
+                                    tileSizes = tileSizes - tile.id
+                                    preferences.setTileSizes(tileSizes)
+                                    homeAppCount = (homeAppCount - 1).coerceAtLeast(2)
+                                    preferences.setHomeAppCount(homeAppCount)
+                                }
+                                selectedTile = null
+                            }
+                        ) {
+                            Text(
+                                text = "REMOVE",
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Orange
+                            )
+                        }
+                    }
+
+                    androidx.compose.material3.TextButton(onClick = { selectedTile = null }) {
+                        Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                    }
                 }
             }
         )
@@ -1271,9 +1292,13 @@ fun NeoQuoteTile(
     quote: String,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val quoteBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Purple
+    val quoteText = if (isDark) BrutalColors.DarkWhite else BrutalColors.White
+
     BrutalBlock(
         modifier = modifier,
-        background = BrutalColors.Purple,
+        background = quoteBackground,
         borderWidth = 3.dp,
         shadowX = 6.dp,
         shadowY = 6.dp
@@ -1291,7 +1316,7 @@ fun NeoQuoteTile(
                     lineHeight = if (compact < 78.dp) 8.sp else 12.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = if (compact < 155.dp) 0.sp else 1.sp,
-                    color = BrutalColors.White,
+                    color = quoteText,
                     maxLines = 1
                 )
 

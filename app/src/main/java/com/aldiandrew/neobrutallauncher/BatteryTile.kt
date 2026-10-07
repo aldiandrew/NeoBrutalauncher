@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -126,7 +127,7 @@ fun BatteryTile(
                         fontSize = 18.sp,
                         lineHeight = 19.sp,
                         fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1
                     )
                     Text(

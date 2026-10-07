@@ -267,6 +267,24 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_HOME_APP_ORDER, array.toString()).apply()
     }
 
+    fun excludedHomeApps(): Set<String> {
+        return prefs.getStringSet(KEY_EXCLUDED_HOME_APPS, emptySet())?.toSet().orEmpty()
+    }
+
+    fun setExcludedHomeApps(values: Set<String>) {
+        prefs.edit().putStringSet(KEY_EXCLUDED_HOME_APPS, values.toSet()).apply()
+    }
+
+    fun appShortcutKey(): String? {
+        return prefs.getString(KEY_APP_SHORTCUT, null)?.takeIf { it.isNotBlank() }
+    }
+
+    fun setAppShortcutKey(value: String?) {
+        prefs.edit().apply {
+            if (value.isNullOrBlank()) remove(KEY_APP_SHORTCUT) else putString(KEY_APP_SHORTCUT, value)
+        }.apply()
+    }
+
     fun appLaunchCounts(): Map<String, Int> {
         return prefs.getStringSet(KEY_APP_LAUNCH_COUNTS, emptySet())
             ?.mapNotNull { entry ->
@@ -374,6 +392,8 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TASK_ITEMS = "task_items"
         private const val KEY_APP_LAUNCH_COUNTS = "app_launch_counts"
         private const val KEY_HOME_APP_ORDER = "home_app_order"
+        private const val KEY_EXCLUDED_HOME_APPS = "excluded_home_apps"
+        private const val KEY_APP_SHORTCUT = "app_shortcut"
         private const val KEY_TASK_TEXT = "task_text"
     }
 }

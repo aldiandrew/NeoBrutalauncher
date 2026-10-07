@@ -167,15 +167,14 @@ private fun MusicControlButton(
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
             .size(42.dp)
-            .background(BrutalColors.Pink)
-            .border(2.dp, BrutalColors.Ink)
+            .border(2.dp, textColor)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = description,
-            tint = BrutalColors.Ink,
+            tint = textColor,
             modifier = Modifier.size(22.dp)
         )
     }

@@ -40,6 +40,11 @@ fun LivePage(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val pageText = MaterialTheme.colorScheme.onBackground
+    val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
+    val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Orange
+    val secondarySurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
 
     val launchCounts = remember(apps) {
         preferences.appLaunchCounts()
@@ -74,7 +79,7 @@ fun LivePage(
         item {
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Orange,
+                background = accentSurface,
                 borderWidth = 4.dp,
                 shadowX = 7.dp,
                 shadowY = 7.dp
@@ -107,7 +112,7 @@ fun LivePage(
                 BatteryTile(
                     context = context,
                     modifier = Modifier.weight(1f).height(150.dp),
-                    background = BrutalColors.Yellow
+                    background = secondarySurface
                 )
                 NeoNetworkTile(
                     context = context,
@@ -119,9 +124,9 @@ fun LivePage(
         item {
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = MaterialTheme.colorScheme.background,
+                background = neutralSurface,
                 borderWidth = 3.dp,
-                borderColor = MaterialTheme.colorScheme.onBackground,
+                borderColor = pageText,
                 shadowX = 0.dp,
                 shadowY = 0.dp
             ) {
@@ -141,7 +146,7 @@ fun LivePage(
                                 modifier = Modifier.width(28.dp),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
-                                color = BrutalColors.Orange
+                                color = if (isDark) BrutalColors.Cyan else BrutalColors.Orange
                             )
                             Text(
                                 text = app.label.uppercase(),
