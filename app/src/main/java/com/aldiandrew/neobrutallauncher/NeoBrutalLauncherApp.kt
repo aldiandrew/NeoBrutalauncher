@@ -268,14 +268,13 @@ private fun HomeScreen(
     onLaunch: (AppInfo) -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var now by remember { mutableStateOf(Date()) }
-
-    LaunchedEffect(use24Hour) {
-        while (isActive) {
-            now = Date()
-            delay(1000L)
-        }
-    }
+    val clockLive = rememberLiveTileData(
+        tileId = "clock",
+        refreshIntervalMillis = 1000L,
+        initialValue = Date(),
+        loader = { Date() }
+    )
+    val now = clockLive.value ?: Date()
 
     val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
 
@@ -507,22 +506,13 @@ private fun HomeScreen(
 private fun WeatherContent(
     context: android.content.Context
 ) {
-    var weather by remember { mutableStateOf<WeatherData?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            try {
-                weather = WeatherRepository.loadCurrentWeather(context)
-                error = null
-            } catch (throwable: Throwable) {
-                weather = null
-                error = throwable.message
-            }
-
-            delay(15 * 60 * 1000L)
+    val weatherLive = rememberLiveTileData(
+        tileId = "weather",
+        refreshIntervalMillis = 15 * 60 * 1000L,
+        loader = {
+            WeatherRepository.loadCurrentWeather(context)
         }
-    }
+    )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -536,9 +526,9 @@ private fun WeatherContent(
         )
 
         when {
-            weather != null -> {
+            weatherLive.value != null -> {
                 Text(
-                    text = "${weather!!.temperatureC.toInt()}°C · ${weather!!.description}",
+                    text = "${weatherLive.value!!.temperatureC.toInt()}°C · ${weatherLive.value!!.description}",
                     fontSize = 18.sp,
                     lineHeight = 21.sp,
                     fontWeight = FontWeight.Black,
@@ -546,7 +536,7 @@ private fun WeatherContent(
                 )
             }
 
-            error != null -> {
+            weatherLive.error != null -> {
                 Text(
                     text = "LOCATION / NETWORK NEEDED",
                     fontSize = 13.sp,
@@ -556,9 +546,18 @@ private fun WeatherContent(
                 )
             }
 
-            else -> {
+            weatherLive.loading -> {
                 Text(
                     text = "LOADING WEATHER...",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink
+                )
+            }
+
+            else -> {
+                Text(
+                    text = "WEATHER UNAVAILABLE",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Black,
                     color = BrutalColors.Ink
