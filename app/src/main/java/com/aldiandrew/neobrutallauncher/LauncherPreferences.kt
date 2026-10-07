@@ -83,6 +83,14 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_QUOTE, value).apply()
     }
 
+    fun showBattery(): Boolean {
+        return prefs.getBoolean(KEY_BATTERY, false)
+    }
+
+    fun setShowBattery(value: Boolean) {
+        prefs.edit().putBoolean(KEY_BATTERY, value).apply()
+    }
+
     fun favorites(): Set<String> {
         return prefs.getStringSet(KEY_FAVORITES, emptySet())?.toSet().orEmpty()
     }
@@ -190,6 +198,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_APP_COUNT = "show_app_count"
         private const val KEY_WEATHER = "show_weather"
         private const val KEY_QUOTE = "show_quote"
+        private const val KEY_BATTERY = "show_battery"
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_TILE_POSITIONS = "tile_positions"
         private const val KEY_TILE_SIZES = "tile_sizes"
