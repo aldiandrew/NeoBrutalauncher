@@ -7,8 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.LocalTextStyle
 
 object BrutalColors {
     val Ink = Color(0xFF111111)
@@ -25,20 +24,9 @@ object BrutalColors {
     val DarkWhite = Color(0xFFF7F7F7)
 
     fun appPalette(seed: Int = 0): List<Color> {
-        val base = listOf(
-            Pink,
-            Cyan,
-            Lime,
-            Orange,
-            Purple,
-            White,
-            Yellow,
-            Pink
-        )
+        val base = listOf(Pink, Cyan, Lime, Orange, Purple, White, Yellow, Pink)
         val shift = Math.floorMod(seed, base.size)
-        return List(base.size) { index ->
-            base[(index + shift) % base.size]
-        }
+        return List(base.size) { index -> base[(index + shift) % base.size] }
     }
 }
 
@@ -68,7 +56,6 @@ private val DarkScheme = darkColorScheme(
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     brutalityLevel: BrutalityLevel = BrutalityLevel.BRUTAL,
-    cornerRadius: Dp = 0.dp,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
@@ -80,13 +67,17 @@ fun NeoBrutalTheme(
     CompositionLocalProvider(
         LocalBrutalMetrics provides BrutalMetrics(
             borderScale = brutalityLevel.borderScale,
-            shadowScale = brutalityLevel.shadowScale,
-            cornerRadius = cornerRadius.coerceIn(0.dp, 16.dp)
+            shadowScale = brutalityLevel.shadowScale
         )
     ) {
-        MaterialTheme(
-            colorScheme = if (isDark) DarkScheme else LightScheme,
-            content = content
-        )
+        MaterialTheme(colorScheme = if (isDark) DarkScheme else LightScheme) {
+            CompositionLocalProvider(
+                LocalTextStyle provides LocalTextStyle.current.copy(
+                    fontFamily = BrutalTypography.Bricolage
+                )
+            ) {
+                content()
+            }
+        }
     }
 }
