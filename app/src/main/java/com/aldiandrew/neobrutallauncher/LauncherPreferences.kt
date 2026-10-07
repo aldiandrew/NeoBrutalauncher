@@ -144,6 +144,43 @@ class LauncherPreferences(context: Context) {
             .apply()
     }
 
+    fun tileSizes(): Map<String, NeoTileSize> {
+        return prefs.getStringSet(KEY_TILE_SIZES, emptySet())
+            ?.mapNotNull { entry ->
+                val index = entry.lastIndexOf("|")
+                if (index <= 0) {
+                    return@mapNotNull null
+                }
+
+                val tileId = entry.substring(0, index)
+                val size = runCatching {
+                    NeoTileSize.valueOf(entry.substring(index + 1))
+                }.getOrNull()
+
+                if (tileId.isBlank() || size == null) {
+                    null
+                } else {
+                    tileId to size
+                }
+            }
+            ?.toMap()
+            .orEmpty()
+    }
+
+    fun setTileSizes(values: Map<String, NeoTileSize>) {
+        val encoded = values.mapNotNull { (tileId, size) ->
+            if (tileId.isBlank()) {
+                null
+            } else {
+                tileId + "|" + size.name
+            }
+        }.toSet()
+
+        prefs.edit()
+            .putStringSet(KEY_TILE_SIZES, encoded)
+            .apply()
+    }
+
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
@@ -155,5 +192,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_QUOTE = "show_quote"
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_TILE_POSITIONS = "tile_positions"
+        private const val KEY_TILE_SIZES = "tile_sizes"
     }
 }
