@@ -782,7 +782,6 @@ private fun AppTile(
     app: AppInfo,
     background: Color,
     modifier: Modifier,
-    onClick: () -> Unit,
     contentMode: TileContentMode
 ) {
     BoxWithConstraints(modifier = modifier) {
@@ -808,7 +807,7 @@ private fun AppTile(
         }
 
         BrutalBlock(
-            modifier = Modifier.fillMaxSize().clickable(onClick = onClick),
+            modifier = Modifier.fillMaxSize(),
             background = background,
             borderWidth = 3.dp,
             shadowX = 5.dp,
