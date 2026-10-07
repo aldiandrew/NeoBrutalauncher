@@ -19,24 +19,47 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun NeoWeatherTile(
     context: android.content.Context,
+    refreshToken: Int,
     modifier: Modifier = Modifier
 ) {
-    val weatherLive = rememberLiveTileData(
-        tileId = "weather",
-        refreshIntervalMillis = 15 * 60 * 1000L,
-        loader = { WeatherRepository.loadCurrentWeather(context) }
-    )
+    var weather by remember { mutableStateOf<WeatherData?>(null) }
+    var loading by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<Throwable?>(null) }
+    var lastUpdatedMillis by remember { mutableStateOf<Long?>(null) }
 
-    val weather = weatherLive.value
+    LaunchedEffect(refreshToken) {
+        loading = true
+        error = null
+
+        runCatching {
+            WeatherRepository.loadCurrentWeather(context)
+        }.onSuccess {
+            weather = it
+            lastUpdatedMillis = System.currentTimeMillis()
+        }.onFailure {
+            error = it
+        }
+
+        loading = false
+    }
+
     val icon = when (weather?.weatherCode) {
         0 -> Icons.Default.WbSunny
         1, 2, 3, 45, 48 -> Icons.Default.Cloud
@@ -55,6 +78,10 @@ fun NeoWeatherTile(
         shadowY = 8.dp
     ) {
         if (weather != null) {
+            val updatedText = lastUpdatedMillis?.let {
+                SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
+            } ?: "--:--"
+
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -73,33 +100,42 @@ fun NeoWeatherTile(
                         letterSpacing = 1.5.sp,
                         color = BrutalColors.Ink
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(3.dp))
                     Text(
                         text = weather.description.uppercase(),
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${weather.temperatureC.toInt()}°C",
+                        text = "${weather.temperatureC.toInt()}°",
                         fontSize = 48.sp,
                         lineHeight = 48.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Spacer(Modifier.height(5.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         WeatherMetric("HUMIDITY", "${weather.humidityPercent}%")
                         WeatherMetric("WIND", "${weather.windKph.toInt()} KM/H")
                     }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "UPDATED $updatedText  •  TAP TO REFRESH",
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink.copy(alpha = 0.72f),
+                        maxLines = 1
+                    )
                 }
 
                 Box(
                     modifier = Modifier
-                        .width(92.dp)
-                        .height(92.dp),
+                        .width(88.dp)
+                        .height(88.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -119,8 +155,8 @@ fun NeoWeatherTile(
             ) {
                 Text(
                     text = when {
-                        weatherLive.loading -> "LOADING WEATHER..."
-                        weatherLive.error != null -> "ALLOW LOCATION + NETWORK"
+                        loading -> "LOADING WEATHER..."
+                        error != null -> "WEATHER ERROR"
                         else -> "WEATHER UNAVAILABLE"
                     },
                     fontSize = 20.sp,
@@ -130,7 +166,7 @@ fun NeoWeatherTile(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "OPEN-METEO / 15 MIN REFRESH",
+                    text = "TAP WEATHER TILE TO TRY AGAIN",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
                     color = BrutalColors.Ink
