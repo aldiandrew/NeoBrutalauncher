@@ -293,8 +293,7 @@ private fun HomeScreen(
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
-    onTileSizeChange: (String, NeoTileSize) -> Unit,
-    onTileLongPress: (NeoTileSpec) -> Unit
+    onTileSizeChange: (String, NeoTileSize) -> Unit
 ) {
     BackHandler(onBack = {})
 
