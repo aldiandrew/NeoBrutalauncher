@@ -268,6 +268,7 @@ private fun HomeScreen(
     onLaunch: (AppInfo) -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+
     val clockLive = rememberLiveTileData(
         tileId = "clock",
         refreshIntervalMillis = 1000L,
@@ -365,137 +366,223 @@ private fun HomeScreen(
                 }
             }
 
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Yellow,
-                borderWidth = 4.dp,
-                shadowX = 8.dp,
-                shadowY = 8.dp
-            ) {
-                Column {
-                    Text(
-                        text = time.format(now),
-                        fontSize = 58.sp,
-                        lineHeight = 58.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
+            NeoTileGrid(
+                tiles = buildList {
+                    add(
+                        NeoTileSpec(
+                            id = "clock",
+                            size = NeoTileSize.FOUR_BY_TWO
+                        ) {
+                            BrutalBlock(
+                                modifier = Modifier.fillMaxSize(),
+                                background = BrutalColors.Yellow,
+                                borderWidth = 4.dp,
+                                shadowX = 8.dp,
+                                shadowY = 8.dp
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Text(
+                                        text = time.format(now),
+                                        fontSize = 58.sp,
+                                        lineHeight = 58.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = BrutalColors.Ink
+                                    )
+
+                                    if (showDate) {
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            text = date.format(now).uppercase(),
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 1.5.sp,
+                                            color = BrutalColors.Ink
+                                        )
+                                    }
+
+                                    if (showWeather) {
+                                        WeatherContent(context = context)
+                                    }
+                                }
+                            }
+                        }
                     )
-                    if (showDate) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = date.format(now).uppercase(),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.5.sp,
-                            color = BrutalColors.Ink
+
+                    if (showQuote) {
+                        add(
+                            NeoTileSpec(
+                                id = "quote",
+                                size = NeoTileSize.FOUR_BY_TWO
+                            ) {
+                                NeoQuoteTile(
+                                    quote = NeoQuotes.forToday(),
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         )
                     }
 
-                    if (showWeather) {
-                        WeatherContent(context = context)
-                    }
-                }
-            }
-
-            if (showQuote) {
-                NeoQuoteTile(
-                    quote = NeoQuotes.forToday(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            if (showTagline) {
-                BrutalBlock(
-                    modifier = Modifier.fillMaxWidth(),
-                    background = BrutalColors.Ink,
-                    borderWidth = 3.dp,
-                    shadowX = 5.dp,
-                    shadowY = 5.dp
-                ) {
-                    Text(
-                        text = "YOUR PHONE DOESN'T NEED TO LOOK CALM.",
-                        fontSize = 21.sp,
-                        lineHeight = 23.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.White
-                    )
-                }
-            }
-
-            if (topApps.isNotEmpty()) {
-                AppRow(topApps.take(2), BrutalColors.Pink, BrutalColors.Cyan, onLaunch)
-                if (homeAppCount >= 4) {
-                    AppRow(topApps.drop(2).take(2), BrutalColors.Lime, BrutalColors.Orange, onLaunch)
-                }
-                if (homeAppCount >= 6) {
-                    AppRow(topApps.drop(4).take(2), BrutalColors.Purple, BrutalColors.White, onLaunch)
-                }
-                if (homeAppCount >= 8) {
-                    AppRow(topApps.drop(6).take(2), BrutalColors.Yellow, BrutalColors.Pink, onLaunch)
-                }
-            } else {
-                BrutalBlock(
-                    modifier = Modifier.fillMaxWidth(),
-                    background = BrutalColors.White,
-                    borderWidth = 3.dp,
-                    shadowX = 6.dp,
-                    shadowY = 6.dp
-                ) {
-                    Text(
-                        text = "NO LAUNCHABLE APPS DETECTED",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
-                    )
-                }
-            }
-
-            if (showAppCount) {
-                BrutalBlock(
-                    modifier = Modifier.fillMaxWidth(),
-                    background = BrutalColors.White,
-                    borderWidth = 3.dp,
-                    shadowX = 6.dp,
-                    shadowY = 6.dp
-                ) {
-                    Column {
-                        Text(
-                            text = "SYSTEM",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = apps.size.toString() + " APPS DETECTED",
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Black
+                    if (showTagline) {
+                        add(
+                            NeoTileSpec(
+                                id = "tagline",
+                                size = NeoTileSize.FOUR_BY_TWO
+                            ) {
+                                BrutalBlock(
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.Ink,
+                                    borderWidth = 3.dp,
+                                    shadowX = 5.dp,
+                                    shadowY = 5.dp
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(
+                                            text = "YOUR PHONE DOESN'T NEED TO LOOK CALM.",
+                                            fontSize = 21.sp,
+                                            lineHeight = 23.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = BrutalColors.White
+                                        )
+                                    }
+                                }
+                            }
                         )
                     }
-                }
-            }
 
-            BrutalBlock(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpenDrawer),
-                background = BrutalColors.Ink,
-                borderWidth = 4.dp,
-                shadowX = 8.dp,
-                shadowY = 8.dp
-            ) {
-                Text(
-                    text = "ALL APPS  →",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.White,
-                    letterSpacing = 1.sp
-                )
-            }
+                    topApps.forEachIndexed { index, app ->
+                        val tileColor = when (index % 8) {
+                            0 -> BrutalColors.Pink
+                            1 -> BrutalColors.Cyan
+                            2 -> BrutalColors.Lime
+                            3 -> BrutalColors.Orange
+                            4 -> BrutalColors.Purple
+                            5 -> BrutalColors.White
+                            6 -> BrutalColors.Yellow
+                            else -> BrutalColors.Pink
+                        }
+
+                        add(
+                            NeoTileSpec(
+                                id = "app_${app.packageName}_${app.activityName}",
+                                size = NeoTileSize.TWO_BY_TWO
+                            ) {
+                                AppTile(
+                                    app = app,
+                                    background = tileColor,
+                                    modifier = Modifier.fillMaxSize(),
+                                    onClick = { onLaunch(app) }
+                                )
+                            }
+                        )
+                    }
+
+                    if (topApps.isEmpty()) {
+                        add(
+                            NeoTileSpec(
+                                id = "empty-apps",
+                                size = NeoTileSize.FOUR_BY_TWO
+                            ) {
+                                BrutalBlock(
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.White,
+                                    borderWidth = 3.dp,
+                                    shadowX = 6.dp,
+                                    shadowY = 6.dp
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "NO LAUNCHABLE APPS DETECTED",
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = BrutalColors.Ink
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    if (showAppCount) {
+                        add(
+                            NeoTileSpec(
+                                id = "system",
+                                size = NeoTileSize.FOUR_BY_TWO
+                            ) {
+                                BrutalBlock(
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.White,
+                                    borderWidth = 3.dp,
+                                    shadowX = 6.dp,
+                                    shadowY = 6.dp
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "SYSTEM",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 1.sp,
+                                            color = BrutalColors.Ink
+                                        )
+                                        Spacer(Modifier.height(2.dp))
+                                        Text(
+                                            text = apps.size.toString() + " APPS DETECTED",
+                                            fontSize = 25.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = BrutalColors.Ink
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    add(
+                        NeoTileSpec(
+                            id = "all-apps",
+                            size = NeoTileSize.FOUR_BY_TWO
+                        ) {
+                            BrutalBlock(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable(onClick = onOpenDrawer),
+                                background = BrutalColors.Ink,
+                                borderWidth = 4.dp,
+                                shadowX = 8.dp,
+                                shadowY = 8.dp
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "ALL APPS  →",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = BrutalColors.White,
+                                        letterSpacing = 1.sp
+                                    )
+                                }
+                            }
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(12.dp))
         }
