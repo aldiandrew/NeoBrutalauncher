@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 object BrutalColors {
@@ -47,6 +48,8 @@ private val DarkScheme = darkColorScheme(
 @Composable
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
+    brutalityLevel: BrutalityLevel = BrutalityLevel.BRUTAL,
+    cornerRadius: Dp = 0.dp,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
@@ -55,8 +58,16 @@ fun NeoBrutalTheme(
         ThemePreference.DARK -> true
     }
 
-    MaterialTheme(
-        colorScheme = if (isDark) DarkScheme else LightScheme,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalBrutalMetrics provides BrutalMetrics(
+            borderScale = brutalityLevel.borderScale,
+            shadowScale = brutalityLevel.shadowScale,
+            cornerRadius = cornerRadius.coerceIn(0.dp, 16.dp)
+        )
+    ) {
+        MaterialTheme(
+            colorScheme = if (isDark) DarkScheme else LightScheme,
+            content = content
+        )
+    }
 }
