@@ -25,13 +25,19 @@ fun BrutalBlock(
     shadowY: Dp = 6.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val style = LocalBrutalMetrics.current
+    val shape = RoundedCornerShape(style.cornerRadius)
+    val actualBorderWidth = (borderWidth * style.borderScale).coerceAtLeast(1.dp)
+    val actualShadowX = shadowX * style.shadowScale
+    val actualShadowY = shadowY * style.shadowScale
+
     Layout(
         modifier = modifier,
         content = {
             Box(
                 modifier = Modifier.background(
                     color = BrutalColors.Ink,
-                    shape = RoundedCornerShape(0.dp)
+                    shape = shape
                 )
             )
 
@@ -39,13 +45,13 @@ fun BrutalBlock(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        width = borderWidth,
+                        width = actualBorderWidth,
                         color = BrutalColors.Ink,
-                        shape = RoundedCornerShape(0.dp)
+                        shape = shape
                     )
                     .background(
                         color = background,
-                        shape = RoundedCornerShape(0.dp)
+                        shape = shape
                     )
                     .padding(10.dp),
                 content = content
@@ -65,8 +71,8 @@ fun BrutalBlock(
             height = contentPlaceable.height
         ) {
             shadowPlaceable.place(
-                x = shadowX.roundToPx(),
-                y = shadowY.roundToPx()
+                x = actualShadowX.roundToPx(),
+                y = actualShadowY.roundToPx()
             )
             contentPlaceable.place(
                 x = 0,
