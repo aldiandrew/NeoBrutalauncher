@@ -1,0 +1,159 @@
+package com.aldiandrew.neobrutallauncher
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.Build
+import android.os.CancellationSignal
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.coroutines.resume
+
+data class WeatherData(
+    val temperatureC: Double,
+    val weatherCode: Int,
+    val description: String
+)
+
+object WeatherRepository {
+
+    @SuppressLint("MissingPermission")
+    suspend fun loadCurrentWeather(context: Context): WeatherData {
+        if (
+            context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            throw IllegalStateException("Location permission is required")
+        }
+
+        val locationManager =
+            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val location = getLocation(locationManager, context)
+            ?: throw IllegalStateException("Unable to determine current location")
+
+        return fetchWeather(location.latitude, location.longitude)
+    }
+
+    @SuppressLint("MissingPermission")
+    private suspend fun getLocation(
+        locationManager: LocationManager,
+        context: Context
+    ): Location? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val provider = when {
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ->
+                    LocationManager.NETWORK_PROVIDER
+                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ->
+                    LocationManager.GPS_PROVIDER
+                else -> null
+            }
+
+            if (provider != null) {
+                val current = suspendCancellableCoroutine<Location?> { continuation ->
+                    val signal = CancellationSignal()
+
+                    continuation.invokeOnCancellation {
+                        signal.cancel()
+                    }
+
+                    locationManager.getCurrentLocation(
+                        provider,
+                        signal,
+                        context.mainExecutor
+                    ) { location ->
+                        if (continuation.isActive) {
+                            continuation.resume(location)
+                        }
+                    }
+                }
+
+                if (current != null) {
+                    return current
+                }
+            }
+        }
+
+        return listOf(
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.GPS_PROVIDER
+        )
+            .filter { provider ->
+                runCatching {
+                    locationManager.isProviderEnabled(provider)
+                }.getOrDefault(false)
+            }
+            .mapNotNull { provider ->
+                runCatching {
+                    locationManager.getLastKnownLocation(provider)
+                }.getOrNull()
+            }
+            .maxByOrNull { it.time }
+    }
+
+    private suspend fun fetchWeather(
+        latitude: Double,
+        longitude: Double
+    ): WeatherData = withContext(Dispatchers.IO) {
+        val endpoint =
+            "https://api.open-meteo.com/v1/forecast" +
+                "?latitude=$latitude" +
+                "&longitude=$longitude" +
+                "&current=temperature_2m,weather_code" +
+                "&timezone=auto"
+
+        val connection =
+            URL(endpoint).openConnection() as HttpURLConnection
+
+        try {
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.setRequestProperty("Accept", "application/json")
+
+            val responseCode = connection.responseCode
+
+            if (responseCode !in 200..299) {
+                throw IllegalStateException(
+                    "Weather service returned HTTP $responseCode"
+                )
+            }
+
+            val response =
+                connection.inputStream.bufferedReader().use { it.readText() }
+
+            val current = JSONObject(response).getJSONObject("current")
+            val temperature = current.getDouble("temperature_2m")
+            val weatherCode = current.getInt("weather_code")
+
+            WeatherData(
+                temperatureC = temperature,
+                weatherCode = weatherCode,
+                description = weatherDescription(weatherCode)
+            )
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun weatherDescription(code: Int): String {
+        return when (code) {
+            0 -> "Clear"
+            1, 2, 3 -> "Cloudy"
+            45, 48 -> "Fog"
+            51, 53, 55, 56, 57 -> "Drizzle"
+            61, 63, 65, 66, 67 -> "Rain"
+            71, 73, 75, 77, 85, 86 -> "Snow"
+            80, 81, 82 -> "Showers"
+            95, 96, 99 -> "Thunderstorm"
+            else -> "Unknown"
+        }
+    }
+}

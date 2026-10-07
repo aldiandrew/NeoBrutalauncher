@@ -1,7 +1,11 @@
 package com.aldiandrew.neobrutallauncher
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +33,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -81,7 +86,26 @@ fun NeoBrutalLauncherApp() {
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
     var showTagline by remember { mutableStateOf(preferences.showTagline()) }
     var showAppCount by remember { mutableStateOf(preferences.showAppCount()) }
+    var showWeather by remember { mutableStateOf(preferences.showWeather()) }
+    var showQuote by remember { mutableStateOf(preferences.showQuote()) }
     var favorites by remember { mutableStateOf(preferences.favorites()) }
+
+    var locationPermissionGranted by remember {
+        mutableStateOf(
+            context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        locationPermissionGranted = granted
+        if (granted) {
+            showWeather = true
+            preferences.setShowWeather(true)
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -93,6 +117,9 @@ fun NeoBrutalLauncherApp() {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 refreshApps()
+                locationPermissionGranted =
+                    context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -122,7 +149,10 @@ fun NeoBrutalLauncherApp() {
                     homeAppCount = homeAppCount,
                     showTagline = showTagline,
                     showAppCount = showAppCount,
+                    showWeather = showWeather,
+                    showQuote = showQuote,
                     favoritesCount = favorites.size,
+                    locationPermissionGranted = locationPermissionGranted,
                     onBack = { settingsOpen = false },
                     onThemeChange = {
                         themePreference = it
@@ -147,6 +177,30 @@ fun NeoBrutalLauncherApp() {
                     onShowAppCountChange = {
                         showAppCount = it
                         preferences.setShowAppCount(it)
+                    },
+                    onShowWeatherChange = { enabled ->
+                        if (enabled) {
+                            if (locationPermissionGranted) {
+                                showWeather = true
+                                preferences.setShowWeather(true)
+                            } else {
+                                locationPermissionLauncher.launch(
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            }
+                        } else {
+                            showWeather = false
+                            preferences.setShowWeather(false)
+                        }
+                    },
+                    onRequestWeatherPermission = {
+                        locationPermissionLauncher.launch(
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    },
+                    onShowQuoteChange = {
+                        showQuote = it
+                        preferences.setShowQuote(it)
                     },
                     onRefreshApps = { refreshApps() },
                     onClearFavorites = {
@@ -178,18 +232,22 @@ fun NeoBrutalLauncherApp() {
         }
 
         else -> {
-            HomeScreen(
+            NeoBrutalTheme(themePreference = themePreference) {
+                HomeScreen(
                 apps = apps,
                 favorites = favorites,
                 homeAppCount = homeAppCount,
                 use24Hour = use24Hour,
                 showDate = showDate,
                 showTagline = showTagline,
-                showAppCount = showAppCount,
-                onOpenDrawer = { drawerOpen = true },
-                onOpenSettings = { settingsOpen = true },
-                onLaunch = repository::launch
-            )
+                    showAppCount = showAppCount,
+                    showWeather = showWeather,
+                    showQuote = showQuote,
+                    onOpenDrawer = { drawerOpen = true },
+                    onOpenSettings = { settingsOpen = true },
+                    onLaunch = repository::launch
+                )
+            }
         }
     }
 }
@@ -203,10 +261,13 @@ private fun HomeScreen(
     showDate: Boolean,
     showTagline: Boolean,
     showAppCount: Boolean,
+    showWeather: Boolean,
+    showQuote: Boolean,
     onOpenDrawer: () -> Unit,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var now by remember { mutableStateOf(Date()) }
 
     LaunchedEffect(use24Hour) {
@@ -237,7 +298,7 @@ private fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BrutalColors.Paper)
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -333,6 +394,20 @@ private fun HomeScreen(
                 }
             }
 
+            if (showWeather) {
+                HomeWeatherTile(
+                    context = context,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (showQuote) {
+                NeoQuoteTile(
+                    quote = NeoQuotes.forToday(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             if (showTagline) {
                 BrutalBlock(
                     modifier = Modifier.fillMaxWidth(),
@@ -358,6 +433,9 @@ private fun HomeScreen(
                 }
                 if (homeAppCount >= 6) {
                     AppRow(topApps.drop(4).take(2), BrutalColors.Purple, BrutalColors.White, onLaunch)
+                }
+                if (homeAppCount >= 8) {
+                    AppRow(topApps.drop(6).take(2), BrutalColors.Yellow, BrutalColors.Pink, onLaunch)
                 }
             } else {
                 BrutalBlock(
@@ -424,6 +502,110 @@ private fun HomeScreen(
             }
 
             Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun HomeWeatherTile(
+    context: android.content.Context,
+    modifier: Modifier = Modifier
+) {
+    var weather by remember { mutableStateOf<WeatherData?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            try {
+                weather = WeatherRepository.loadCurrentWeather(context)
+                error = null
+            } catch (throwable: Throwable) {
+                weather = null
+                error = throwable.message
+            }
+
+            delay(15 * 60 * 1000L)
+        }
+    }
+
+    BrutalBlock(
+        modifier = modifier,
+        background = BrutalColors.Cyan,
+        borderWidth = 3.dp,
+        shadowX = 6.dp,
+        shadowY = 6.dp
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "WEATHER",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp,
+                color = BrutalColors.Ink
+            )
+
+            when {
+                weather != null -> {
+                    Text(
+                        text = "${weather!!.temperatureC.toInt()}°C · ${weather!!.description}",
+                        fontSize = 18.sp,
+                        lineHeight = 21.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
+
+                error != null -> {
+                    Text(
+                        text = "LOCATION / NETWORK NEEDED",
+                        fontSize = 13.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "LOADING WEATHER...",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NeoQuoteTile(
+    quote: String,
+    modifier: Modifier = Modifier
+) {
+    BrutalBlock(
+        modifier = modifier,
+        background = BrutalColors.Purple,
+        borderWidth = 3.dp,
+        shadowX = 6.dp,
+        shadowY = 6.dp
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(
+                text = "NEO QUOTE",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp,
+                color = BrutalColors.White
+            )
+
+            Text(
+                text = "“$quote”",
+                fontSize = 17.sp,
+                lineHeight = 21.sp,
+                fontWeight = FontWeight.Black,
+                color = BrutalColors.White
+            )
         }
     }
 }
@@ -592,6 +774,19 @@ private fun AppDrawer(
                     color = uiOnSurface.copy(alpha = 0.65f)
                 )
             },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(
+                        onClick = { query = "" }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear search",
+                            tint = uiOnSurface
+                        )
+                    }
+                }
+            },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = BrutalColors.Ink,
                 unfocusedTextColor = BrutalColors.Ink,
@@ -716,7 +911,10 @@ private fun SettingsScreen(
     homeAppCount: Int,
     showTagline: Boolean,
     showAppCount: Boolean,
+    showWeather: Boolean,
+    showQuote: Boolean,
     favoritesCount: Int,
+    locationPermissionGranted: Boolean,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
@@ -724,6 +922,9 @@ private fun SettingsScreen(
     onHomeAppCountChange: (Int) -> Unit,
     onShowTaglineChange: (Boolean) -> Unit,
     onShowAppCountChange: (Boolean) -> Unit,
+    onShowWeatherChange: (Boolean) -> Unit,
+    onRequestWeatherPermission: () -> Unit,
+    onShowQuoteChange: (Boolean) -> Unit,
     onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
@@ -751,7 +952,7 @@ private fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = BrutalColors.Ink
+                    tint = uiOnSurface
                 )
             }
 
@@ -879,6 +1080,30 @@ private fun SettingsScreen(
                 onCheckedChange = onShowAppCountChange
             )
 
+            SettingsSwitch(
+                title = "SHOW WEATHER",
+                description = "Show current temperature and conditions inside the clock tile. Location and Internet access are required.",
+                checked = showWeather,
+                background = BrutalColors.Yellow,
+                onCheckedChange = onShowWeatherChange
+            )
+
+            if (showWeather && !locationPermissionGranted) {
+                BrutalActionButton(
+                    title = "ALLOW LOCATION FOR WEATHER",
+                    background = BrutalColors.Orange,
+                    onClick = onRequestWeatherPermission
+                )
+            }
+
+            SettingsSwitch(
+                title = "SHOW QUOTE",
+                description = "Show an original neo-brutalist quote tile on the home screen.",
+                checked = showQuote,
+                background = BrutalColors.Lime,
+                onCheckedChange = onShowQuoteChange
+            )
+
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
                 background = BrutalColors.Lime,
@@ -902,7 +1127,7 @@ private fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        for (count in listOf(2, 4, 6)) {
+                        for (count in listOf(2, 4, 6, 8)) {
                             ThemeButton(
                                 label = count.toString(),
                                 selected = homeAppCount == count,
@@ -964,13 +1189,13 @@ private fun SettingsScreen(
                         text = "$appsCount LAUNCHABLE APPS DETECTED",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
+                        color = uiOnSurface
                     )
                     Text(
                         text = "Refresh the launcher app list after installing or removing apps.",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = BrutalColors.Ink
+                        color = uiOnSurface
                     )
                     BrutalActionButton(
                         title = "REFRESH APP LIST",

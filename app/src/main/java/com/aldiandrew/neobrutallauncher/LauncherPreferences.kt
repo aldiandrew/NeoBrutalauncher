@@ -44,11 +44,11 @@ class LauncherPreferences(context: Context) {
     }
 
     fun homeAppCount(): Int {
-        return prefs.getInt(KEY_HOME_APP_COUNT, 6).coerceIn(2, 6)
+        return prefs.getInt(KEY_HOME_APP_COUNT, 6).coerceIn(2, 8)
     }
 
     fun setHomeAppCount(value: Int) {
-        prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 6)).apply()
+        prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 8)).apply()
     }
 
     fun showTagline(): Boolean {
@@ -65,6 +65,22 @@ class LauncherPreferences(context: Context) {
 
     fun setShowAppCount(value: Boolean) {
         prefs.edit().putBoolean(KEY_APP_COUNT, value).apply()
+    }
+
+    fun showWeather(): Boolean {
+        return prefs.getBoolean(KEY_WEATHER, false)
+    }
+
+    fun setShowWeather(value: Boolean) {
+        prefs.edit().putBoolean(KEY_WEATHER, value).apply()
+    }
+
+    fun showQuote(): Boolean {
+        return prefs.getBoolean(KEY_QUOTE, false)
+    }
+
+    fun setShowQuote(value: Boolean) {
+        prefs.edit().putBoolean(KEY_QUOTE, value).apply()
     }
 
     fun favorites(): Set<String> {
@@ -86,6 +102,8 @@ class LauncherPreferences(context: Context) {
         private const val KEY_HOME_APP_COUNT = "home_app_count"
         private const val KEY_TAGLINE = "show_tagline"
         private const val KEY_APP_COUNT = "show_app_count"
+        private const val KEY_WEATHER = "show_weather"
+        private const val KEY_QUOTE = "show_quote"
         private const val KEY_FAVORITES = "favorites"
     }
 }
