@@ -44,11 +44,11 @@ class LauncherPreferences(context: Context) {
     }
 
     fun homeAppCount(): Int {
-        return prefs.getInt(KEY_HOME_APP_COUNT, 6).coerceIn(2, 8)
+        return prefs.getInt(KEY_HOME_APP_COUNT, 5).let { value -> if (value in listOf(3, 5, 7)) value else 5 }
     }
 
     fun setHomeAppCount(value: Int) {
-        prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 8)).apply()
+        prefs.edit().putInt(KEY_HOME_APP_COUNT, if (value in listOf(3, 5, 7)) value else 5).apply()
     }
 
     fun showTagline(): Boolean {
@@ -253,6 +253,31 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
+    fun appLaunchCounts(): Map<String, Int> {
+        return prefs.getStringSet(KEY_APP_LAUNCH_COUNTS, emptySet())
+            ?.mapNotNull { entry ->
+                val index = entry.lastIndexOf("|")
+                if (index <= 0) return@mapNotNull null
+                val key = entry.substring(0, index)
+                val count = entry.substring(index + 1).toIntOrNull()
+                if (key.isBlank() || count == null || count < 1) null else key to count
+            }
+            ?.toMap()
+            .orEmpty()
+    }
+
+    fun recordAppLaunch(key: String) {
+        if (key.isBlank()) return
+        val updated = appLaunchCounts().toMutableMap()
+        updated[key] = (updated[key] ?: 0) + 1
+        prefs.edit()
+            .putStringSet(
+                KEY_APP_LAUNCH_COUNTS,
+                updated.map { (id, count) -> "$id|$count" }.toSet()
+            )
+            .apply()
+    }
+
     fun noteText(): String {
         return prefs.getString(KEY_NOTE_TEXT, "") ?: ""
     }
@@ -297,6 +322,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
         private const val KEY_CHAOS_SEED = "chaos_seed"
         private const val KEY_NOTE_TEXT = "note_text"
+        private const val KEY_APP_LAUNCH_COUNTS = "app_launch_counts"
         private const val KEY_TASK_TEXT = "task_text"
     }
 }

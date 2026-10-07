@@ -74,9 +74,10 @@ fun AppsPage(
         }
     }
 
-    val uiBackground = androidx.compose.material3.MaterialTheme.colorScheme.background
-    val uiSurface = androidx.compose.material3.MaterialTheme.colorScheme.surface
-    val uiOnSurface = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+    val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val uiBackground = if (isDark) BrutalColors.Ink else BrutalColors.Paper
+    val uiSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.White
+    val uiOnSurface = if (isDark) BrutalColors.Ink else BrutalColors.Ink
 
     Box(
         modifier = Modifier

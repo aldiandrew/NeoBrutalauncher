@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SignalCellular4Bar
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -70,23 +74,35 @@ fun NeoNetworkTile(context: Context, modifier: Modifier = Modifier) {
     }
 
     val textColor = MaterialTheme.colorScheme.onBackground
+    val icon = when (state.primary) {
+        "WIFI" -> Icons.Default.Wifi
+        "MOBILE" -> Icons.Default.SignalCellular4Bar
+        else -> Icons.Default.Public
+    }
+
     BrutalBlock(
         modifier = modifier,
         background = Color.Transparent,
         borderWidth = 3.dp,
         borderColor = textColor,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        shadowX = 0.dp,
+        shadowY = 0.dp
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            androidx.compose.material3.Icon(
+                imageVector = icon,
+                contentDescription = state.primary,
+                tint = textColor,
+                modifier = Modifier.size(22.dp)
+            )
             Text(
                 text = state.primary,
-                fontSize = 10.sp,
-                lineHeight = 11.sp,
+                fontSize = 8.sp,
+                lineHeight = 9.sp,
                 fontWeight = FontWeight.Black,
                 color = textColor,
                 maxLines = 1

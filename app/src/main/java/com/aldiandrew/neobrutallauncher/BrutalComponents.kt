@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
@@ -25,6 +24,7 @@ fun BrutalBlock(
     shadowX: Dp = 6.dp,
     shadowY: Dp = 6.dp,
     borderColor: Color? = null,
+    shadowColor: Color? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val style = LocalBrutalMetrics.current
@@ -32,8 +32,7 @@ fun BrutalBlock(
     val actualBorderWidth = (borderWidth * style.borderScale).coerceAtLeast(1.dp)
     val actualShadowX = shadowX * style.shadowScale
     val actualShadowY = shadowY * style.shadowScale
-    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val resolvedShadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+    val resolvedShadowColor = shadowColor ?: BrutalColors.Ink
     val resolvedBorderColor = borderColor ?: BrutalColors.Ink
 
     Layout(

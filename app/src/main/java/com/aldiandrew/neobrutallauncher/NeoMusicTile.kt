@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,93 +75,108 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
         background = Color.Transparent,
         borderWidth = 3.dp,
         borderColor = textColor,
-        shadowX = 6.dp,
-        shadowY = 6.dp
+        shadowX = 0.dp,
+        shadowY = 0.dp
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .size(86.dp)
-                    .background(BrutalColors.Pink)
-                    .border(3.dp, BrutalColors.Ink),
+                modifier = Modifier.size(66.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (artBitmap != null) {
                     Image(
                         bitmap = artBitmap,
                         contentDescription = musicApp?.label ?: "Music",
-                        modifier = Modifier.size(70.dp)
+                        modifier = Modifier.size(62.dp)
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = "Music",
-                        tint = BrutalColors.Ink,
-                        modifier = Modifier.size(48.dp)
+                        tint = textColor,
+                        modifier = Modifier.size(42.dp)
                     )
                 }
             }
 
-            Spacer(Modifier.width(11.dp))
+            Spacer(Modifier.width(10.dp))
 
             Column(
-                modifier = Modifier.weight(1f).fillMaxSize(),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "NOW PLAYING",
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     fontWeight = FontWeight.Black,
                     color = textColor,
-                    letterSpacing = 1.sp,
+                    letterSpacing = 0.8.sp,
                     maxLines = 1
                 )
                 Text(
                     text = musicApp?.label?.uppercase() ?: "SYSTEM MEDIA",
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
+                    fontSize = 13.sp,
+                    lineHeight = 14.sp,
                     fontWeight = FontWeight.Black,
                     color = textColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "MEDIA CONTROLS FOLLOW THE ACTIVE PLAYER",
-                    fontSize = 7.sp,
-                    lineHeight = 8.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor.copy(alpha = 0.72f),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(Modifier.height(5.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                MusicControlButton(
+                    icon = Icons.Default.SkipPrevious,
+                    description = "Previous",
+                    textColor = textColor
                 ) {
-                    IconButton(
-                        onClick = { dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS) },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(Icons.Default.SkipPrevious, "Previous", tint = textColor)
-                    }
-                    IconButton(
-                        onClick = { dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(Icons.Default.PlayArrow, "Play or pause", tint = textColor)
-                    }
-                    IconButton(
-                        onClick = { dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT) },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(Icons.Default.SkipNext, "Next", tint = textColor)
-                    }
+                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+                }
+                MusicControlButton(
+                    icon = Icons.Default.PlayArrow,
+                    description = "Play or pause",
+                    textColor = textColor
+                ) {
+                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+                }
+                MusicControlButton(
+                    icon = Icons.Default.SkipNext,
+                    description = "Next",
+                    textColor = textColor
+                ) {
+                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MusicControlButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    textColor: Color,
+    onClick: () -> Unit
+) {
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier
+            .size(42.dp)
+            .background(BrutalColors.Pink)
+            .border(2.dp, BrutalColors.Ink)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = BrutalColors.Ink,
+            modifier = Modifier.size(22.dp)
+        )
     }
 }

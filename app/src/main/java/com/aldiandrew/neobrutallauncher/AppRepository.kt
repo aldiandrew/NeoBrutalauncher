@@ -33,6 +33,8 @@ class AppRepository(private val context: Context) {
     }
 
     fun launch(app: AppInfo) {
+        val key = app.packageName + "/" + app.activityName
+        LauncherPreferences(context).recordAppLaunch(key)
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
             setClassName(app.packageName, app.activityName)
