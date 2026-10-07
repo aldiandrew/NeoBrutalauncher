@@ -1025,6 +1025,13 @@ private fun SettingsScreen(
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
 
+    val darkTileBackground =
+        if (uiBackground == BrutalColors.DarkPaper) {
+            BrutalColors.DarkTile
+        } else {
+            BrutalColors.Ink
+        }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
