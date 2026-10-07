@@ -250,6 +250,7 @@ fun NeoBrutalLauncherApp() {
                             showWeather = showWeather,
                             showQuote = showQuote,
                             showBattery = showBattery,
+                            appTileContentMode = appTileContentMode,
                             onOpenSettings = { settingsOpen = true },
                             onLaunch = repository::launch,
                             tilePositions = tilePositions,
