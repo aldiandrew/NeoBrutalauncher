@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -108,41 +109,72 @@ fun BatteryTile(
         shadowX = 5.dp,
         shadowY = 5.dp
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = "BATTERY",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Black,
-                color = BrutalColors.Ink
-            )
+            val compact = minOf(maxWidth, maxHeight)
 
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    text = battery.percentage.toString(),
-                    fontSize = 42.sp,
-                    lineHeight = 42.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
-                Spacer(Modifier.width(3.dp))
-                Text(
-                    text = "%",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
+            if (compact < 78.dp) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "${battery.percentage}%",
+                        fontSize = 18.sp,
+                        lineHeight = 19.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = if (battery.charging) "CHG" else "BAT",
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "BATTERY",
+                        fontSize = if (compact < 155.dp) 9.sp else 12.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text(
+                            text = battery.percentage.toString(),
+                            fontSize = if (compact < 155.dp) 32.sp else 42.sp,
+                            lineHeight = if (compact < 155.dp) 33.sp else 43.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink
+                        )
+                        Spacer(Modifier.width(3.dp))
+                        Text(
+                            text = "%",
+                            fontSize = if (compact < 155.dp) 15.sp else 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink
+                        )
+                    }
+
+                    Text(
+                        text = if (battery.charging) "CHARGING" else "ON BATTERY",
+                        fontSize = if (compact < 155.dp) 8.sp else 11.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink,
+                        maxLines = 1
+                    )
+                }
             }
-
-            Text(
-                text = if (battery.charging) "CHARGING" else "ON BATTERY",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                color = BrutalColors.Ink
-            )
         }
     }
 }
