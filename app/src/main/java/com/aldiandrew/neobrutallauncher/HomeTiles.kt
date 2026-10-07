@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
-import kotlin.math.hypot
 
 enum class NeoTileSize(
     val columns: Int,
@@ -246,10 +245,9 @@ fun NeoTileGrid(
                                                                 gap * it.row +
                                                                 it.height / 2f).toPx()
                                                         }
-                                                    hypot(
-                                                        centerX - targetX,
-                                                        centerY - targetY
-                                                    )
+                                                    val dx = centerX - targetX
+                                                    val dy = centerY - targetY
+                                                    dx * dx + dy * dy
                                                 }
 
                                             if (target != null) {
