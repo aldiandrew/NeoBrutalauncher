@@ -10,14 +10,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.RectangleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -44,16 +44,20 @@ enum class ClockStyle(val label: String) {
 
 data class BrutalMetrics(
     val borderScale: Float = 1f,
-    val shadowScale: Float = 1f,
-    val cornerRadius: Dp = 0.dp
+    val shadowScale: Float = 1f
 )
 
 val LocalBrutalMetrics = staticCompositionLocalOf { BrutalMetrics() }
 
 object BrutalTypography {
-    val Poster = FontFamily.SansSerif
+    val Bricolage = FontFamily(
+        Font(R.font.bricolage_grotesque_regular, FontWeight.Normal),
+        Font(R.font.bricolage_grotesque_bold, FontWeight.Bold),
+        Font(R.font.bricolage_grotesque_extrabold, FontWeight.ExtraBold)
+    )
+    val Poster = Bricolage
     val Mono = FontFamily.Monospace
-    val Black = FontWeight.Black
+    val Black = FontWeight.ExtraBold
     val ExtraBold = FontWeight.ExtraBold
 }
 
@@ -65,11 +69,11 @@ fun BrutalLabel(
 ) {
     Box(
         modifier = modifier
-            .background(background, RoundedCornerShape(LocalBrutalMetrics.current.cornerRadius))
+            .background(background, RectangleShape)
             .border(
                 width = 2.dp * LocalBrutalMetrics.current.borderScale,
                 color = BrutalColors.Ink,
-                shape = RoundedCornerShape(LocalBrutalMetrics.current.cornerRadius)
+                shape = RectangleShape
             )
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
@@ -92,10 +96,11 @@ fun BrutalTape(
 ) {
     Box(
         modifier = modifier
-            .background(background, RoundedCornerShape(2.dp))
+            .background(background, RectangleShape)
             .border(
                 width = 2.dp * LocalBrutalMetrics.current.borderScale,
-                color = BrutalColors.Ink
+                color = BrutalColors.Ink,
+                shape = RectangleShape
             )
             .padding(horizontal = 10.dp, vertical = 5.dp)
     ) {
@@ -118,11 +123,11 @@ fun BrutalStamp(
 ) {
     Column(
         modifier = modifier
-            .background(background, RoundedCornerShape(LocalBrutalMetrics.current.cornerRadius))
+            .background(background, RectangleShape)
             .border(
                 width = 3.dp * LocalBrutalMetrics.current.borderScale,
                 color = BrutalColors.Ink,
-                shape = RoundedCornerShape(LocalBrutalMetrics.current.cornerRadius)
+                shape = RectangleShape
             )
             .padding(8.dp),
         horizontalAlignment = Alignment.Start
