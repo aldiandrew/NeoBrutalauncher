@@ -87,8 +87,9 @@ fun BrutalLabel(
     ) {
         Text(
             text = text,
+            fontFamily = BrutalTypography.Display,
             fontSize = 10.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Normal,
             letterSpacing = 0.8.sp,
             color = BrutalColors.Ink
         )
@@ -113,8 +114,9 @@ fun BrutalTape(
     ) {
         Text(
             text = text,
+            fontFamily = BrutalTypography.Display,
             fontSize = 10.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Normal,
             letterSpacing = 1.sp,
             color = BrutalColors.Ink
         )
@@ -141,8 +143,9 @@ fun BrutalStamp(
     ) {
         Text(
             text = title,
+            fontFamily = BrutalTypography.Display,
             fontSize = 12.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Normal,
             letterSpacing = 1.sp,
             color = BrutalColors.Ink
         )
