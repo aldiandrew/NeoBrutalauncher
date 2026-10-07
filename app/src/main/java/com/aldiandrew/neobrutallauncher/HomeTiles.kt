@@ -1,13 +1,17 @@
 package com.aldiandrew.neobrutallauncher
 
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -19,17 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.dp
 import androidx.compose.ui.zIndex
+import kotlin.math.abs
 
-/**
- * Four Metro-style sizes matching the Vanta model:
- * SMALL 1×1, MEDIUM 2×2, WIDE 4×2, LARGE 4×4.
- *
- * Layout is row-based. There is intentionally no free-form (x/y) placement.
- * Tiles are kept in one order and greedily packed into 4-column rows, so
- * every drag immediately closes gaps instead of creating holes.
- */
 enum class NeoTileSize(
     val columns: Int,
     val rows: Int,
@@ -54,10 +51,6 @@ enum class TileContentMode(val label: String) {
     TEXT("TEXT")
 }
 
-/**
- * Kept as a compatibility format for existing saved preferences.
- * The grid now treats these values only as an ordering hint.
- */
 data class NeoTilePosition(
     val column: Int,
     val row: Int
@@ -67,41 +60,39 @@ data class NeoTileSpec(
     val id: String,
     val size: NeoTileSize,
     val label: String = id,
+    val onClick: (() -> Unit)? = null,
     val content: @Composable () -> Unit
 )
 
 private const val TILE_COLUMNS = 4
-private val TileRowHeight = 112.dp
-private val LargeTileRowHeight = 234.dp
-private const val DRAG_REORDER_THRESHOLD = 56f
+private const val REORDER_THRESHOLD_RATIO = 0.55f
 
-/**
- * Convert the old persisted (column,row) map into one stable linear order.
- * Missing positions fall back to the current tile declaration order.
- */
+private data class TilePlacement(
+    val tile: NeoTileSpec,
+    val x: Dp,
+    val y: Dp,
+    val width: Dp,
+    val height: Dp
+)
+
 private fun orderedTiles(
     tiles: List<NeoTileSpec>,
     positions: Map<String, NeoTilePosition>
 ): List<NeoTileSpec> {
-    val declared = tiles.withIndex().associate { it.value.id to it.index }
+    val declarationOrder = tiles.withIndex().associate { it.value.id to it.index }
+
     return tiles.sortedWith(
-        compareBy<NeoTileSpec> {
-            positions[it.id]?.row ?: Int.MAX_VALUE
-        }.thenBy {
-            positions[it.id]?.column ?: Int.MAX_VALUE
-        }.thenBy {
-            declared[it.id] ?: Int.MAX_VALUE
-        }.thenBy { it.id }
+        compareBy<NeoTileSpec> { positions[it.id]?.row ?: Int.MAX_VALUE }
+            .thenBy { positions[it.id]?.column ?: Int.MAX_VALUE }
+            .thenBy { declarationOrder[it.id] ?: Int.MAX_VALUE }
+            .thenBy { it.id }
     )
 }
 
-/**
- * Vanta-style greedy row packing. A full-width tile closes the current row.
- */
 private fun packRows(tiles: List<NeoTileSpec>): List<List<NeoTileSpec>> {
     val rows = mutableListOf<List<NeoTileSpec>>()
     var row = mutableListOf<NeoTileSpec>()
-    var used = 0
+    var usedColumns = 0
 
     for (tile in tiles) {
         val span = tile.size.columns
@@ -109,22 +100,22 @@ private fun packRows(tiles: List<NeoTileSpec>): List<List<NeoTileSpec>> {
         if (span == TILE_COLUMNS && row.isNotEmpty()) {
             rows += row
             row = mutableListOf()
-            used = 0
+            usedColumns = 0
         }
 
-        if (used + span > TILE_COLUMNS && row.isNotEmpty()) {
+        if (usedColumns + span > TILE_COLUMNS && row.isNotEmpty()) {
             rows += row
             row = mutableListOf()
-            used = 0
+            usedColumns = 0
         }
 
         row += tile
-        used += span
+        usedColumns += span
 
         if (span == TILE_COLUMNS) {
             rows += row
             row = mutableListOf()
-            used = 0
+            usedColumns = 0
         }
     }
 
@@ -134,38 +125,10 @@ private fun packRows(tiles: List<NeoTileSpec>): List<List<NeoTileSpec>> {
 
 private fun positionsForOrder(
     ordered: List<NeoTileSpec>
-): Map<String, NeoTilePosition> {
-    val result = linkedMapOf<String, NeoTilePosition>()
-    var rowIndex = 0
-    var column = 0
-
-    for (tile in ordered) {
-        val span = tile.size.columns
-
-        if (span == TILE_COLUMNS) {
-            if (column != 0) rowIndex++
-            result[tile.id] = NeoTilePosition(0, rowIndex)
-            rowIndex += if (tile.size == NeoTileSize.LARGE) 2 else 1
-            column = 0
-            continue
-        }
-
-        if (column + span > TILE_COLUMNS) {
-            rowIndex++
-            column = 0
-        }
-
-        result[tile.id] = NeoTilePosition(column, rowIndex)
-        column += span
-
-        if (column == TILE_COLUMNS) {
-            rowIndex++
-            column = 0
-        }
-    }
-
-    return result
-}
+): Map<String, NeoTilePosition> =
+    ordered.mapIndexed { index, tile ->
+        tile.id to NeoTilePosition(column = 0, row = index)
+    }.toMap()
 
 private fun moveItem(
     list: List<NeoTileSpec>,
@@ -191,80 +154,114 @@ fun NeoTileGrid(
     onPositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onTileLongPress: (NeoTileSpec) -> Unit = {},
     modifier: Modifier = Modifier,
-    gap: Dp = 10.dp
+    gap: Dp = 8.dp
 ) {
-    val baseOrder = remember(tiles, positions) {
+    val initialOrder = remember(tiles, positions) {
         orderedTiles(tiles, positions)
     }
-    var dragOrder by remember(baseOrder) { mutableStateOf(baseOrder) }
+
+    var dragOrder by remember(initialOrder) { mutableStateOf(initialOrder) }
     var draggedId by remember { mutableStateOf<String?>(null) }
 
-    val rows = packRows(dragOrder)
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val cellWidth =
+            ((maxWidth - gap * (TILE_COLUMNS - 1)) / TILE_COLUMNS).coerceAtLeast(1.dp)
+        val cellHeight = cellWidth
 
-    ColumnWithRows(
-        rows = rows,
-        gap = gap,
-        modifier = modifier,
-        draggedId = draggedId,
-        onDraggedIdChange = { draggedId = it },
-        onReorder = { id, delta ->
-            val updated = moveItem(dragOrder, id, delta)
-            if (updated != dragOrder) {
-                dragOrder = updated
-            }
-        },
-        onDrop = {
-            onPositionsChange(positionsForOrder(dragOrder))
-            draggedId = null
-        },
-        onLongPress = onTileLongPress
-    )
-}
+        val rows = packRows(dragOrder)
+        var rowTop = 0.dp
 
-@Composable
-private fun ColumnWithRows(
-    rows: List<List<NeoTileSpec>>,
-    gap: Dp,
-    modifier: Modifier,
-    draggedId: String?,
-    onDraggedIdChange: (String?) -> Unit,
-    onReorder: (String, Int) -> Unit,
-    onDrop: () -> Unit,
-    onLongPress: (NeoTileSpec) -> Unit
-) {
-    androidx.compose.foundation.layout.Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(gap)
-    ) {
-        rows.forEach { row ->
-            val rowHeight = if (row.any { it.size == NeoTileSize.LARGE }) {
-                LargeTileRowHeight
-            } else {
-                TileRowHeight
-            }
+        val placements = buildList {
+            rows.forEach { row ->
+                val rowHeightCells = row.maxOf { it.size.rows }
+                val rowHeight =
+                    cellHeight * rowHeightCells + gap * (rowHeightCells - 1)
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(rowHeight),
-                horizontalArrangement = Arrangement.spacedBy(gap)
-            ) {
+                var column = 0
                 row.forEach { tile ->
-                    val latestDraggedId by rememberUpdatedState(draggedId)
+                    val tileWidth =
+                        cellWidth * tile.size.columns + gap * (tile.size.columns - 1)
+                    val tileHeight =
+                        cellHeight * tile.size.rows + gap * (tile.size.rows - 1)
 
-                    NeoTileDraggable(
-                        tile = tile,
-                        modifier = Modifier
-                            .weight(tile.size.columns.toFloat())
-                            .fillMaxHeight(),
-                        rowHeight = rowHeight,
-                        isDragging = latestDraggedId == tile.id,
-                        onDragState = onDraggedIdChange,
-                        onReorder = onReorder,
-                        onDrop = onDrop,
-                        onLongPress = { onLongPress(tile) }
+                    add(
+                        TilePlacement(
+                            tile = tile,
+                            x = (cellWidth + gap) * column,
+                            y = rowTop + (rowHeight - tileHeight) / 2,
+                            width = tileWidth,
+                            height = tileHeight
+                        )
                     )
+                    column += tile.size.columns
                 }
+
+                rowTop += rowHeight + gap
+            }
+        }
+
+        val totalHeight = (rowTop - gap).coerceAtLeast(1.dp)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(totalHeight)
+        ) {
+            placements.forEach { placement ->
+                val tile = placement.tile
+                val animatedX by animateDpAsState(
+                    targetValue = placement.x,
+                    animationSpec = spring(
+                        dampingRatio = 0.82f,
+                        stiffness = 520f
+                    ),
+                    label = "tile-x"
+                )
+                val animatedY by animateDpAsState(
+                    targetValue = placement.y,
+                    animationSpec = spring(
+                        dampingRatio = 0.82f,
+                        stiffness = 520f
+                    ),
+                    label = "tile-y"
+                )
+                val animatedWidth by animateDpAsState(
+                    targetValue = placement.width,
+                    animationSpec = spring(
+                        dampingRatio = 0.9f,
+                        stiffness = 650f
+                    ),
+                    label = "tile-width"
+                )
+                val animatedHeight by animateDpAsState(
+                    targetValue = placement.height,
+                    animationSpec = spring(
+                        dampingRatio = 0.9f,
+                        stiffness = 650f
+                    ),
+                    label = "tile-height"
+                )
+
+                NeoTileDraggable(
+                    tile = tile,
+                    x = animatedX,
+                    y = animatedY,
+                    width = animatedWidth,
+                    height = animatedHeight,
+                    isDragging = draggedId == tile.id,
+                    rowStepPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+                        (cellHeight + gap).toPx()
+                    },
+                    onDragState = { draggedId = it },
+                    onReorder = { id, delta ->
+                        dragOrder = moveItem(dragOrder, id, delta)
+                    },
+                    onDrop = {
+                        onPositionsChange(positionsForOrder(dragOrder))
+                        draggedId = null
+                    },
+                    onLongPress = { onTileLongPress(tile) }
+                )
             }
         }
     }
@@ -273,9 +270,12 @@ private fun ColumnWithRows(
 @Composable
 private fun NeoTileDraggable(
     tile: NeoTileSpec,
-    modifier: Modifier,
-    rowHeight: Dp,
+    x: Dp,
+    y: Dp,
+    width: Dp,
+    height: Dp,
     isDragging: Boolean,
+    rowStepPx: Float,
     onDragState: (String?) -> Unit,
     onReorder: (String, Int) -> Unit,
     onDrop: () -> Unit,
@@ -285,63 +285,90 @@ private fun NeoTileDraggable(
     var accumulatedY by remember(tile.id) { mutableFloatStateOf(0f) }
     var moved by remember(tile.id) { mutableStateOf(false) }
 
+    val latestClick by rememberUpdatedState(tile.onClick)
+    val latestOnDragState by rememberUpdatedState(onDragState)
     val latestOnReorder by rememberUpdatedState(onReorder)
     val latestOnDrop by rememberUpdatedState(onDrop)
     val latestOnLongPress by rememberUpdatedState(onLongPress)
-    val threshold = rowHeight.value * 0.5f
 
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .offset(x = x, y = y)
+            .width(width)
+            .height(height)
             .zIndex(if (isDragging) 10f else 0f)
             .graphicsLayer {
                 translationY = dragOffsetY
-                scaleX = if (isDragging) 1.05f else 1f
-                scaleY = if (isDragging) 1.05f else 1f
-                alpha = if (isDragging) 0.96f else 1f
+                scaleX = if (isDragging) 1.045f else 1f
+                scaleY = if (isDragging) 1.045f else 1f
+                alpha = if (isDragging) 0.97f else 1f
                 shadowElevation = if (isDragging) 18f else 0f
             }
             .pointerInput(tile.id) {
-                detectDragGesturesAfterLongPress(
-                    onDragStart = {
-                        dragOffsetY = 0f
-                        accumulatedY = 0f
-                        moved = false
-                        onDragState(tile.id)
-                    },
-                    onDragCancel = {
-                        dragOffsetY = 0f
-                        accumulatedY = 0f
-                        moved = false
-                        onDragState(null)
-                    },
-                    onDragEnd = {
-                        val wasMoved = moved
-                        dragOffsetY = 0f
-                        accumulatedY = 0f
-                        moved = false
-                        if (!wasMoved) {
-                            latestOnLongPress()
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val longPress = awaitLongPressOrCancellation(down.id)
+
+                    if (longPress == null) {
+                        val event = currentEvent
+                        val movedBeforeLongPress = event?.changes?.any {
+                            it.positionChanged()
+                        } == true
+
+                        if (!movedBeforeLongPress) {
+                            latestClick?.invoke()
                         }
-                        latestOnDrop()
-                    },
-                    onDrag = { change, amount ->
+                        return@awaitEachGesture
+                    }
+
+                    latestOnDragState(tile.id)
+                    dragOffsetY = 0f
+                    accumulatedY = 0f
+                    moved = false
+
+                    val threshold =
+                        (rowStepPx * REORDER_THRESHOLD_RATIO).coerceAtLeast(24f)
+
+                    val completed = drag(longPress.id) { change ->
+                        val dy = change.positionChange().y
+                        if (dy == 0f) return@drag
+
                         change.consume()
-                        val dy = amount.y
                         dragOffsetY += dy
                         accumulatedY += dy
+
+                        if (abs(dragOffsetY) > 6f) {
+                            moved = true
+                        }
 
                         while (accumulatedY >= threshold) {
                             latestOnReorder(tile.id, 1)
                             accumulatedY -= threshold
-                            moved = true
+                            dragOffsetY -= threshold
                         }
+
                         while (accumulatedY <= -threshold) {
                             latestOnReorder(tile.id, -1)
                             accumulatedY += threshold
-                            moved = true
+                            dragOffsetY += threshold
                         }
                     }
-                )
+
+                    if (completed) {
+                        if (!moved) {
+                            latestOnLongPress()
+                        }
+                        dragOffsetY = 0f
+                        accumulatedY = 0f
+                        moved = false
+                        latestOnDrop()
+                    } else {
+                        dragOffsetY = 0f
+                        accumulatedY = 0f
+                        moved = false
+                        latestOnDragState(null)
+                    }
+                }
             }
     ) {
         tile.content()
