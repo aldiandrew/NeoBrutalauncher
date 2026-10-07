@@ -1350,7 +1350,104 @@ private fun SettingsScreen(
                 }
             }
 
+            SettingsSectionTitle("PERSONALITY")
+
+            BrutalSection(
+                title = "BRUTALITY LEVEL",
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Pink
+            ) {
+                Text(
+                    text = "Controls border and hard-shadow intensity across the launcher.",
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    BrutalityLevel.values().forEach { level ->
+                        ThemeButton(
+                            label = level.label,
+                            selected = brutalityLevel == level,
+                            background = when (level) {
+                                BrutalityLevel.LITE -> BrutalColors.White
+                                BrutalityLevel.BRUTAL -> BrutalColors.Yellow
+                                BrutalityLevel.HARD -> BrutalColors.Orange
+                                BrutalityLevel.CHAOS -> BrutalColors.Purple
+                            },
+                            modifier = Modifier.weight(1f),
+                            onClick = { onBrutalityLevelChange(level) }
+                        )
+                    }
+                }
+            }
+
+            BrutalSection(
+                title = "SHAPE",
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Cyan
+            ) {
+                Text(
+                    text = "Optional corner radius. 0 keeps the original sharp Neo Brutal look.",
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf(0, 4, 8, 16).forEach { radius ->
+                        ThemeButton(
+                            label = "\${radius}DP",
+                            selected = cornerRadius == radius,
+                            background = BrutalColors.White,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onCornerRadiusChange(radius) }
+                        )
+                    }
+                }
+            }
+
             SettingsSectionTitle("CLOCK")
+
+
+            BrutalSection(
+                title = "TYPOGRAPHY STYLE",
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Purple
+            ) {
+                Text(
+                    text = "Choose the visual personality of the home clock.",
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrutalColors.White
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    ClockStyle.values().forEach { style ->
+                        ThemeButton(
+                            label = style.label,
+                            selected = clockStyle == style,
+                            background = when (style) {
+                                ClockStyle.POSTER -> BrutalColors.Yellow
+                                ClockStyle.MONO -> BrutalColors.Cyan
+                                ClockStyle.CONDENSED -> BrutalColors.Lime
+                                ClockStyle.HUGE -> BrutalColors.Pink
+                            },
+                            modifier = Modifier.weight(1f),
+                            onClick = { onClockStyleChange(style) }
+                        )
+                    }
+                }
+            }
 
             SettingsSwitch(
                 title = "24-HOUR FORMAT",
@@ -1458,7 +1555,45 @@ private fun SettingsScreen(
                 }
             }
 
+            SettingsSectionTitle("WALLPAPER")
+
+            BrutalSection(
+                title = "HOME BACKGROUND",
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Yellow
+            ) {
+                Text(
+                    text = if (wallpaperUri == null) {
+                        "PAPER / SYSTEM THEME BACKGROUND"
+                    } else {
+                        "CUSTOM IMAGE SELECTED"
+                    },
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Black
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    BrutalActionButton(
+                        title = "CHOOSE IMAGE",
+                        background = BrutalColors.Cyan,
+                        modifier = Modifier.weight(1f),
+                        onClick = onChooseWallpaper
+                    )
+                    BrutalActionButton(
+                        title = "CLEAR",
+                        background = BrutalColors.Pink,
+                        modifier = Modifier.weight(1f),
+                        onClick = onClearWallpaper
+                    )
+                }
+            }
+
             SettingsSectionTitle("APP TILES")
+
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -1507,6 +1642,24 @@ private fun SettingsScreen(
                         }
                     }
                 }
+            }
+
+            BrutalSection(
+                title = "CHAOS PALETTE",
+                modifier = Modifier.fillMaxWidth(),
+                background = BrutalColors.Lime
+            ) {
+                Text(
+                    text = "Reroll the app-tile palette while preserving the workspace structure.",
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                BrutalActionButton(
+                    title = "REROLL PALETTE",
+                    background = BrutalColors.Orange,
+                    onClick = onChaosPalette
+                )
             }
 
             SettingsSectionTitle("FAVORITES")
