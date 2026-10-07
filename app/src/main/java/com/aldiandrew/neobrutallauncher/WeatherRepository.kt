@@ -27,6 +27,11 @@ data class WeatherData(
 
 object WeatherRepository {
 
+    @Volatile
+    private var cachedWeather: WeatherData? = null
+
+    fun cachedWeather(): WeatherData? = cachedWeather
+
     @SuppressLint("MissingPermission")
     suspend fun loadCurrentWeather(context: Context): WeatherData {
         if (
@@ -156,7 +161,7 @@ object WeatherRepository {
                 description = weatherDescription(weatherCode),
                 humidityPercent = humidity,
                 windKph = windKph
-            )
+            ).also { cachedWeather = it }
         } finally {
             connection.disconnect()
         }
