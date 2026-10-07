@@ -1,6 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -156,7 +156,7 @@ fun NeoTileGrid(
                         .offset(x = placement.x, y = placement.y)
                         .width(placement.width)
                         .height(placement.height)
-                        .clickable(
+                        .combinedClickable(
                             onClick = { placement.tile.onClick?.invoke() },
                             onLongClick = { onTileLongPress(placement.tile) }
                         )
