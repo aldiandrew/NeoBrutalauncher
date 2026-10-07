@@ -81,7 +81,7 @@ fun NeoBrutalLauncherApp() {
     val preferences = remember { LauncherPreferences(context) }
 
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
-    var drawerOpen by remember { mutableStateOf(false) }
+    var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
@@ -96,6 +96,7 @@ fun NeoBrutalLauncherApp() {
     var favorites by remember { mutableStateOf(preferences.favorites()) }
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
+    var tileContentModes by remember { mutableStateOf(preferences.tileContentModes()) }
 
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -137,12 +138,6 @@ fun NeoBrutalLauncherApp() {
 
     LaunchedEffect(Unit) {
         refreshApps()
-    }
-
-    LaunchedEffect(drawerOpen) {
-        if (drawerOpen) {
-            refreshApps()
-        }
     }
 
     when {
@@ -223,53 +218,151 @@ fun NeoBrutalLauncherApp() {
             }
         }
 
-        drawerOpen -> {
+        else -> {
             NeoBrutalTheme(themePreference = themePreference) {
-                AppDrawer(
-                    apps = apps,
-                    favorites = favorites,
-                    onClose = { drawerOpen = false },
-                    onToggleFavorite = { app ->
-                        val key = app.packageName + "/" + app.activityName
-                        val updated = favorites.toMutableSet()
-                        if (!updated.add(key)) {
-                            updated.remove(key)
+                LauncherPageHost(
+                    currentPage = currentPage,
+                    onPageChange = {
+                        currentPage = it.coerceIn(0, 1)
+                        if (currentPage == 1) refreshApps()
+                    }
+                ) {
+                    if (currentPage == 0) {
+                        HomeScreen(
+                            apps = apps,
+                            favorites = favorites,
+                            homeAppCount = homeAppCount,
+                            use24Hour = use24Hour,
+                            showDate = showDate,
+                            showTagline = showTagline,
+                            showAppCount = showAppCount,
+                            showWeather = showWeather,
+                            showQuote = showQuote,
+                            showBattery = showBattery,
+                            onOpenApps = { currentPage = 1; refreshApps() },
+                            onOpenSettings = { settingsOpen = true },
+                            onLaunch = repository::launch,
+                            tilePositions = tilePositions,
+                            onTilePositionsChange = { updated ->
+                                tilePositions = updated
+                                preferences.setTilePositions(updated)
+                            },
+                            tileSizes = tileSizes,
+                            onTileSizeChange = { tileId, size ->
+                                tileSizes = tileSizes + (tileId to size)
+                                preferences.setTileSizes(tileSizes)
+                            },
+                            tileContentModes = tileContentModes,
+                            onTileContentModeChange = { tileId, mode ->
+                                tileContentModes = tileContentModes + (tileId to mode)
+                                preferences.setTileContentModes(tileContentModes)
+                            }
+                        )
+                    } else {
+                        AppsPage(
+                            apps = apps,
+                            favorites = favorites,
+                            onToggleFavorite = { app ->
+                                val key = app.packageName + "/" + app.activityName
+                                val updated = favorites.toMutableSet()
+                                if (!updated.add(key)) {
+                                    updated.remove(key)
+                                }
+                                favorites = updated
+                                preferences.setFavorites(updated)
+                            },
+                            onLaunch = repository::launch,
+                            onOpenSettings = { settingsOpen = true },
+                            onRefresh = { refreshApps() }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LauncherPageHost(
+    currentPage: Int,
+    onPageChange: (Int) -> Unit,
+    content: @Composable () -> Unit
+) {
+    var accumulatedX by remember { mutableStateOf(0f) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 62.dp)
+                .pointerInput(Unit) {
+                    androidx.compose.foundation.gestures.detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            accumulatedX += amount
+                        },
+                        onDragEnd = {
+                            when {
+                                accumulatedX <= -90f -> onPageChange(1)
+                                accumulatedX >= 90f -> onPageChange(0)
+                            }
+                            accumulatedX = 0f
+                        },
+                        onDragCancel = {
+                            accumulatedX = 0f
                         }
-                        favorites = updated
-                        preferences.setFavorites(updated)
-                    },
-                    onLaunch = repository::launch
-                )
+                    )
+                }
+        ) {
+            androidx.compose.animation.Crossfade(
+                targetState = currentPage,
+                label = "launcherPage"
+            ) {
+                content()
             }
         }
 
-        else -> {
-            NeoBrutalTheme(themePreference = themePreference) {
-                HomeScreen(
-                apps = apps,
-                favorites = favorites,
-                homeAppCount = homeAppCount,
-                use24Hour = use24Hour,
-                showDate = showDate,
-                showTagline = showTagline,
-                    showAppCount = showAppCount,
-                    showWeather = showWeather,
-                    showQuote = showQuote,
-                    showBattery = showBattery,
-                    onOpenDrawer = { drawerOpen = true },
-                    onOpenSettings = { settingsOpen = true },
-                    onLaunch = repository::launch,
-                    tilePositions = tilePositions,
-                    onTilePositionsChange = { updated ->
-                        tilePositions = updated
-                        preferences.setTilePositions(updated)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .height(62.dp)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("HOME", "APPS").forEachIndexed { index, label ->
+                BrutalBlock(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onPageChange(index) },
+                    background = when {
+                        index == currentPage -> when (index) {
+                            0 -> BrutalColors.Yellow
+                            else -> BrutalColors.Cyan
+                        }
+                        else -> if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) {
+                            BrutalColors.DarkTile
+                        } else {
+                            BrutalColors.White
+                        }
                     },
-                    tileSizes = tileSizes,
-                    onTileSizeChange = { tileId, size ->
-                        tileSizes = tileSizes + (tileId to size)
-                        preferences.setTileSizes(tileSizes)
-                    }
-                )
+                    borderWidth = if (index == currentPage) 4.dp else 2.dp,
+                    shadowX = 3.dp,
+                    shadowY = 3.dp
+                ) {
+                    Text(
+                        text = label,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        color = if (index == currentPage) BrutalColors.Ink else MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
@@ -287,13 +380,15 @@ private fun HomeScreen(
     showWeather: Boolean,
     showQuote: Boolean,
     showBattery: Boolean,
-    onOpenDrawer: () -> Unit,
+    onOpenApps: () -> Unit,
     onOpenSettings: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
-    onTileSizeChange: (String, NeoTileSize) -> Unit
+    onTileSizeChange: (String, NeoTileSize) -> Unit,
+    tileContentModes: Map<String, TileContentMode>,
+    onTileContentModeChange: (String, TileContentMode) -> Unit
 ) {
     BackHandler(onBack = {})
 
@@ -403,7 +498,7 @@ private fun HomeScreen(
                     add(
                         NeoTileSpec(
                             id = "clock",
-                            size = tileSizes["clock"] ?: NeoTileSize.FOUR_BY_TWO,
+                            size = tileSizes["clock"] ?: NeoTileSize.WIDE,
                             label = "CLOCK"
                         ) {
                             BrutalBlock(
@@ -435,19 +530,31 @@ private fun HomeScreen(
                                         )
                                     }
 
-                                    if (showWeather) {
-                                        WeatherContent(context = context)
-                                    }
                                 }
                             }
                         }
                     )
 
+                    if (showWeather) {
+                        add(
+                            NeoTileSpec(
+                                id = "weather",
+                                size = tileSizes["weather"] ?: NeoTileSize.WIDE,
+                                label = "WEATHER"
+                            ) {
+                                NeoWeatherTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        )
+                    }
+
                     if (showQuote) {
                         add(
                             NeoTileSpec(
                                 id = "quote",
-                                size = tileSizes["quote"] ?: NeoTileSize.FOUR_BY_TWO,
+                                size = tileSizes["quote"] ?: NeoTileSize.WIDE,
                                 label = "QUOTE"
                             ) {
                                 NeoQuoteTile(
@@ -462,7 +569,7 @@ private fun HomeScreen(
                         add(
                             NeoTileSpec(
                                 id = "tagline",
-                                size = tileSizes["tagline"] ?: NeoTileSize.FOUR_BY_TWO,
+                                size = tileSizes["tagline"] ?: NeoTileSize.WIDE,
                                 label = "TAGLINE"
                             ) {
                                 BrutalBlock(
@@ -505,14 +612,17 @@ private fun HomeScreen(
                             NeoTileSpec(
                                 id = "app_" + app.packageName + "_" + app.activityName,
                                 size = tileSizes["app_" + app.packageName + "_" + app.activityName]
-                                    ?: NeoTileSize.TWO_BY_TWO,
+                                    ?: NeoTileSize.MEDIUM,
                                 label = app.label.uppercase()
                             ) {
+                                val appTileId = "app_" + app.packageName + "_" + app.activityName
                                 AppTile(
                                     app = app,
                                     background = tileColor,
                                     modifier = Modifier.fillMaxSize(),
-                                    onClick = { onLaunch(app) }
+                                    onClick = { onLaunch(app) },
+                                    contentMode = tileContentModes[appTileId] ?: TileContentMode.ICON_TEXT,
+                                    randomSeed = appTileId.hashCode()
                                 )
                             }
                         )
@@ -522,7 +632,7 @@ private fun HomeScreen(
                         add(
                             NeoTileSpec(
                                 id = "empty-apps",
-                                size = tileSizes["empty-apps"] ?: NeoTileSize.FOUR_BY_TWO,
+                                size = tileSizes["empty-apps"] ?: NeoTileSize.WIDE,
                                 label = "APPS"
                             ) {
                                 BrutalBlock(
@@ -554,7 +664,7 @@ private fun HomeScreen(
                         add(
                             NeoTileSpec(
                                 id = "battery",
-                                size = tileSizes["battery"] ?: NeoTileSize.TWO_BY_TWO,
+                                size = tileSizes["battery"] ?: NeoTileSize.MEDIUM,
                                 label = "BATTERY"
                             ) {
                                 BatteryTile(
@@ -570,7 +680,7 @@ private fun HomeScreen(
                         add(
                             NeoTileSpec(
                                 id = "system",
-                                size = tileSizes["system"] ?: NeoTileSize.FOUR_BY_TWO,
+                                size = tileSizes["system"] ?: NeoTileSize.WIDE,
                                 label = "SYSTEM"
                             ) {
                                 BrutalBlock(
@@ -604,38 +714,7 @@ private fun HomeScreen(
                         )
                     }
 
-                    add(
-                        NeoTileSpec(
-                            id = "all-apps",
-                            size = tileSizes["all-apps"] ?: NeoTileSize.FOUR_BY_TWO,
-                            label = "ALL APPS"
-                        ) {
-                            BrutalBlock(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable(onClick = onOpenDrawer),
-                                background = darkTileBackground,
-                                borderWidth = 4.dp,
-                                shadowX = 8.dp,
-                                shadowY = 8.dp
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "ALL APPS  →",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 22.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = BrutalColors.White,
-                                        letterSpacing = 1.sp
-                                    )
-                                }
-                            }
-                        }
-                    )
+)
                 },
                 positions = tilePositions,
                 onPositionsChange = onTilePositionsChange,
@@ -667,22 +746,14 @@ private fun HomeScreen(
                         fontWeight = FontWeight.Black
                     )
                     listOf(
-                        NeoTileSize.ONE_BY_ONE,
-                        NeoTileSize.TWO_BY_ONE,
-                        NeoTileSize.ONE_BY_TWO,
-                        NeoTileSize.TWO_BY_TWO,
-                        NeoTileSize.THREE_BY_TWO,
-                        NeoTileSize.TWO_BY_THREE,
-                        NeoTileSize.THREE_BY_THREE,
-                        NeoTileSize.FOUR_BY_ONE,
-                        NeoTileSize.FOUR_BY_TWO,
-                        NeoTileSize.FOUR_BY_THREE,
-                        NeoTileSize.FOUR_BY_FOUR
+                        NeoTileSize.SMALL,
+                        NeoTileSize.MEDIUM,
+                        NeoTileSize.WIDE,
+                        NeoTileSize.LARGE
                     ).forEach { option ->
                         androidx.compose.material3.TextButton(
                             onClick = {
                                 onTileSizeChange(tile.id, option)
-                                selectedTile = null
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -692,6 +763,33 @@ private fun HomeScreen(
                                 textAlign = TextAlign.Start,
                                 fontWeight = FontWeight.Black
                             )
+                        }
+                    }
+
+                    if (tile.id.startsWith("app_")) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = "CONTENT",
+                            fontWeight = FontWeight.Black
+                        )
+                        listOf(
+                            TileContentMode.ICON,
+                            TileContentMode.ICON_TEXT,
+                            TileContentMode.TEXT
+                        ).forEach { mode ->
+                            androidx.compose.material3.TextButton(
+                                onClick = {
+                                    onTileContentModeChange(tile.id, mode)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = mode.label,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Start,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
                         }
                     }
                 }
@@ -707,103 +805,6 @@ private fun HomeScreen(
                 }
             }
         )
-    }
-}
-
-@Composable
-private fun WeatherContent(
-    context: android.content.Context
-) {
-
-    val weatherLive = rememberLiveTileData(
-        tileId = "weather",
-        refreshIntervalMillis = 15 * 60 * 1000L,
-        loader = {
-            WeatherRepository.loadCurrentWeather(context)
-        }
-    )
-
-    val weatherIcon = when (weatherLive.value?.weatherCode) {
-        0 -> Icons.Default.WbSunny
-        1, 2, 3, 45, 48 -> Icons.Default.Cloud
-        51, 53, 55, 56, 57 -> Icons.Default.WaterDrop
-        61, 63, 65, 66, 67, 80, 81, 82 -> Icons.Default.Umbrella
-        71, 73, 75, 77, 85, 86 -> Icons.Default.AcUnit
-        95, 96, 99 -> Icons.Default.Thunderstorm
-        else -> Icons.Default.Cloud
-    }
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Text(
-            text = "WEATHER / OPEN-METEO",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp,
-            color = BrutalColors.Ink
-        )
-
-        when {
-            weatherLive.value != null -> {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = weatherIcon,
-                        contentDescription = weatherLive.value!!.description,
-                        tint = BrutalColors.Ink,
-                        modifier = Modifier
-                            .width(52.dp)
-                            .height(52.dp)
-                    )
-                    Column {
-                        Text(
-                            text = "${weatherLive.value!!.temperatureC.toInt()}°C",
-                            fontSize = 22.sp,
-                            lineHeight = 24.sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
-                        )
-                        Text(
-                            text = weatherLive.value!!.description.uppercase(),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
-                        )
-                    }
-                }
-            }
-
-            weatherLive.error != null -> {
-                Text(
-                    text = "LOCATION / NETWORK NEEDED",
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
-            }
-
-            weatherLive.loading -> {
-                Text(
-                    text = "LOADING WEATHER...",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
-            }
-
-            else -> {
-                Text(
-                    text = "WEATHER UNAVAILABLE",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
-            }
-        }
     }
 }
 
@@ -868,12 +869,40 @@ private fun AppRow(
 }
 
 @Composable
+@Composable
 private fun AppTile(
     app: AppInfo,
     background: Color,
     modifier: Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    contentMode: TileContentMode,
+    randomSeed: Int
 ) {
+    val random = remember(app.packageName, contentMode, randomSeed) {
+        kotlin.random.Random(randomSeed + contentMode.ordinal * 997)
+    }
+
+    val alignments = listOf(
+        Alignment.Center,
+        Alignment.TopStart,
+        Alignment.TopEnd,
+        Alignment.BottomStart,
+        Alignment.BottomEnd,
+        Alignment.CenterStart,
+        Alignment.CenterEnd
+    )
+    val contentAlignment = alignments[random.nextInt(alignments.size)]
+    val padding = (8 + random.nextInt(17)).dp
+    val iconDp = (48 + random.nextInt(49)).dp
+    val baseTextSize = when (contentMode) {
+        TileContentMode.ICON -> 0
+        TileContentMode.ICON_TEXT -> 24
+        TileContentMode.TEXT -> 34
+    }
+    val textSize = (baseTextSize + random.nextInt(9)).sp
+    val textWeight = if (random.nextBoolean()) FontWeight.Black else FontWeight.ExtraBold
+    val tilt = if (random.nextBoolean()) -1.5f else 1.5f
+
     BrutalBlock(
         modifier = modifier.clickable(onClick = onClick),
         background = background,
@@ -881,29 +910,63 @@ private fun AppTile(
         shadowX = 5.dp,
         shadowY = 5.dp
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = contentAlignment
         ) {
-            Image(
-                bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
-                contentDescription = app.label,
-                modifier = Modifier
-                    .width(54.dp)
-                    .height(54.dp)
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = app.label.uppercase(),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 13.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Black,
-                color = BrutalColors.Ink,
-                maxLines = 2
-            )
+            when (contentMode) {
+                TileContentMode.ICON -> {
+                    Image(
+                        bitmap = app.icon.toBitmap(128, 128).asImageBitmap(),
+                        contentDescription = app.label,
+                        modifier = Modifier
+                            .width(iconDp)
+                            .height(iconDp)
+                            .graphicsLayer {
+                                rotationZ = tilt
+                            }
+                    )
+                }
+
+                TileContentMode.ICON_TEXT -> {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            bitmap = app.icon.toBitmap(128, 128).asImageBitmap(),
+                            contentDescription = app.label,
+                            modifier = Modifier
+                                .width(iconDp)
+                                .height(iconDp)
+                                .graphicsLayer {
+                                    rotationZ = tilt
+                                }
+                        )
+                        Text(
+                            text = app.label.uppercase(),
+                            fontSize = textSize,
+                            lineHeight = textSize * 0.9f,
+                            fontWeight = textWeight,
+                            color = BrutalColors.Ink,
+                            maxLines = 2
+                        )
+                    }
+                }
+
+                TileContentMode.TEXT -> {
+                    Text(
+                        text = app.label.uppercase(),
+                        fontSize = textSize,
+                        lineHeight = textSize * 0.88f,
+                        fontWeight = textWeight,
+                        color = BrutalColors.Ink,
+                        maxLines = 3
+                    )
+                }
+            }
         }
     }
 }
@@ -1327,7 +1390,7 @@ private fun SettingsScreen(
 
             SettingsSwitch(
                 title = "SHOW WEATHER",
-                description = "Show current temperature and conditions inside the clock tile. Location and Internet access are required.",
+                description = "Show the standalone WEATHER tile with temperature, humidity and wind. Location and Internet access are required.",
                 checked = showWeather,
                 background = BrutalColors.Yellow,
                 onCheckedChange = onShowWeatherChange
@@ -1414,7 +1477,7 @@ private fun SettingsScreen(
                         color = uiOnSurface
                     )
                     Text(
-                        text = "Long-press any app in the drawer to pin or unpin it. Pinned apps appear first on the home screen.",
+                        text = "Long-press any app on the APPS page to pin or unpin it. Pinned apps appear first on the home screen.",
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         fontWeight = FontWeight.Bold,
