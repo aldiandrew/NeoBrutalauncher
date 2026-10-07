@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RectangleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +28,7 @@ fun BrutalBlock(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val style = LocalBrutalMetrics.current
-    val shape = RectangleShape
+    val shape = RoundedCornerShape(0.dp)
     val actualBorderWidth = (borderWidth * style.borderScale).coerceAtLeast(1.dp)
     val actualShadowX = shadowX * style.shadowScale
     val actualShadowY = shadowY * style.shadowScale
