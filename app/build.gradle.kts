@@ -47,18 +47,15 @@ android {
     }
 }
 
-val neoBrutalFontBase =
-    "https://raw.githubusercontent.com/ateliertriay/bricolage/84745e5b96261ae5f8c6c856e262fe78d1d6efdd/fonts/ttf/"
-
-val neoBrutalFonts = mapOf(
-    "bricolage_grotesque_regular.ttf" to "BricolageGrotesque-Regular.ttf",
-    "bricolage_grotesque_bold.ttf" to "BricolageGrotesque-Bold.ttf",
-    "bricolage_grotesque_extrabold.ttf" to "BricolageGrotesque-ExtraBold.ttf"
+val neoBrutalFontSources = mapOf(
+    "anton_regular.ttf" to "https://raw.githubusercontent.com/googlefonts/AntonFont/beb92fcad87808357123bb66881b4032dc96efe7/fonts/Anton-Regular.ttf",
+    "space_grotesk_regular.ttf" to "https://raw.githubusercontent.com/floriankarsten/space-grotesk/03507d024a01282884232081fc6011c09ff4e849/fonts/ttf/static/SpaceGrotesk-Regular.ttf",
+    "space_grotesk_bold.ttf" to "https://raw.githubusercontent.com/floriankarsten/space-grotesk/03507d024a01282884232081fc6011c09ff4e849/fonts/ttf/static/SpaceGrotesk-Bold.ttf"
 )
 
 val downloadNeoBrutalFonts by tasks.registering {
     outputs.files(
-        neoBrutalFonts.keys.map { fileName ->
+        neoBrutalFontSources.keys.map { fileName ->
             layout.projectDirectory.file("src/main/res/font/$fileName").asFile
         }
     )
@@ -67,10 +64,10 @@ val downloadNeoBrutalFonts by tasks.registering {
         val destination = layout.projectDirectory.dir("src/main/res/font").asFile
         destination.mkdirs()
 
-        neoBrutalFonts.forEach { (fileName, upstreamName) ->
+        neoBrutalFontSources.forEach { (fileName, url) ->
             val target = destination.resolve(fileName)
             if (!target.exists() || target.length() == 0L) {
-                URL(neoBrutalFontBase + upstreamName).openStream().use { input ->
+                URL(url).openStream().use { input ->
                     target.outputStream().use { output ->
                         input.copyTo(output)
                     }
