@@ -1178,56 +1178,63 @@ private fun HomeScreen(
                                 )
                             }
                         }
+
+                        if (homeAppCount > 2) {
+                            androidx.compose.material3.TextButton(
+                                onClick = {
+                                    val app = launchableApps.firstOrNull {
+                                        "app_" + it.packageName + "_" + it.activityName == tile.id
+                                    }
+                                    if (app != null) {
+                                        val key = app.packageName + "/" + app.activityName
+                                        val updatedExcluded = excludedHomeApps + key
+                                        excludedHomeApps = updatedExcluded
+                                        preferences.setExcludedHomeApps(updatedExcluded)
+                                        onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
+                                    }
+                                    selectedTile = null
+                                    tileEditMode = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "REMOVE FROM HOME",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Start,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Orange
+                                )
+                            }
+                        }
+
+                        androidx.compose.material3.TextButton(
+                            onClick = {
+                                selectedTile = null
+                                tileEditMode = true
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "MOVE TILE",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
                     }
                 }
             },
             confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (!locked && homeAppCount > 2) {
-                        androidx.compose.material3.TextButton(
-                            onClick = {
-                                val app = launchableApps.firstOrNull {
-                                    "app_" + it.packageName + "_" + it.activityName == tile.id
-                                }
-                                if (app != null) {
-                                    val key = app.packageName + "/" + app.activityName
-                                    val updatedExcluded = excludedHomeApps + key
-                                    excludedHomeApps = updatedExcluded
-                                    preferences.setExcludedHomeApps(updatedExcluded)
-                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
-                                }
-                                selectedTile = null
-                                tileEditMode = false
-                            }
-                        ) {
-                            Text(
-                                text = "REMOVE FROM HOME",
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Orange
-                            )
-                        }
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        selectedTile = null
+                        tileEditMode = false
                     }
-
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            selectedTile = null
-                            tileEditMode = true
-                        }
-                    ) {
-                        Text(
-                            text = "MOVE TILE",
-                            fontWeight = FontWeight.Black
-                        )
-                    }
-
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            selectedTile = null
-                            tileEditMode = false
-                        }
-                    ) {
-                        Text(text = "DONE", fontWeight = FontWeight.Black)
-                    }
+                ) {
+                    Text(
+                        text = "DONE",
+                        fontWeight = FontWeight.Black
+                    )
                 }
             }
         )
