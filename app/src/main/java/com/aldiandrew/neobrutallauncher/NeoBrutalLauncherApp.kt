@@ -1557,8 +1557,8 @@ private fun SettingsScreen(
     showQuote: Boolean,
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
-    brutalityLevel: BrutalityLevel,
     typographyStyle: TypographyStyle,
+    iconPackPackage: String?,
     wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
@@ -1578,655 +1578,194 @@ private fun SettingsScreen(
     onShowQuoteChange: (Boolean) -> Unit,
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
-    onBrutalityLevelChange: (BrutalityLevel) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
+    onIconPackChange: (String?) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
-    onClearFavorites: () -> Unit
+    onClearFavorites: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
+    onResetAll: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
-
-    val darkTileBackground =
-        if (uiBackground == BrutalColors.DarkPaper) {
-            BrutalColors.DarkTile
-        } else {
-            BrutalColors.Ink
-        }
+    val darkTileBackground = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Ink
+    val iconPacks = remember { IconPackManager(context).installedIconPacks() }
     val chatCandidates = remember(apps) {
-        apps.groupBy { it.packageName }
-            .values
-            .mapNotNull { it.firstOrNull() }
-            .filter { it.packageName != context.packageName }
-            .sortedBy { it.label.lowercase() }
+        apps.groupBy { it.packageName }.values.mapNotNull { it.firstOrNull() }
+            .filter { it.packageName != context.packageName }.sortedBy { it.label.lowercase() }
     }
     var showChatAppPicker by remember { mutableStateOf(false) }
-    val selectedChatApp = chatCandidates.firstOrNull {
-        it.packageName == chatNotificationPackages.firstOrNull()
-    }
+    var showResetConfirm by remember { mutableStateOf(false) }
+    val selectedChatApp = chatCandidates.firstOrNull { it.packageName == chatNotificationPackages.firstOrNull() }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(uiBackground)
-            .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            )
+        modifier = Modifier.fillMaxSize().background(uiBackground)
+            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
             .padding(horizontal = 14.dp, vertical = 12.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = uiOnSurface
-                )
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = uiOnSurface) }
+            BrutalBlock(modifier = Modifier.weight(1f), background = BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
+                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = 26.sp, fontWeight = FontWeight.Normal, color = BrutalColors.Ink)
             }
+        }
 
-            BrutalBlock(
-                modifier = Modifier.weight(1f),
-                background = BrutalColors.Cyan,
-                borderWidth = 3.dp,
-                shadowX = 4.dp,
-                shadowY = 4.dp
-            ) {
-                Column {
-                    Text(
-                        text = "NEO SETTINGS",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = BrutalColors.Ink
-                    )
-                    Text(
-                        text = "CONTROL YOUR LAUNCHER",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = BrutalColors.Ink
-                    )
+        SettingsSectionTitle("THEME")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("APPEARANCE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Choose the launcher color mode.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ThemeButton("SYSTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
+                    ThemeButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
+                    ThemeButton("DARK", themePreference == ThemePreference.DARK, BrutalColors.Pink, Modifier.weight(1f)) { onThemeChange(ThemePreference.DARK) }
                 }
             }
         }
 
+        SettingsSectionTitle("CLOCK")
+        SettingsSwitch("24-HOUR TIME", "Use 24-hour time on Home.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
+        if (!use24Hour) SettingsSwitch("AM / PM", "Show the AM/PM marker with 12-hour time.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
+        SettingsSwitch("DATE", "Show the day and date beside the Home clock.", showDate, BrutalColors.Pink, onShowDateChange)
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("TYPOGRAPHY", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TypographyStyle.values().forEach { style -> ThemeButton(style.label, typographyStyle == style, BrutalColors.Cyan, Modifier.weight(1f)) { onTypographyStyleChange(style) } }
+                }
+            }
+        }
+
+        SettingsSectionTitle("HOME CONTENT")
+        SettingsSwitch("TAGLINE", "Show the small Home manifesto/tagline.", showTagline, BrutalColors.Cyan, onShowTaglineChange)
+        SettingsSwitch("APP COUNT", "Show the number of apps on Home.", showAppCount, BrutalColors.Yellow, onShowAppCountChange)
+        SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
+        if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
+        SettingsSwitch("QUOTE", "Show rotating quote content on Home.", showQuote, BrutalColors.Pink, onShowQuoteChange)
+        SettingsSwitch("BATTERY", "Show battery information on Home.", showBattery, BrutalColors.Cyan, onShowBatteryChange)
+
+        SettingsSectionTitle("APP TILES")
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("APP TILE CONTENT", fontSize = 13.sp, fontWeight = FontWeight.Black)
+                Text("The selected content mode adapts to every tile size.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(TileContentMode.ICON, TileContentMode.ICON_TEXT, TileContentMode.TEXT).forEach { mode ->
+                        ThemeButton(when(mode) { TileContentMode.ICON -> "ICON"; TileContentMode.ICON_TEXT -> "ICON + TEXT"; TileContentMode.TEXT -> "TEXT" }, appTileContentMode == mode, when(mode) { TileContentMode.ICON -> BrutalColors.Cyan; TileContentMode.ICON_TEXT -> BrutalColors.Yellow; TileContentMode.TEXT -> BrutalColors.Pink }, Modifier.weight(1f)) { onAppTileContentModeChange(mode) }
+                    }
+                }
+            }
+        }
+
+        SettingsSectionTitle("ICON PACK")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("THIRD-PARTY ICON PACKS", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Standard launcher icon packs with appfilter.xml are supported. Icons without a matching pack entry keep the normal app icon.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                ThemeButton("SYSTEM ICONS", iconPackPackage == null, BrutalColors.Cyan, Modifier.fillMaxWidth()) { onIconPackChange(null) }
+                if (iconPacks.isEmpty()) Text("NO COMPATIBLE ICON PACKS DETECTED", fontSize = 9.sp, fontWeight = FontWeight.Black, color = uiOnSurface.copy(alpha = .6f))
+                iconPacks.forEach { pack ->
+                    ThemeButton(pack.label.uppercase(Locale.ENGLISH), iconPackPackage == pack.packageName, BrutalColors.Yellow, Modifier.fillMaxWidth()) { onIconPackChange(pack.packageName) }
+                }
+            }
+        }
+
+        SettingsSectionTitle("INTEGRATIONS")
+        BrutalBlock(Modifier.fillMaxWidth(), background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Purple else BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("MUSIC + NOTIFICATION ACCESS", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
+                Text(if (notificationAccessGranted) "NOTIFICATION ACCESS IS ENABLED FOR THE MUSIC / CHAT FEATURES." else "ENABLE ANDROID NOTIFICATION ACCESS FOR MUSIC AND LIVE CHAT.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
+                BrutalActionButton(if (notificationAccessGranted) "OPEN NOTIFICATION ACCESS" else "ALLOW MUSIC / NOTIFICATION ACCESS", if (notificationAccessGranted) BrutalColors.Yellow else BrutalColors.Orange, onClick = onOpenNotificationAccess)
+            }
+        }
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Pink, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("LIVE CHAT TILE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
+                Text(selectedChatApp?.label?.uppercase(Locale.ENGLISH) ?: "NO APP SELECTED", fontSize = 13.sp, fontWeight = FontWeight.Black)
+                Text("The latest notification from this app appears on LIVE.", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BrutalActionButton(if (selectedChatApp == null) "CHOOSE APP" else "CHANGE APP", BrutalColors.Yellow, Modifier.weight(1f)) { showChatAppPicker = true }
+                    if (selectedChatApp != null) BrutalActionButton("CLEAR", BrutalColors.White, Modifier.weight(.7f)) { onChatNotificationPackagesChange(emptyList()) }
+                }
+            }
+        }
+
+        SettingsSectionTitle("PINNED APPS")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("$favoritesCount PINNED APPS", fontFamily = BrutalTypography.Display, fontSize = 18.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Choose how many Home app tiles are available.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(3,5,7).forEach { count -> ThemeButton(count.toString(), homeAppCount == count, if(count==3) BrutalColors.Cyan else if(count==5) BrutalColors.Orange else BrutalColors.Pink, Modifier.weight(1f)) { onHomeAppCountChange(count) } }
+                }
+                BrutalActionButton("CLEAR ALL PINNED APPS", BrutalColors.Orange, onClick = onClearFavorites)
+            }
+        }
+
+        SettingsSectionTitle("WALLPAPER")
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Yellow, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (wallpaperUri == null) "SYSTEM / PAPER BACKGROUND" else "CUSTOM WALLPAPER SELECTED", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BrutalActionButton("CHOOSE IMAGE", BrutalColors.Cyan, Modifier.weight(1f), onChooseWallpaper)
+                    BrutalActionButton("CLEAR", BrutalColors.Pink, Modifier.weight(1f), onClearWallpaper)
+                }
+            }
+        }
+
+        SettingsSectionTitle("DATA & RECOVERY")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("LOCAL BACKUP / RESTORE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Backup contains launcher settings, tile layout, pinned apps, notes/tasks and icon-pack selection. It does not contain passwords or notification contents.", fontSize = 10.sp, lineHeight = 14.dp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BrutalActionButton("BACKUP", BrutalColors.Cyan, Modifier.weight(1f), onBackup)
+                    BrutalActionButton("RESTORE", BrutalColors.Yellow, Modifier.weight(1f), onRestore)
+                }
+                BrutalActionButton("RESET ALL CUSTOMIZATIONS", BrutalColors.Pink) { showResetConfirm = true }
+            }
+        }
+
+        SettingsSectionTitle("LAUNCHER")
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Pink, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("DEFAULT HOME APP", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
+                Text("Choose Neo Brutal Launcher as the Android default Home app.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+                BrutalActionButton("OPEN HOME SETTINGS", BrutalColors.Yellow) { context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }
+        }
+
+        SettingsSectionTitle("ABOUT")
+        BrutalBlock(Modifier.fillMaxWidth(), background = darkTileBackground, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("NEO BRUTAL LAUNCHER", fontSize = 20.sp, fontWeight = FontWeight.Black, color = BrutalColors.White)
+                Text("CORE BUILD 0.1.0", fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = BrutalColors.Cyan)
+                Text("A neo-brutalist launcher focused on fast access to your apps.", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, color = BrutalColors.White)
+            }
+        }
         Spacer(Modifier.height(12.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            SettingsSectionTitle("APPEARANCE")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = uiSurface,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "APP THEME",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = uiOnSurface
-                    )
-                    Text(
-                        text = "This theme changes the launcher interface only. The home clock keeps its own appearance.",
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface.copy(alpha = 0.75f)
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ThemeButton(
-                            label = "SYSTEM",
-                            selected = themePreference == ThemePreference.SYSTEM,
-                            background = BrutalColors.Cyan,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onThemeChange(ThemePreference.SYSTEM) }
-                        )
-                        ThemeButton(
-                            label = "LIGHT",
-                            selected = themePreference == ThemePreference.LIGHT,
-                            background = BrutalColors.Yellow,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onThemeChange(ThemePreference.LIGHT) }
-                        )
-                        ThemeButton(
-                            label = "DARK",
-                            selected = themePreference == ThemePreference.DARK,
-                            background = BrutalColors.Purple,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onThemeChange(ThemePreference.DARK) }
-                        )
-                    }
-                }
-            }
-
-            SettingsSectionTitle("PERSONALITY")
-
-            BrutalSection(
-                title = "BRUTALITY LEVEL",
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Pink
-            ) {
-                Text(
-                    text = "Controls border and hard-shadow intensity across the launcher.",
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    BrutalityLevel.values().forEach { level ->
-                        ThemeButton(
-                            label = level.label,
-                            selected = brutalityLevel == level,
-                            background = when (level) {
-                                BrutalityLevel.LITE -> BrutalColors.White
-                                BrutalityLevel.BRUTAL -> BrutalColors.Yellow
-                                BrutalityLevel.HARD -> BrutalColors.Orange
-                                BrutalityLevel.CHAOS -> BrutalColors.Purple
-                            },
-                            modifier = Modifier.weight(1f),
-                            onClick = { onBrutalityLevelChange(level) }
-                        )
-                    }
-                }
-            }
-
-            SettingsSectionTitle("TYPOGRAPHY")
-
-            BrutalSection(
-                title = "TILE TYPOGRAPHY",
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Purple
-            ) {
-                Text(
-                    text = "Choose the typography style used across launcher tiles.",
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BrutalColors.White
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    TypographyStyle.values().forEach { style ->
-                        ThemeButton(
-                            label = style.label,
-                            selected = typographyStyle == style,
-                            background = when (style) {
-                                TypographyStyle.POSTER -> BrutalColors.Yellow
-                                TypographyStyle.MONO -> BrutalColors.Cyan
-                                TypographyStyle.CONDENSED -> BrutalColors.Lime
-                                TypographyStyle.HUGE -> BrutalColors.Pink
-                            },
-                            modifier = Modifier.weight(1f),
-                            onClick = { onTypographyStyleChange(style) }
-                        )
-                    }
-                }
-            }
-
-            SettingsSectionTitle("CLOCK")
-
-            SettingsSwitch(
-                title = "24-HOUR FORMAT",
-                description = "Use 24-hour time.",
-                checked = use24Hour,
-                background = BrutalColors.Yellow,
-                onCheckedChange = onUse24HourChange
-            )
-
-            if (!use24Hour) {
-                SettingsSwitch(
-                    title = "SHOW AM / PM",
-                    description = "Show AM or PM beside the 12-hour clock.",
-                    checked = showAmPm,
-                    background = BrutalColors.Cyan,
-                    onCheckedChange = onShowAmPmChange
-                )
-            }
-
-            SettingsSwitch(
-                title = "SHOW DAY / DATE",
-                description = "Show the current day and date beside the clock.",
-                checked = showDate,
-                background = BrutalColors.Pink,
-                onCheckedChange = onShowDateChange
-            )
-
-            SettingsSectionTitle("PERMISSIONS")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = uiSurface,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "WEATHER LOCATION",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
-                        color = uiOnSurface
-                    )
-                    Text(
-                        text = if (locationPermissionGranted) {
-                            "LOCATION ACCESS GRANTED. WEATHER CAN USE YOUR CURRENT AREA."
-                        } else {
-                            "LOCATION ACCESS IS NEEDED TO SHOW LOCAL WEATHER."
-                        },
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface.copy(alpha = 0.75f)
-                    )
-                    BrutalActionButton(
-                        title = if (locationPermissionGranted) "LOCATION ALREADY ALLOWED" else "ALLOW WEATHER LOCATION",
-                        background = if (locationPermissionGranted) BrutalColors.Lime else BrutalColors.Orange,
-                        onClick = onRequestWeatherPermission
-                    )
-
-                    Spacer(Modifier.height(4.dp))
-
-                    Text(
-                        text = "MUSIC + NOTIFICATION ACCESS",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
-                        color = uiOnSurface
-                    )
-                    Text(
-                        text = if (notificationAccessGranted) {
-                            "NOTIFICATION ACCESS GRANTED. MUSIC TILE CAN READ ACTIVE MEDIA SESSIONS. THIS ACCESS CAN ALSO EXPOSE OTHER NOTIFICATIONS, INCLUDING MESSAGE NOTIFICATIONS; NEO CURRENTLY USES IT ONLY FOR MUSIC."
-                        } else {
-                            "ENABLE ANDROID NOTIFICATION ACCESS FOR THE MUSIC TILE TO DETECT THE MUSIC APP AND CURRENT TRACK."
-                        },
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface.copy(alpha = 0.75f)
-                    )
-                    BrutalActionButton(
-                        title = if (notificationAccessGranted) "OPEN NOTIFICATION ACCESS" else "ALLOW MUSIC / NOTIFICATION ACCESS",
-                        background = if (notificationAccessGranted) BrutalColors.Cyan else BrutalColors.Orange,
-                        onClick = onOpenNotificationAccess
-                    )
-                }
-            }
-
-            SettingsSectionTitle("CHAT")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Purple else BrutalColors.Cyan,
-                borderWidth = 4.dp,
-                shadowX = 6.dp,
-                shadowY = 6.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "LIVE CHAT TILE",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = BrutalColors.Ink
-                    )
-                    Text(
-                        text = selectedChatApp?.label?.uppercase(Locale.ENGLISH)
-                            ?: "NO APP SELECTED",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "The latest notification from this app appears on LIVE.",
-                        fontSize = 10.sp,
-                        lineHeight = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BrutalColors.Ink
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        BrutalActionButton(
-                            title = if (selectedChatApp == null) "CHOOSE APP" else "CHANGE APP",
-                            background = BrutalColors.Yellow,
-                            modifier = Modifier.weight(1f),
-                            onClick = { showChatAppPicker = true }
-                        )
-                        if (selectedChatApp != null) {
-                            BrutalActionButton(
-                                title = "CLEAR",
-                                background = BrutalColors.Pink,
-                                modifier = Modifier.weight(0.7f),
-                                onClick = { onChatNotificationPackagesChange(emptyList()) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            SettingsSectionTitle("FAVORITES")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = uiSurface,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "$favoritesCount PINNED APPS",
-                                fontFamily = BrutalTypography.Display,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = uiOnSurface
-                            )
-                            Text(
-                                text = "Choose how many pinned app slots are available on Home.",
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = uiOnSurface.copy(alpha = 0.75f)
-                            )
-                        }
-                        BrutalLabel(
-                            text = homeAppCount.toString(),
-                            background = BrutalColors.Yellow
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf(3, 5, 7).forEach { count ->
-                            ThemeButton(
-                                label = count.toString(),
-                                selected = homeAppCount == count,
-                                background = when (count) {
-                                    3 -> BrutalColors.Cyan
-                                    5 -> BrutalColors.Orange
-                                    else -> BrutalColors.Pink
-                                },
-                                modifier = Modifier.weight(1f),
-                                onClick = { onHomeAppCountChange(count) }
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "Long-press an app on APPS to pin it. Extra pinned apps are trimmed when the limit is reduced.",
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface.copy(alpha = 0.75f)
-                    )
-
-                    BrutalActionButton(
-                        title = "CLEAR ALL PINNED APPS",
-                        background = BrutalColors.Orange,
-                        onClick = onClearFavorites
-                    )
-                }
-            }
-
-            SettingsSectionTitle("WALLPAPER")
-
-            BrutalSection(
-                title = "HOME BACKGROUND",
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Yellow
-            ) {
-                Text(
-                    text = if (wallpaperUri == null) {
-                        "PAPER / SYSTEM THEME BACKGROUND"
-                    } else {
-                        "CUSTOM IMAGE SELECTED"
-                    },
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Black
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BrutalActionButton(
-                        title = "CHOOSE IMAGE",
-                        background = BrutalColors.Cyan,
-                        modifier = Modifier.weight(1f),
-                        onClick = onChooseWallpaper
-                    )
-                    BrutalActionButton(
-                        title = "CLEAR",
-                        background = BrutalColors.Pink,
-                        modifier = Modifier.weight(1f),
-                        onClick = onClearWallpaper
-                    )
-                }
-            }
-
-            SettingsSectionTitle("APP TILES")
-
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Lime,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "APP TILE CONTENT",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = "Choose one layout for every app tile on the home screen.",
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf(
-                            TileContentMode.ICON,
-                            TileContentMode.ICON_TEXT,
-                            TileContentMode.TEXT
-                        ).forEach { mode ->
-                            ThemeButton(
-                                label = when (mode) {
-                                    TileContentMode.ICON -> "ICON"
-                                    TileContentMode.ICON_TEXT -> "ICON + TEXT"
-                                    TileContentMode.TEXT -> "TEXT"
-                                },
-                                selected = appTileContentMode == mode,
-                                background = when (mode) {
-                                    TileContentMode.ICON -> BrutalColors.Cyan
-                                    TileContentMode.ICON_TEXT -> BrutalColors.Yellow
-                                    TileContentMode.TEXT -> BrutalColors.Pink
-                                },
-                                modifier = Modifier.weight(1f),
-                                onClick = { onAppTileContentModeChange(mode) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            SettingsSectionTitle("LAUNCHER")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Pink,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            tint = BrutalColors.Ink,
-                            modifier = Modifier
-                                .width(26.dp)
-                                .height(26.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "DEFAULT HOME APP",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                    }
-
-                    Text(
-                        text = "Open Android's Home app settings to choose Neo Brutal Launcher as the default launcher.",
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    BrutalActionButton(
-                        title = "OPEN HOME SETTINGS",
-                        background = BrutalColors.Yellow,
-                        onClick = {
-                            context.startActivity(
-                                Intent(Settings.ACTION_HOME_SETTINGS).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                            )
-                        }
-                    )
-                }
-            }
-
-            SettingsSectionTitle("ABOUT")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = darkTileBackground,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = "NEO BRUTAL LAUNCHER",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.White
-                    )
-                    Text(
-                        text = "CORE BUILD 0.1.0",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = BrutalColors.Cyan
-                    )
-                    Text(
-                        text = "A neo-brutalist launcher focused on fast access to your apps.",
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BrutalColors.White
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-        }
     }
 
     if (showChatAppPicker) {
-        AlertDialog(
-            onDismissRequest = { showChatAppPicker = false },
-            title = {
-                Text(
-                    text = "CHOOSE CHAT APP",
-                    fontFamily = BrutalTypography.Display,
-                    fontWeight = FontWeight.Normal
-                )
-            },
-            text = {
-                LazyColumn(
-                    modifier = Modifier.height(360.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(
-                        items = chatCandidates,
-                        key = { it.packageName + "/" + it.activityName }
-                    ) { app ->
-                        BrutalBlock(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onChatNotificationPackagesChange(listOf(app.packageName))
-                                    showChatAppPicker = false
-                                },
-                            background = if (
-                                app.packageName == chatNotificationPackages.firstOrNull()
-                            ) BrutalColors.Yellow else MaterialTheme.colorScheme.surface,
-                            borderWidth = 3.dp,
-                            shadowX = 3.dp,
-                            shadowY = 3.dp
-                        ) {
-                            Text(
-                                text = app.label.uppercase(Locale.ENGLISH),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (
-                                    app.packageName == chatNotificationPackages.firstOrNull()
-                                ) BrutalColors.Ink else uiOnSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+        AlertDialog(onDismissRequest = { showChatAppPicker = false }, title = { Text("CHOOSE CHAT APP", fontFamily = BrutalTypography.Display, fontWeight = FontWeight.Normal) }, text = {
+            LazyColumn(modifier = Modifier.height(360.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(chatCandidates, key = { it.packageName + "/" + it.activityName }) { app ->
+                    BrutalBlock(Modifier.fillMaxWidth().clickable { onChatNotificationPackagesChange(listOf(app.packageName)); showChatAppPicker = false }, background = if(app.packageName == chatNotificationPackages.firstOrNull()) BrutalColors.Yellow else uiSurface, borderWidth = 3.dp, shadowX = 3.dp, shadowY = 3.dp) {
+                        Text(app.label.uppercase(Locale.ENGLISH), fontSize = 11.sp, fontWeight = FontWeight.Black, color = if(app.packageName == chatNotificationPackages.firstOrNull()) BrutalColors.Ink else uiOnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-            },
-            confirmButton = {}
-        )
+            }
+        }, confirmButton = {})
+    }
+
+    if (showResetConfirm) {
+        AlertDialog(onDismissRequest = { showResetConfirm = false }, title = { Text("RESET ALL CUSTOMIZATIONS", fontFamily = BrutalTypography.Display) }, text = { Text("This clears launcher preferences, tile layout, pinned apps, notes/tasks, wallpaper and icon-pack selection. This cannot be undone.") }, dismissButton = { BrutalActionButton("CANCEL", BrutalColors.White) { showResetConfirm = false } }, confirmButton = { BrutalActionButton("RESET", BrutalColors.Pink) { showResetConfirm = false; onResetAll() } })
     }
 }
 
