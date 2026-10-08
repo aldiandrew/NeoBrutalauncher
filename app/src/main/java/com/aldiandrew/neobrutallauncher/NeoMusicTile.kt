@@ -196,6 +196,8 @@ fun NeoMusicTile(
 
             }
         }
+    }
+}
 
 @Composable
 private fun MusicControlButton(
