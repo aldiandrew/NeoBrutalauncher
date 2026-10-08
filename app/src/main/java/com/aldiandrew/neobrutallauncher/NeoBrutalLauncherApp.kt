@@ -1976,12 +1976,13 @@ private fun ThemeButton(
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    BrutalBlock(
-        modifier = modifier.clickable(onClick = onClick),
+    BrutalPressableBlock(
+        modifier = modifier,
         background = if (selected) background else MaterialTheme.colorScheme.surface,
-        borderWidth = if (selected) 4.dp else 2.dp,
-        shadowX = if (selected) 4.dp else 3.dp,
-        shadowY = if (selected) 4.dp else 3.dp
+        borderWidth = if (selected) NeoBrutalTokens.Border.Strong else NeoBrutalTokens.Border.Secondary,
+        shadowX = NeoBrutalTokens.Shadow.Small,
+        shadowY = NeoBrutalTokens.Shadow.Small,
+        onClick = onClick
     ) {
         Text(
             text = label,
@@ -2002,14 +2003,13 @@ fun BrutalActionButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    BrutalBlock(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+    BrutalPressableBlock(
+        modifier = modifier.fillMaxWidth(),
         background = background,
-        borderWidth = 3.dp,
-        shadowX = 4.dp,
-        shadowY = 4.dp
+        borderWidth = NeoBrutalTokens.Border.Primary,
+        shadowX = NeoBrutalTokens.Shadow.Small,
+        shadowY = NeoBrutalTokens.Shadow.Small,
+        onClick = onClick
     ) {
         Text(
             text = title,
