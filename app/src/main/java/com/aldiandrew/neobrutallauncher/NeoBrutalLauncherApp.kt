@@ -327,7 +327,7 @@ fun NeoBrutalLauncherApp() {
                             appTileContentMode = appTileContentMode,
                             clockStyle = clockStyle,
                             wallpaperUri = wallpaperUri,
-                             onOpenSettings = { settingsOpen = true },
+                            onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = repository::launch,
                             onHomeAppCountChange = { updated ->
@@ -465,7 +465,6 @@ private fun HomeScreen(
     appTileContentMode: TileContentMode,
     clockStyle: ClockStyle,
     wallpaperUri: String?,
-    chaosSeed: Int,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
@@ -556,7 +555,7 @@ private fun HomeScreen(
         )
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
-    val palette = remember(chaosSeed) { BrutalColors.appPalette(chaosSeed) }
+    val palette = remember { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
