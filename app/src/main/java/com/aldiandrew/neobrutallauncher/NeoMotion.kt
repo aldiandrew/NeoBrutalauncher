@@ -37,6 +37,18 @@ data class NeoMotionConfig(
             dampingRatio = dampingRatio
         )
     }
+
+    fun launchDurationMillis(): Int = when (smoothness) {
+        MotionSmoothness.SNAPPY -> 90
+        MotionSmoothness.BALANCED -> 120
+        MotionSmoothness.FLUID -> 150
+    }
+
+    fun returnDurationMillis(): Int = when (smoothness) {
+        MotionSmoothness.SNAPPY -> 100
+        MotionSmoothness.BALANCED -> 140
+        MotionSmoothness.FLUID -> 180
+    }
 }
 
 val LocalNeoMotionConfig = staticCompositionLocalOf { NeoMotionConfig() }
@@ -63,11 +75,11 @@ fun NeoHomeReturnMotion(
 
         scale.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 150)
+            animationSpec = tween(durationMillis = config.returnDurationMillis())
         )
         alpha.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 130)
+            animationSpec = tween(durationMillis = (config.returnDurationMillis() - 20).coerceAtLeast(1))
         )
     }
 
@@ -104,7 +116,7 @@ fun NeoLaunchTransition(
         progress.snapTo(0f)
         progress.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 120)
+            animationSpec = tween(durationMillis = config.launchDurationMillis())
         )
         onFinished()
     }
