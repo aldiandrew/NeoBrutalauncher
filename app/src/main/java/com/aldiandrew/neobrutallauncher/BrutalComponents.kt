@@ -33,12 +33,19 @@ fun BrutalBlock(
     val actualShadowX = shadowX * style.shadowScale
     val actualShadowY = shadowY * style.shadowScale
     val shadowEnabled = actualShadowX != 0.dp || actualShadowY != 0.dp
+    val darkSurface = background == BrutalColors.DarkPaper ||
+        background == BrutalColors.DarkTile ||
+        background == BrutalColors.Ink
     val resolvedShadowColor = if (shadowEnabled) {
-        shadowColor ?: BrutalColors.Ink
+        shadowColor ?: if (darkSurface) BrutalColors.DarkWhite else BrutalColors.Ink
     } else {
         Color.Transparent
     }
-    val resolvedBorderColor = borderColor ?: BrutalColors.Ink
+    val resolvedBorderColor = borderColor ?: if (darkSurface) {
+        BrutalColors.DarkWhite
+    } else {
+        BrutalColors.Ink
+    }
 
     Layout(
         modifier = modifier,
