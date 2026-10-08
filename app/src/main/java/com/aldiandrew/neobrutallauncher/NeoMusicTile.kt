@@ -55,7 +55,6 @@ import androidx.lifecycle.repeatOnLifecycle
 
 private data class MusicApp(
     val label: String,
-    val icon: android.graphics.drawable.Drawable,
     val packageName: String
 )
 
@@ -65,7 +64,6 @@ private fun resolveMusicApp(context: Context): MusicApp? {
         .firstOrNull()?.activityInfo?.applicationInfo ?: return null
     return MusicApp(
         label = context.packageManager.getApplicationLabel(info).toString(),
-        icon = context.packageManager.getApplicationIcon(info),
         packageName = info.packageName
     )
 }
@@ -149,8 +147,8 @@ fun NeoMusicTile(
             musicInfo = musicInfo,
             iconBitmap = iconBitmap,
             textColor = textColor,
-            context = context,
-                    )
+            context = context
+        )
     }
 }
 
