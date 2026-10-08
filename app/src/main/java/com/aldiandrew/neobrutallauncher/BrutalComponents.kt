@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 fun BrutalBlock(
     modifier: Modifier = Modifier,
     background: Color,
-    borderWidth: Dp = 3.dp,
+    borderWidth: Dp = 4.dp,
     shadowX: Dp = 6.dp,
     shadowY: Dp = 6.dp,
     borderColor: Color? = null,
