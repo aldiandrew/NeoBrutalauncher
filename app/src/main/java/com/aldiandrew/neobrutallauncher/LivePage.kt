@@ -33,6 +33,7 @@ import java.util.Locale
 @Composable
 fun LivePage(
     apps: List<AppInfo>,
+    selectedChatPackages: List<String>,
     onLaunch: (AppInfo) -> Unit,
     onOpenHome: () -> Unit
 ) {
@@ -52,7 +53,6 @@ fun LivePage(
     val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
     val accentSurface = if (isDark) BrutalColors.Purple else BrutalColors.Orange
     val pageText = MaterialTheme.colorScheme.onBackground
-    val secondarySurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
 
     val launchCounts = remember(apps) {
         preferences.appLaunchCounts()
@@ -90,8 +90,10 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth(),
                 background = accentSurface,
                 borderWidth = 4.dp,
+                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 shadowX = 7.dp,
-                shadowY = 7.dp
+                shadowY = 7.dp,
+                shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
@@ -116,7 +118,9 @@ fun LivePage(
         item {
             NeoMusicTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(126.dp)
+                modifier = Modifier.fillMaxWidth().height(126.dp),
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
 
@@ -125,14 +129,19 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BatteryTile(
+                NeoChatNotificationTile(
                     context = context,
+                    packageName = selectedChatPackages.getOrNull(0),
                     modifier = Modifier.weight(1f).height(150.dp),
-                    background = secondarySurface
+                    background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
+                    textColor = BrutalColors.Ink
                 )
-                NeoNetworkTile(
+                NeoChatNotificationTile(
                     context = context,
-                    modifier = Modifier.weight(1f).height(150.dp)
+                    packageName = selectedChatPackages.getOrNull(1),
+                    modifier = Modifier.weight(1f).height(150.dp),
+                    background = if (isDark) BrutalColors.Cyan else BrutalColors.Peach,
+                    textColor = BrutalColors.Ink
                 )
             }
         }

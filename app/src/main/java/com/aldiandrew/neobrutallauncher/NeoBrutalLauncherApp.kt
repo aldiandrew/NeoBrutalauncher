@@ -11,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -38,27 +36,16 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Thunderstorm
-import androidx.compose.material.icons.filled.Umbrella
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -71,7 +58,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
@@ -86,7 +72,6 @@ import androidx.core.app.NotificationManagerCompat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -128,6 +113,10 @@ fun NeoBrutalLauncherApp() {
             NotificationManagerCompat.getEnabledListenerPackages(context)
                 .contains(context.packageName)
         )
+    }
+
+    var selectedChatPackages by remember {
+        mutableStateOf(preferences.chatNotificationPackages())
     }
 
     val wallpaperPickerLauncher = rememberLauncherForActivityResult(
@@ -212,6 +201,8 @@ fun NeoBrutalLauncherApp() {
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
+                    chatNotificationPackages = selectedChatPackages,
+                    apps = apps,
                     onBack = { settingsOpen = false },
                     onThemeChange = {
                         themePreference = it
@@ -262,6 +253,13 @@ fun NeoBrutalLauncherApp() {
                             Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         )
+                    },
+                    onChatNotificationPackagesChange = { updated ->
+                        val normalized = updated.distinct().take(2)
+                        selectedChatPackages = normalized
+                        preferences.setChatNotificationPackages(normalized)
+                        NeoChatNotificationStore.setSelectedPackages(normalized)
+                        NeoNotificationServiceRegistry.service?.refreshChatNotifications()
                     },
                     onShowQuoteChange = {
                         showQuote = it
@@ -365,6 +363,7 @@ fun NeoBrutalLauncherApp() {
                     } else {
                         LivePage(
                             apps = apps,
+                            selectedChatPackages = selectedChatPackages,
                             onLaunch = repository::launch,
                             onOpenHome = { currentPage = 0 }
                         )
@@ -1251,212 +1250,6 @@ private fun NeoQuoteTilePlain(
 }
 
 @Composable
-private fun ClockTileContent(
-    now: Date,
-    time: SimpleDateFormat,
-    date: SimpleDateFormat,
-    use24Hour: Boolean,
-    showDate: Boolean,
-    style: ClockStyle,
-    modifier: Modifier = Modifier
-) {
-    BoxWithConstraints(
-        modifier = modifier.padding(9.dp)
-    ) {
-        val compact = minOf(maxWidth, maxHeight)
-
-        when (style) {
-            ClockStyle.POSTER -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = time.format(now),
-                        fontSize = when {
-                            compact < 78.dp -> 12.sp
-                            compact < 155.dp -> 31.sp
-                            else -> 58.sp
-                        },
-                        lineHeight = when {
-                            compact < 78.dp -> 13.sp
-                            compact < 155.dp -> 32.sp
-                            else -> 59.sp
-                        },
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                    if (showDate) {
-                        Spacer(Modifier.height(if (compact < 155.dp) 3.dp else 5.dp))
-                        Text(
-                            text = date.format(now).uppercase(),
-                            fontSize = when {
-                                compact < 78.dp -> 6.sp
-                                compact < 155.dp -> 9.sp
-                                else -> 16.sp
-                            },
-                            lineHeight = when {
-                                compact < 78.dp -> 7.sp
-                                compact < 155.dp -> 10.sp
-                                else -> 17.sp
-                            },
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = if (compact < 155.dp) 0.sp else 1.5.sp,
-                            color = BrutalColors.Ink,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-
-            ClockStyle.MONO -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = time.format(now),
-                        fontFamily = BrutalTypography.Mono,
-                        fontSize = when {
-                            compact < 78.dp -> 11.sp
-                            compact < 155.dp -> 28.sp
-                            else -> 52.sp
-                        },
-                        lineHeight = when {
-                            compact < 78.dp -> 12.sp
-                            compact < 155.dp -> 29.sp
-                            else -> 53.sp
-                        },
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = if (compact < 155.dp) 0.5.sp else 1.sp,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                    if (showDate) {
-                        Text(
-                            text = "SYSTEM // ${date.format(now).uppercase()}",
-                            fontFamily = BrutalTypography.Mono,
-                            fontSize = if (compact < 155.dp) 7.sp else 10.sp,
-                            lineHeight = if (compact < 155.dp) 8.sp else 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = BrutalColors.Ink,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-
-            ClockStyle.CONDENSED -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = time.format(now),
-                        fontSize = when {
-                            compact < 78.dp -> 12.sp
-                            compact < 155.dp -> 27.sp
-                            else -> 48.sp
-                        },
-                        lineHeight = when {
-                            compact < 78.dp -> 12.sp
-                            compact < 155.dp -> 27.sp
-                            else -> 47.sp
-                        },
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-0.8).sp,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                    if (showDate) {
-                        Text(
-                            text = date.format(now).uppercase(),
-                            fontSize = when {
-                                compact < 78.dp -> 6.sp
-                                compact < 155.dp -> 8.sp
-                                else -> 12.sp
-                            },
-                            lineHeight = when {
-                                compact < 78.dp -> 7.sp
-                                compact < 155.dp -> 9.sp
-                                else -> 13.sp
-                            },
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = (-0.2).sp,
-                            color = BrutalColors.Ink,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-
-            ClockStyle.HUGE -> {
-                val hourFormat = remember(use24Hour) {
-                    SimpleDateFormat(if (use24Hour) "HH" else "hh", Locale.getDefault())
-                }
-                val minuteFormat = remember {
-                    SimpleDateFormat("mm", Locale.getDefault())
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = hourFormat.format(now),
-                            fontSize = when {
-                                compact < 78.dp -> 20.sp
-                                compact < 155.dp -> 46.sp
-                                else -> 82.sp
-                            },
-                            lineHeight = when {
-                                compact < 78.dp -> 20.sp
-                                compact < 155.dp -> 46.sp
-                                else -> 82.sp
-                            },
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 1
-                        )
-                        Text(
-                            text = minuteFormat.format(now),
-                            fontSize = when {
-                                compact < 78.dp -> 20.sp
-                                compact < 155.dp -> 46.sp
-                                else -> 82.sp
-                            },
-                            lineHeight = when {
-                                compact < 78.dp -> 20.sp
-                                compact < 155.dp -> 46.sp
-                                else -> 82.sp
-                            },
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 1
-                        )
-                    }
-                    if (showDate && compact >= 155.dp) {
-                        Text(
-                            text = date.format(now).uppercase(),
-                            modifier = Modifier.weight(1f).padding(start = 10.dp),
-                            fontSize = 11.sp,
-                            lineHeight = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            color = BrutalColors.Ink,
-                            maxLines = 2
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun NeoQuoteTile(
     quote: String,
     modifier: Modifier = Modifier,
@@ -1792,6 +1585,8 @@ private fun AppTile(
 @Composable
 private fun SettingsScreen(
     appsCount: Int,
+    apps: List<AppInfo>,
+    chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
     use24Hour: Boolean,
     showDate: Boolean,
@@ -1808,6 +1603,7 @@ private fun SettingsScreen(
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
+    onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
@@ -1840,6 +1636,13 @@ private fun SettingsScreen(
         } else {
             BrutalColors.Ink
         }
+    val chatCandidates = remember(apps) {
+        apps.groupBy { it.packageName }
+            .values
+            .mapNotNull { it.firstOrNull() }
+            .filter { it.packageName != context.packageName }
+            .sortedBy { it.label.lowercase() }
+    }
 
     Column(
         modifier = Modifier
@@ -2087,6 +1890,100 @@ private fun SettingsScreen(
                         background = if (notificationAccessGranted) BrutalColors.Cyan else BrutalColors.Orange,
                         onClick = onOpenNotificationAccess
                     )
+                }
+            }
+
+            SettingsSectionTitle("CHAT NOTIFICATIONS")
+
+            BrutalBlock(
+                modifier = Modifier.fillMaxWidth(),
+                background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Purple else BrutalColors.Cyan,
+                borderWidth = 4.dp,
+                shadowX = 6.dp,
+                shadowY = 6.dp
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "LIVE CHAT TILES",
+                            modifier = Modifier.weight(1f),
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = BrutalColors.Ink
+                        )
+                        BrutalLabel(
+                            text = chatNotificationPackages.size.toString() + "/2",
+                            background = BrutalColors.Yellow
+                        )
+                    }
+                    Text(
+                        text = "Choose up to 2 apps. Their latest active notification appears on LIVE; tap a tile to open the app.",
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BrutalColors.Ink
+                    )
+                    LazyColumn(
+                        modifier = Modifier.height(250.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        items(
+                            items = chatCandidates,
+                            key = { it.packageName }
+                        ) { app ->
+                            val selected = app.packageName in chatNotificationPackages
+                            BrutalBlock(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val next = when {
+                                            selected -> chatNotificationPackages - app.packageName
+                                            chatNotificationPackages.size < 2 -> chatNotificationPackages + app.packageName
+                                            else -> chatNotificationPackages
+                                        }
+                                        onChatNotificationPackagesChange(next)
+                                    },
+                                background = if (selected) BrutalColors.Yellow else BrutalColors.White,
+                                borderWidth = if (selected) 3.dp else 2.dp,
+                                shadowX = if (selected) 2.dp else 3.dp,
+                                shadowY = if (selected) 2.dp else 3.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = app.label.uppercase(),
+                                        modifier = Modifier.weight(1f),
+                                        fontFamily = BrutalTypography.Display,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = BrutalColors.Ink,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = if (selected) "SELECTED" else "SELECT",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = BrutalColors.Orange
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (chatNotificationPackages.size >= 2) {
+                        Text(
+                            text = "2/2 SELECTED — TAP ONE TO REMOVE.",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink
+                        )
+                    }
                 }
             }
 
@@ -2446,7 +2343,7 @@ private fun ThemeButton(
             fontFamily = BrutalTypography.Display,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (selected) BrutalColors.Ink else MaterialTheme.colorScheme.onSurface
         )
     }
 }
