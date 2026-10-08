@@ -3,9 +3,9 @@ package com.aldiandrew.neobrutallauncher
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import android.provider.Settings
 import android.view.KeyEvent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -25,7 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 private data class MusicApp(
     val label: String,
@@ -44,11 +52,8 @@ private data class MusicApp(
 
 private fun resolveMusicApp(context: Context): MusicApp? {
     val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC)
-    val info = context.packageManager
-        .queryIntentActivities(intent, 0)
-        .firstOrNull()
-        ?.let { it.activityInfo.applicationInfo }
-        ?: return null
+    val info = context.packageManager.queryIntentActivities(intent, 0)
+        .firstOrNull()?.activityInfo?.applicationInfo ?: return null
     return MusicApp(
         label = context.packageManager.getApplicationLabel(info).toString(),
         icon = context.packageManager.getApplicationIcon(info),
@@ -62,12 +67,35 @@ private fun dispatchMediaKey(context: Context, keyCode: Int) {
     audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
 }
 
+private fun hasMusicAccess(context: Context): Boolean =
+    NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+
 @Composable
 fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
-    val musicApp = remember { resolveMusicApp(context) }
+    var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasAccess = hasMusicAccess(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val musicInfo by NeoMusicSessionStore.state.collectAsState()
+    val fallbackApp = remember { resolveMusicApp(context) }
+    val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
+    val musicLabel = musicInfo?.appLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
     val textColor = MaterialTheme.colorScheme.onBackground
-    val artBitmap = remember(musicApp?.packageName) {
-        musicApp?.icon?.toBitmap(96, 96)?.asImageBitmap()
+    val iconBitmap = remember(musicPackage) {
+        runCatching {
+            musicPackage?.let {
+                context.packageManager.getApplicationIcon(it).toBitmap(96, 96).asImageBitmap()
+            }
+        }.getOrNull()
     }
 
     BrutalBlock(
@@ -78,82 +106,80 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
         shadowX = 5.dp,
         shadowY = 5.dp
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.foundation.layout.Box(
-                modifier = Modifier.size(66.dp),
+                modifier = Modifier.size(58.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (artBitmap != null) {
-                    Image(
-                        bitmap = artBitmap,
-                        contentDescription = musicApp?.label ?: "Music",
-                        modifier = Modifier.size(62.dp)
-                    )
+                if (iconBitmap != null) {
+                    Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = "Music",
-                        tint = textColor,
-                        modifier = Modifier.size(42.dp)
-                    )
+                    Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
                 }
             }
 
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(8.dp))
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
                 Text(
-                    text = "NOW PLAYING",
+                    text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
                     fontSize = 8.sp,
                     fontWeight = FontWeight.Black,
                     color = textColor,
-                    letterSpacing = 0.8.sp,
                     maxLines = 1
                 )
                 Text(
-                    text = musicApp?.label?.uppercase() ?: "SYSTEM MEDIA",
-                    fontSize = 13.sp,
-                    lineHeight = 14.sp,
+                    text = musicLabel.uppercase(),
+                    fontSize = 12.sp,
+                    lineHeight = 13.sp,
                     fontWeight = FontWeight.Black,
                     color = textColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
+                    val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
+                    Text(
+                        text = if (artist != null) "$title — $artist" else title,
+                        fontSize = 8.sp,
+                        lineHeight = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (!hasAccess) {
+                    Text(
+                        text = "TAP TILE TO ALLOW MUSIC ACCESS",
+                        fontSize = 6.sp,
+                        lineHeight = 7.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor,
+                        maxLines = 1
+                    )
+                }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MusicControlButton(
-                    icon = Icons.Default.SkipPrevious,
-                    description = "Previous",
-                    textColor = textColor
-                ) {
-                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
-                }
-                MusicControlButton(
-                    icon = Icons.Default.PlayArrow,
-                    description = "Play or pause",
-                    textColor = textColor
-                ) {
-                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-                }
-                MusicControlButton(
-                    icon = Icons.Default.SkipNext,
-                    description = "Next",
-                    textColor = textColor
-                ) {
-                    dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
+                MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
+                MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
             }
         }
+    }
+
+    if (!hasAccess) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable {
+                    context.startActivity(
+                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+        )
     }
 }
 
@@ -162,20 +188,21 @@ private fun MusicControlButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
     textColor: Color,
-    onClick: () -> Unit
+    context: Context
 ) {
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier
-            .size(42.dp)
-            .border(2.dp, textColor)
-            .clickable(onClick = onClick),
+        modifier = Modifier.size(38.dp).border(2.dp, textColor).clickable {
+            dispatchMediaKey(
+                context,
+                when (icon) {
+                    Icons.Default.SkipPrevious -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
+                    Icons.Default.SkipNext -> KeyEvent.KEYCODE_MEDIA_NEXT
+                    else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+                }
+            )
+        },
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            tint = textColor,
-            modifier = Modifier.size(22.dp)
-        )
+        Icon(icon, description, tint = textColor, modifier = Modifier.size(20.dp))
     }
 }
