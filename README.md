@@ -4,9 +4,11 @@ NeoBrutalauncher is an Android home launcher built around a Neo-Brutalist design
 
 ## Current stable baseline
 
-The current stable baseline is the successful build represented by commit `5b4100e90f2cf30bc86a19b4ccadf47d753c2d70` (GitHub Actions Run #303).
+The current stable baseline is the successful design-system build represented by commit `48e67a64ac4c8a0c1811055574fa85ac21c5804c` (GitHub Actions Run #352).
 
-The rollback branch `stable-base-reset-weather-music-20261008` points to this stable checkpoint. This baseline should be preserved for future development unless a change is explicitly requested.
+The rollback branch `stable-neobrutal-baseline-20261008` points to the pre-design-system baseline at commit `2dcf1f312cebd4ec1ee95d98c647323d8279d227`. Use that branch when a later design change needs a clean rollback point.
+
+The current stable build should be preserved for future development unless a change is explicitly requested.
 
 ## Current features
 
@@ -19,8 +21,8 @@ The rollback branch `stable-base-reset-weather-music-20261008` points to this st
 - Configurable number of Home app tiles.
 - Configurable app tile content: icon, icon + text, or text.
 - Per-tile position and size controls.
-- Neo-Brutalist visual design with borders, offset shadows, bold typography, and saturated colors.
-- Smooth animated transitions between Home, Apps, and Live pages.
+- Neo-Brutalist visual design with hard borders, offset shadows, bold typography, and a controlled three-accent palette.
+- Smooth page transitions between Home, Apps, and Live pages; app open/return animations are intentionally disabled.
 - Configurable motion smoothness: SNAPPY, BALANCED, or FLUID.
 - Optional Reduce Motion mode.
 - App tile order is preserved and is not rearranged from app launch frequency.
@@ -28,7 +30,7 @@ The rollback branch `stable-base-reset-weather-music-20261008` points to this st
 ### Home
 - Large clock with 12-hour or 24-hour mode.
 - Optional AM/PM display for 12-hour mode.
-- Selectable typography styles.
+- Typography style selection with Default and Condensed options.
 - Optional local weather display with provider fallbacks for available device location providers.
 - Custom image wallpaper with **Choose Image** and **Clear** controls.
 - Home app tiles without the removed decorative line/marker.
@@ -56,6 +58,15 @@ The rollback branch `stable-base-reset-weather-music-20261008` points to this st
 - Pinned app management.
 - Live Chat app selection and clearing.
 - Notification access management.
+
+## Neo-Brutalist design system
+
+- Core accent palette is intentionally limited to Yellow, Cyan, and Pink, with Ink/White/Paper used as structure and neutrals.
+- Borders use reusable 2dp, 3dp, and 4dp levels; hard shadows use 4dp and 6dp standard levels.
+- Layout rhythm uses a 4/8/16dp mobile spacing scale, adapted from the guide's 8px rhythm for a dense launcher surface.
+- Typography is organized around Meta, Label, Body, Tile, Title, and Hero levels while retaining the user's Default/Condensed preference.
+- Interactive buttons use the same hard-shadow press behavior; opening and returning from apps have no decorative launch/return animation.
+- Brutal blocks resolve their default content color from the surface so bright accent tiles use Ink and dark structural surfaces use DarkWhite.
 
 ## Design principles
 
