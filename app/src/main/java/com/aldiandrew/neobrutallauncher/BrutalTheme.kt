@@ -6,7 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -101,8 +100,7 @@ fun NeoBrutalTheme(
 
     CompositionLocalProvider(
         LocalBrutalMetrics provides BrutalMetrics(),
-        LocalBrutalTypographyStyle provides typographyStyle,
-        LocalNeoThemeIsDark provides isDark
+        LocalBrutalTypographyStyle provides typographyStyle
     ) {
         MaterialTheme(colorScheme = if (isDark) DarkScheme else LightScheme) {
             CompositionLocalProvider(
@@ -115,5 +113,3 @@ fun NeoBrutalTheme(
         }
     }
 }
-
-val LocalNeoThemeIsDark = staticCompositionLocalOf { false }
