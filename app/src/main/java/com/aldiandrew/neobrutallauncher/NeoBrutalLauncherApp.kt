@@ -1201,6 +1201,8 @@ private fun HomeScreen(
             }
         )
     }
+    }
+
 
 @Composable
 private fun FixedSmallTile(
@@ -2019,5 +2021,4 @@ fun BrutalActionButton(
             letterSpacing = 0.5.sp
         )
     }
-}
 }
