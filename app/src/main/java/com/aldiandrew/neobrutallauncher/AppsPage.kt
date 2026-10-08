@@ -255,8 +255,20 @@ fun AppsPage(
                                 app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
-                            val palette = remember { BrutalColors.appPalette(0) }
-                            val cardBackground = palette[index % palette.size]
+                            val lightCardPalette = BrutalColors.appPalette(0)
+                            val darkCardPalette = listOf(
+                                BrutalColors.DarkTile
+                            )
+                            val cardBackground = if (isDark) {
+                                darkCardPalette[index % darkCardPalette.size]
+                            } else {
+                                lightCardPalette[index % lightCardPalette.size]
+                            }
+                            val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
+                                BrutalColors.DarkWhite
+                            } else {
+                                BrutalColors.Ink
+                            }
                             val currentLetter = app.label.firstOrNull()?.uppercaseChar() ?: '#'
                             val previousLetter = sortedApps
                                 .getOrNull(index - 1)
@@ -295,7 +307,7 @@ fun AppsPage(
                                     modifier = Modifier.fillMaxWidth(),
                                     background = cardBackground,
                                     borderWidth = 3.dp,
-                                    borderColor = BrutalColors.Ink,
+                                    borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                                     shadowX = 5.dp,
                                     shadowY = 5.dp,
                                     onClick = { onLaunch(app) },
@@ -322,7 +334,7 @@ fun AppsPage(
                                             fontSize = 16.sp,
                                             lineHeight = 18.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Ink,
+                                            color = cardTextColor,
                                             maxLines = 2
                                         )
 
@@ -456,7 +468,14 @@ fun AppsPage(
                         BrutalActionButton(
                             title = "UNINSTALL", background = BrutalColors.Pink,
                             onClick = {
-                                runCatching { context.startActivity(Intent(Intent.ACTION_DELETE).apply { data = Uri.parse("package:" + app.packageName) }) }
+                                runCatching {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_DELETE).apply {
+                                            data = Uri.parse("package:" + app.packageName)
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                    )
+                                }
                                 contextApp = null
                             }
                         )
