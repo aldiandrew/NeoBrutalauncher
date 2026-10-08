@@ -93,12 +93,10 @@ class IconPackManager(private val context: Context) {
                 parsed
             }
             resources to mappings
-        }.getOrElse {
-            null to emptyMap()
-        }
+        }.getOrNull()
 
         cachedPackage = packPackage
-        cachedResources = result.first
-        cachedMappings = result.second
+        cachedResources = result?.first
+        cachedMappings = result?.second.orEmpty()
     }
 }
