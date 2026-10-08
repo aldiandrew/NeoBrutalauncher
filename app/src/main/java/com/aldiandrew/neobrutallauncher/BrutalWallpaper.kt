@@ -49,7 +49,7 @@ private fun loadCustomWallpaper(
     runCatching {
         val targetWidth = context.resources.displayMetrics.widthPixels.coerceAtLeast(1)
         val targetHeight = context.resources.displayMetrics.heightPixels.coerceAtLeast(1)
-        val maxDimension = max(targetWidth, targetHeight) * 2
+        val maxDimension = max(targetWidth, targetHeight)
 
         val bounds = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
