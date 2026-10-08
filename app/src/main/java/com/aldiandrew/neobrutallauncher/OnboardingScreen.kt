@@ -337,7 +337,7 @@ private fun PreferencesStep(
 
         Spacer(Modifier.height(8.dp))
 
-        SettingsSwitch(
+        OnboardingSwitch(
             title = "24-HOUR TIME",
             description = "Use 24-hour time on Home.",
             checked = use24Hour,
@@ -347,7 +347,7 @@ private fun PreferencesStep(
 
         Spacer(Modifier.height(8.dp))
 
-        SettingsSwitch(
+        OnboardingSwitch(
             title = "HIDE STATUS BAR",
             description = "Use the full launcher canvas and reveal the status bar temporarily with an edge swipe.",
             checked = hideStatusBar,
@@ -415,6 +415,51 @@ private fun FinalizeStep() {
                     color = BrutalColors.Ink
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingSwitch(
+    title: String,
+    description: String,
+    checked: Boolean,
+    background: Color,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    BrutalBlock(
+        modifier = Modifier.fillMaxWidth(),
+        background = background,
+        borderWidth = 3.dp,
+        shadowX = 5.dp,
+        shadowY = 5.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = BrutalColors.Ink
+                )
+                Text(
+                    description,
+                    fontSize = 9.sp,
+                    lineHeight = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrutalColors.Ink
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            BrutalToggle(
+                checked = checked,
+                accent = BrutalColors.White,
+                onCheckedChange = onCheckedChange
+            )
         }
     }
 }
