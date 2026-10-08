@@ -509,10 +509,6 @@ fun NeoBrutalLauncherApp(
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = ::requestLaunch,
-                            onHomeAppCountChange = { updated ->
-                                homeAppCount = updated
-                                preferences.setHomeAppCount(updated)
-                            },
                             tilePositions = tilePositions,
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
@@ -677,7 +673,6 @@ private fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
-    onHomeAppCountChange: (Int) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onExcludedHomeAppsChange: (Set<String>) -> Unit,
