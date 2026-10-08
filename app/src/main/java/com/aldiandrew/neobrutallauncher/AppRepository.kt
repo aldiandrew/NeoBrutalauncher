@@ -21,11 +21,16 @@ class AppRepository(private val context: Context) {
 
                 if (label.isEmpty()) return@mapNotNull null
 
+                val baseIcon = launcherActivity.getIcon(0)
                 AppInfo(
                     label = label,
                     packageName = activityInfo.packageName,
                     activityName = activityInfo.name,
-                    icon = launcherActivity.getIcon(0)
+                    icon = IconPackManager(context).iconFor(
+                        activityInfo.packageName,
+                        activityInfo.name,
+                        baseIcon
+                    )
                 )
             }
             .distinctBy { it.packageName + "/" + it.activityName }
