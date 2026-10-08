@@ -68,8 +68,13 @@ private val DarkScheme = darkColorScheme(
     onSecondary = BrutalColors.Ink,
     background = BrutalColors.DarkPaper,
     onBackground = BrutalColors.DarkWhite,
-    surface = BrutalColors.DarkPaper,
-    onSurface = BrutalColors.DarkWhite
+    surface = BrutalColors.DarkTile,
+    onSurface = BrutalColors.DarkWhite,
+    surfaceVariant = BrutalColors.Ink,
+    onSurfaceVariant = BrutalColors.DarkWhite,
+    outline = BrutalColors.DarkWhite,
+    error = BrutalColors.Red,
+    onError = BrutalColors.White
 )
 
 @Composable
