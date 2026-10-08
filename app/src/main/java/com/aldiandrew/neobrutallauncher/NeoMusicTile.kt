@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -145,10 +146,27 @@ private fun MusicTileContent(
             modifier = Modifier.size(58.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (iconBitmap != null) {
-                Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
+            val albumArt = musicInfo?.albumArt
+            if (albumArt != null) {
+                Image(
+                    bitmap = albumArt.asImageBitmap(),
+                    contentDescription = "Album art",
+                    modifier = Modifier.size(52.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } else if (iconBitmap != null) {
+                Image(
+                    bitmap = iconBitmap,
+                    contentDescription = musicLabel,
+                    modifier = Modifier.size(52.dp)
+                )
             } else {
-                Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
+                Icon(
+                    Icons.Default.MusicNote,
+                    "Music",
+                    tint = textColor,
+                    modifier = Modifier.size(36.dp)
+                )
             }
         }
         Spacer(Modifier.width(8.dp))
@@ -196,9 +214,27 @@ private fun MusicTileContent(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
-            MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
-            MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
+            MusicControlButton(
+                Icons.Default.SkipPrevious,
+                "Previous",
+                textColor,
+                context,
+                enabled = hasAccess
+            )
+            MusicControlButton(
+                Icons.Default.PlayArrow,
+                "Play or pause",
+                textColor,
+                context,
+                enabled = hasAccess
+            )
+            MusicControlButton(
+                Icons.Default.SkipNext,
+                "Next",
+                textColor,
+                context,
+                enabled = hasAccess
+            )
         }
     }
 }
@@ -208,10 +244,14 @@ private fun MusicControlButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
     textColor: Color,
-    context: Context
+    context: Context,
+    enabled: Boolean
 ) {
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier.size(38.dp).border(2.dp, textColor).clickable {
+        modifier = Modifier
+            .size(38.dp)
+            .border(2.dp, textColor.copy(alpha = if (enabled) 1f else 0.45f))
+            .clickable(enabled = enabled) {
             dispatchMediaKey(
                 context,
                 when (icon) {
@@ -223,6 +263,11 @@ private fun MusicControlButton(
         },
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, description, tint = textColor, modifier = Modifier.size(20.dp))
+        Icon(
+            icon,
+            description,
+            tint = textColor.copy(alpha = if (enabled) 1f else 0.45f),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
