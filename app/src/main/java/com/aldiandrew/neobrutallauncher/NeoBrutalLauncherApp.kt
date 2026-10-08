@@ -654,10 +654,11 @@ private fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
-    val homeClockBackground = BrutalColors.Yellow
-    val homeClockText = BrutalColors.Ink
-    val homeMusicBackground = BrutalColors.Cyan
-    val homeTasksBackground = BrutalColors.Cyan
+    val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val homeClockBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Yellow
+    val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
+    val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
+    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
