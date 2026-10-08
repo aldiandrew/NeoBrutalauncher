@@ -3,7 +3,6 @@ package com.aldiandrew.neobrutallauncher
 import java.util.Calendar
 
 object NeoQuotes {
-
     private val quotes = listOf(
         "Raw structure is not a flaw. It is the message.",
         "Make the grid visible. Make the interface honest.",
@@ -16,18 +15,30 @@ object NeoQuotes {
         "Every box is a decision. Make it intentional.",
         "Brutal does not mean chaotic. It means unapologetic.",
         "Expose the structure and the user sees the system.",
-        "Simple shapes become bold when hierarchy is fearless."
+        "Simple shapes become bold when hierarchy is fearless.",
+        "Build less chrome. Show more function.",
+        "A useful interface does not need permission to be loud.",
+        "Good spacing is structure you can feel.",
+        "Make every pixel earn its place.",
+        "Clarity survives even when the surface is rough.",
+        "The grid is a tool, not a cage.",
+        "Design the path. Then remove the noise.",
+        "Small controls can carry big intent.",
+        "A strong interface makes the next action obvious.",
+        "Keep the edges sharp and the purpose sharper.",
+        "Order is not minimalism. Order is control.",
+        "Make the system visible, then make it useful."
     )
+
+    fun pairForRotation(rotation: Int): Pair<String, String> {
+        val offset = Math.floorMod(rotation, quotes.size)
+        return quotes[offset] to quotes[(offset + 1) % quotes.size]
+    }
 
     fun pairForToday(): Pair<String, String> {
         val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-        val first = quotes[day % quotes.size]
-        val second = quotes[(day + 1) % quotes.size]
-        return first to second
+        return pairForRotation(day)
     }
 
-    fun forToday(): String {
-        val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-        return quotes[day % quotes.size]
-    }
+    fun forToday(): String = pairForToday().first
 }
