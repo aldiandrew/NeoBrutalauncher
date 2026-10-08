@@ -1555,7 +1555,7 @@ private fun AppTile(
                                     fontSize = maxTextSize,
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
                                     fontWeight = FontWeight.Black,
-                                    color = if (selected) BrutalColors.Ink else uiOnSurface,
+                                    color = BrutalColors.Ink,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
