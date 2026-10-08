@@ -37,6 +37,7 @@ object NeoBrutalTokens {
         val Meta: androidx.compose.ui.unit.TextUnit = 8.sp
         val Label: androidx.compose.ui.unit.TextUnit = 10.sp
         val Body: androidx.compose.ui.unit.TextUnit = 14.sp
+        val Tile: androidx.compose.ui.unit.TextUnit = 18.sp
         val Title: androidx.compose.ui.unit.TextUnit = 24.sp
         val Hero: androidx.compose.ui.unit.TextUnit = 42.sp
     }
