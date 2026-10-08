@@ -130,6 +130,10 @@ fun NeoBrutalLauncherApp() {
         )
     }
 
+    var selectedChatPackages by remember {
+        mutableStateOf(preferences.chatNotificationPackages())
+    }
+
     val wallpaperPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -212,6 +216,8 @@ fun NeoBrutalLauncherApp() {
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
+                    chatNotificationPackages = selectedChatPackages,
+                    apps = apps,
                     onBack = { settingsOpen = false },
                     onThemeChange = {
                         themePreference = it
@@ -262,6 +268,13 @@ fun NeoBrutalLauncherApp() {
                             Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         )
+                    },
+                    onChatNotificationPackagesChange = { updated ->
+                        val normalized = updated.distinct().take(2)
+                        selectedChatPackages = normalized
+                        preferences.setChatNotificationPackages(normalized)
+                        NeoChatNotificationStore.setSelectedPackages(normalized)
+                        NeoNotificationServiceRegistry.service?.refreshChatNotifications()
                     },
                     onShowQuoteChange = {
                         showQuote = it
@@ -365,6 +378,7 @@ fun NeoBrutalLauncherApp() {
                     } else {
                         LivePage(
                             apps = apps,
+                            selectedChatPackages = selectedChatPackages,
                             onLaunch = repository::launch,
                             onOpenHome = { currentPage = 0 }
                         )
@@ -1792,6 +1806,8 @@ private fun AppTile(
 @Composable
 private fun SettingsScreen(
     appsCount: Int,
+    apps: List<AppInfo>,
+    chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
     use24Hour: Boolean,
     showDate: Boolean,
@@ -1808,6 +1824,7 @@ private fun SettingsScreen(
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
+    onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
