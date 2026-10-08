@@ -417,37 +417,40 @@ private fun LauncherPageHost(
                 .padding(
                     bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 10.dp
                 ),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(3) { index ->
-                Box(
-                    modifier = Modifier
-                        .width(10.dp)
-                        .height(10.dp)
-                        .background(
-                            if (pagerState.currentPage == index) BrutalColors.Orange else Color.Transparent
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = BrutalColors.Orange
-                        )
-                )
+            val navLabels = listOf("HOME", "APPS", "LIVE")
+            val navColors = listOf(BrutalColors.Cyan, BrutalColors.Yellow, BrutalColors.Pink)
+            navLabels.forEachIndexed { index, label ->
+                BrutalPressableBlock(
+                    onClick = { onPageChange(index) },
+                    modifier = Modifier.width(72.dp),
+                    background = if (pagerState.currentPage == index) navColors[index]
+                    else MaterialTheme.colorScheme.surface,
+                    borderWidth = 2.dp,
+                    shadowX = if (pagerState.currentPage == index) 3.dp else 2.dp,
+                    shadowY = if (pagerState.currentPage == index) 3.dp else 2.dp,
+                    borderColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper)
+                        BrutalColors.DarkWhite else null
+                ) {
+                    Text(
+                        text = label,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 1.sp,
+                        color = if (
+                            pagerState.currentPage == index &&
+                            MaterialTheme.colorScheme.background != BrutalColors.DarkPaper
+                        ) BrutalColors.Ink else MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-            Text(
-                text = when (pagerState.currentPage) {
-                    0 -> "HOME"
-                    1 -> "APPS"
-                    else -> "LIVE"
-                },
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-                color = BrutalColors.Orange
-            )
         }
     }
-}
 
 @Composable
 private fun HomeScreen(
@@ -589,34 +592,49 @@ private fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    BrutalBlock(
-                        modifier = Modifier.width(150.dp),
-                        background = BrutalColors.Cyan,
-                        borderWidth = 3.dp,
-                        shadowX = 4.dp,
-                        shadowY = 4.dp
-                    ) {
-                        Text(
-                            text = "NEO / HOME",
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            color = BrutalColors.Ink
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .width(106.dp)
-                            .clickable(onClick = onOpenSettings)
-                    ) {
+                    Box(modifier = Modifier.weight(1f).padding(end = 18.dp)) {
                         BrutalBlock(
+                            modifier = Modifier.fillMaxWidth(),
+                            background = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Cyan,
+                            borderWidth = 4.dp,
+                            shadowX = 6.dp,
+                            shadowY = 6.dp
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "NEO / HOME",
+                                    fontFamily = BrutalTypography.Display,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    letterSpacing = 1.2.sp,
+                                    color = BrutalColors.Ink
+                                )
+                                Text(
+                                    text = "${launchableApps.size} APPS / DAILY DASHBOARD",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.8.sp,
+                                    color = BrutalColors.Ink
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Box(Modifier.size(7.dp).background(BrutalColors.Red))
+                                    Box(Modifier.size(7.dp).background(BrutalColors.Ink))
+                                    Box(Modifier.size(7.dp).background(BrutalColors.Red))
+                                }
+                            }
+                        }
+                        Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = 10.dp, y = 6.dp)) {
+                            BrutalLabel(text = "SYSTEM / READY", background = BrutalColors.Yellow)
+                        }
+                    }
+                    Box(modifier = Modifier.width(104.dp).offset(y = 5.dp)) {
+                        BrutalPressableBlock(
+                            onClick = onOpenSettings,
                             modifier = Modifier.fillMaxWidth(),
                             background = BrutalColors.Pink,
                             borderWidth = 3.dp,
-                            shadowX = 4.dp,
-                            shadowY = 4.dp
+                            shadowX = 5.dp,
+                            shadowY = 5.dp
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -633,7 +651,6 @@ private fun HomeScreen(
                                 Text(
                                     text = "SETTINGS",
                                     fontFamily = BrutalTypography.Display,
-                                    modifier = Modifier,
                                     textAlign = TextAlign.Center,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Normal,
@@ -730,42 +747,55 @@ private fun HomeScreen(
             item(key = "status-row") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    FixedSmallTile(
-                        modifier = Modifier.weight(1f),
-                        background = BrutalColors.Purple
+                    Column(
+                        modifier = Modifier.weight(1.45f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
-                            fontSize = 7.sp,
-                            lineHeight = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.White,
-                            maxLines = 3
-                        )
+                        FixedSmallTile(
+                            modifier = Modifier.fillMaxWidth().aspectRatio(1.18f),
+                            background = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Peach
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                BrutalLabel(text = "MANIFESTO", background = BrutalColors.Yellow)
+                                Text(
+                                    text = "YOUR PHONE
+DOESN'T NEED
+TO LOOK CALM.",
+                                    fontSize = 9.sp,
+                                    lineHeight = 10.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
+                                    maxLines = 3
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(92.dp).clickable { weatherRefreshToken++ }
+                        ) {
+                            NeoWeatherTile(
+                                context = context,
+                                refreshToken = weatherRefreshToken,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
-
-                    Box(
-                        modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
+                    Column(
+                        modifier = Modifier.weight(0.86f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        NeoWeatherTile(
+                        BatteryTile(
                             context = context,
-                            refreshToken = weatherRefreshToken,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxWidth().aspectRatio(0.92f),
+                            background = BrutalColors.Orange
+                        )
+                        NeoNetworkTile(
+                            context = context,
+                            modifier = Modifier.fillMaxWidth().aspectRatio(0.92f)
                         )
                     }
-
-                    BatteryTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Orange
-                    )
-
-                    NeoNetworkTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f)
-                    )
                 }
             }
 
@@ -834,6 +864,8 @@ private fun HomeScreen(
                     notes = noteItems,
                     tasks = taskItems,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
+                    background = homeNotesBackground,
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
                     background = homeNotesBackground,
                     textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
                     onAddNote = { text ->
@@ -1555,15 +1587,15 @@ private fun AppTile(
         }
 
         val threeByOneTextSize = when {
-            app.label.length > 20 -> 15.sp
-            app.label.length > 14 -> 19.sp
-            else -> 23.sp
+            app.label.length > 20 -> 16.sp
+            app.label.length > 14 -> 21.sp
+            else -> 26.sp
         }
 
         val fourByOneTextSize = when {
-            app.label.length > 22 -> 19.sp
-            app.label.length > 15 -> 24.sp
-            else -> 30.sp
+            app.label.length > 22 -> 22.sp
+            app.label.length > 15 -> 27.sp
+            else -> 34.sp
         }
 
         BrutalBlock(
@@ -1838,9 +1870,36 @@ private fun SettingsScreen(
                 )
             }
 
-            BrutalBlock(
-                modifier = Modifier.weight(1f),
-                background = BrutalColors.Cyan,
+            Box(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                BrutalBlock(
+                    modifier = Modifier.fillMaxWidth(),
+                    background = BrutalColors.Cyan,
+                    borderWidth = 4.dp,
+                    shadowX = 6.dp,
+                    shadowY = 6.dp
+                ) {
+                    Column {
+                        Text(
+                            text = "NEO SETTINGS",
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 1.2.sp,
+                            color = BrutalColors.Ink
+                        )
+                        Text(
+                            text = "CONTROL YOUR LAUNCHER",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            color = BrutalColors.Ink
+                        )
+                    }
+                }
+                Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = 6.dp, y = 6.dp)) {
+                    BrutalLabel(text = "DESIGN SYSTEM", background = BrutalColors.Yellow)
+                }
+            }
                 borderWidth = 3.dp,
                 shadowX = 4.dp,
                 shadowY = 4.dp
@@ -2345,17 +2404,35 @@ private fun SettingsScreen(
 
 @Composable
 private fun SettingsSectionTitle(title: String) {
-    Text(
-        text = title,
-        modifier = Modifier.padding(horizontal = 2.dp),
-        fontFamily = BrutalTypography.Display,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        letterSpacing = 1.5.sp,
-        color = MaterialTheme.colorScheme.onBackground
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        BrutalLabel(
+            text = title,
+            background = when (title) {
+                "APPEARANCE" -> BrutalColors.Cyan
+                "PERSONALITY" -> BrutalColors.Pink
+                "CLOCK" -> BrutalColors.Yellow
+                "PERMISSIONS" -> BrutalColors.Orange
+                "WALLPAPER" -> BrutalColors.Mint
+                "APP TILES" -> BrutalColors.Purple
+                "FAVORITES" -> BrutalColors.Lavender
+                "APP LIST" -> BrutalColors.Sky
+                "LAUNCHER" -> BrutalColors.Peach
+                "ABOUT" -> BrutalColors.Yellow
+                else -> BrutalColors.White
+            }
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(3.dp)
+                .background(MaterialTheme.colorScheme.onBackground)
+        )
+    }
 }
-
 @Composable
 private fun SettingsSwitch(
     title: String,
@@ -2407,8 +2484,9 @@ private fun ThemeButton(
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    BrutalBlock(
-        modifier = modifier.clickable(onClick = onClick),
+    BrutalPressableBlock(
+        onClick = onClick,
+        modifier = modifier,
         background = if (selected) background else MaterialTheme.colorScheme.surface,
         borderWidth = if (selected) 4.dp else 2.dp,
         shadowX = if (selected) 4.dp else 3.dp,
@@ -2433,10 +2511,9 @@ fun BrutalActionButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    BrutalBlock(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+    BrutalPressableBlock(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
         background = background,
         borderWidth = 3.dp,
         shadowX = 4.dp,
