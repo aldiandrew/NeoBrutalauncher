@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -141,17 +142,19 @@ fun NeoChatNotificationTile(
     val notifications by NeoChatNotificationStore.state.collectAsState()
     val item = notifications.firstOrNull { it.packageName == packageName }
     val packageManager = context.packageManager
-
-    val appLabel = packageName?.let {
-        runCatching {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(it, 0)).toString()
-        }.getOrNull()
-    } ?: "CHAT"
-
-    val iconBitmap = packageName?.let {
-        runCatching {
-            packageManager.getApplicationIcon(it).toBitmap(72, 72).asImageBitmap()
-        }.getOrNull()
+    val appLabel = remember(packageName) {
+        packageName?.let {
+            runCatching {
+                packageManager.getApplicationLabel(packageManager.getApplicationInfo(it, 0)).toString()
+            }.getOrNull()
+        } ?: "CHAT"
+    }
+    val iconBitmap = remember(packageName) {
+        packageName?.let {
+            runCatching {
+                packageManager.getApplicationIcon(it).toBitmap(72, 72).asImageBitmap()
+            }.getOrNull()
+        }
     }
 
     BrutalBlock(
