@@ -2,6 +2,9 @@ package com.aldiandrew.neobrutallauncher
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -26,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,8 +57,12 @@ fun AppsPage(
 ) {
     BackHandler(onBack = onOpenHome)
 
-    val sortedApps = remember(apps) {
-        apps.sortedBy { it.label.lowercase() }
+    var searchOpen by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val sortedApps = remember(apps, searchQuery) {
+        apps
+            .filter { searchQuery.isBlank() || it.label.contains(searchQuery, ignoreCase = true) }
+            .sortedBy { it.label.lowercase() }
     }
     val listState = rememberLazyListState()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
@@ -78,8 +86,8 @@ fun AppsPage(
 
     val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val uiBackground = if (isDark) BrutalColors.Ink else BrutalColors.Paper
-    val uiSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.White
-    val uiOnSurface = if (isDark) BrutalColors.Ink else BrutalColors.Ink
+    val uiSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.White
+    val uiOnSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
 
     Box(
         modifier = Modifier
@@ -120,9 +128,74 @@ fun AppsPage(
                             color = BrutalColors.Ink
                         )
                     }
-                    BrutalLabel(
-                        text = "%02d ITEMS".format(sortedApps.size),
-                        background = BrutalColors.Yellow
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(7.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BrutalLabel(
+                            text = "%02d ITEMS".format(sortedApps.size),
+                            background = BrutalColors.Yellow
+                        )
+                        BrutalBlock(
+                            modifier = Modifier
+                                .width(34.dp)
+                                .height(34.dp)
+                                .clickable {
+                                    searchOpen = !searchOpen
+                                    if (!searchOpen) searchQuery = ""
+                                },
+                            background = BrutalColors.Pink,
+                            borderWidth = 3.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (searchOpen) Icons.Default.Close else Icons.Default.Search,
+                                    contentDescription = if (searchOpen) "Close app search" else "Search apps",
+                                    tint = BrutalColors.Ink,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (searchOpen) {
+                Spacer(Modifier.height(8.dp))
+                BrutalBlock(
+                    modifier = Modifier.fillMaxWidth(),
+                    background = uiSurface,
+                    borderWidth = 3.dp,
+                    borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                    shadowX = 4.dp,
+                    shadowY = 4.dp
+                ) {
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            color = uiOnSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black
+                        ),
+                        decorationBox = { inner ->
+                            if (searchQuery.isBlank()) {
+                                Text(
+                                    text = "SEARCH APPS…",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = uiOnSurface.copy(alpha = 0.45f)
+                                )
+                            }
+                            inner()
+                        }
                     )
                 }
             }
@@ -180,10 +253,24 @@ fun AppsPage(
                                 BrutalColors.Mint,
                                 BrutalColors.Lavender
                             )
+                            val darkCardPalette = listOf(
+                                BrutalColors.DarkTile,
+                                BrutalColors.Yellow,
+                                BrutalColors.Pink,
+                                BrutalColors.Cyan,
+                                BrutalColors.Orange,
+                                BrutalColors.Purple,
+                                BrutalColors.Lime
+                            )
                             val cardBackground = if (isDark) {
-                                uiSurface
+                                darkCardPalette[index % darkCardPalette.size]
                             } else {
                                 lightCardPalette[index % lightCardPalette.size]
+                            }
+                            val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
+                                BrutalColors.DarkWhite
+                            } else {
+                                BrutalColors.Ink
                             }
 
                             BrutalPressableBlock(
@@ -225,15 +312,8 @@ fun AppsPage(
                                             fontSize = 16.sp,
                                             lineHeight = 18.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = uiOnSurface,
+                                            color = cardTextColor,
                                             maxLines = 2
-                                        )
-                                        Text(
-                                            text = app.packageName,
-                                            fontSize = 9.sp,
-                                            lineHeight = 11.sp,
-                                            color = uiOnSurface.copy(alpha = 0.7f),
-                                            maxLines = 1
                                         )
                                     }
 

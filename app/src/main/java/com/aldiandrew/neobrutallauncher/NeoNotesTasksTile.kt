@@ -63,12 +63,20 @@ fun NeoNotesTasksTile(
         shadowX = 6.dp,
         shadowY = 6.dp
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            NotesTasksColumn(
-                title = "NOTES",
+        Column(modifier = Modifier.fillMaxSize()) {
+            BrutalLabel(
+                text = "NOTES / TASKS",
+                background = BrutalColors.Yellow
+            )
+            Spacer(Modifier.height(5.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                NotesTasksColumn(
+                    title = "NOTES",
                 inputHint = "TYPE NOTE…",
                 items = notes,
                 draft = noteDraft,
@@ -110,6 +118,7 @@ fun NeoNotesTasksTile(
                 onEditItem = onEditTask,
                 onToggleItem = onToggleTask
             )
+            }
         }
     }
 }

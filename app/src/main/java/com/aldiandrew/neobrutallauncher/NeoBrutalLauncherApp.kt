@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -88,6 +89,7 @@ fun NeoBrutalLauncherApp() {
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
+    var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var showDate by remember { mutableStateOf(preferences.showDate()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
     var showTagline by remember { mutableStateOf(preferences.showTagline()) }
@@ -100,7 +102,7 @@ fun NeoBrutalLauncherApp() {
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
     var brutalityLevel by remember { mutableStateOf(preferences.brutalityLevel()) }
-    var clockStyle by remember { mutableStateOf(preferences.clockStyle()) }
+    var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -182,10 +184,12 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 brutalityLevel = brutalityLevel,
+                typographyStyle = typographyStyle,
             ) {
                 SettingsScreen(
                     themePreference = themePreference,
                     use24Hour = use24Hour,
+                    showAmPm = showAmPm,
                     showDate = showDate,
                     homeAppCount = homeAppCount,
                     showTagline = showTagline,
@@ -195,7 +199,7 @@ fun NeoBrutalLauncherApp() {
                     showBattery = showBattery,
                     appTileContentMode = appTileContentMode,
                     brutalityLevel = brutalityLevel,
-                    clockStyle = clockStyle,
+                    typographyStyle = typographyStyle,
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -210,6 +214,10 @@ fun NeoBrutalLauncherApp() {
                     onUse24HourChange = {
                         use24Hour = it
                         preferences.setUse24Hour(it)
+                    },
+                    onShowAmPmChange = {
+                        showAmPm = it
+                        preferences.setShowAmPm(it)
                     },
                     onShowDateChange = {
                         showDate = it
@@ -292,9 +300,9 @@ fun NeoBrutalLauncherApp() {
                         brutalityLevel = it
                         preferences.setBrutalityLevel(it)
                     },
-                    onClockStyleChange = {
-                        clockStyle = it
-                        preferences.setClockStyle(it)
+                    onTypographyStyleChange = {
+                        typographyStyle = it
+                        preferences.setTypographyStyle(it)
                     },
                     onChooseWallpaper = {
                         wallpaperPickerLauncher.launch(arrayOf("image/*"))
@@ -329,6 +337,7 @@ fun NeoBrutalLauncherApp() {
                             favorites = favorites,
                             homeAppCount = homeAppCount,
                             use24Hour = use24Hour,
+                            showAmPm = showAmPm,
                             showDate = showDate,
                             showTagline = showTagline,
                             showAppCount = showAppCount,
@@ -336,7 +345,7 @@ fun NeoBrutalLauncherApp() {
                             showQuote = showQuote,
                             showBattery = showBattery,
                             appTileContentMode = appTileContentMode,
-                            clockStyle = clockStyle,
+                            typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
@@ -377,7 +386,15 @@ fun NeoBrutalLauncherApp() {
                         )
                     } else {
                         LivePage(
+                            apps = apps,
                             selectedChatPackages = selectedChatPackages,
+                            onSelectChatPackage = { packageName ->
+                                val normalized = listOfNotNull(packageName).take(1)
+                                selectedChatPackages = normalized
+                                preferences.setChatNotificationPackages(normalized)
+                                NeoChatNotificationStore.setSelectedPackages(normalized)
+                                NeoNotificationServiceRegistry.service?.refreshChatNotifications()
+                            },
                             onOpenHome = { currentPage = 0 }
                         )
                     }
@@ -467,6 +484,7 @@ private fun HomeScreen(
     favorites: Set<String>,
     homeAppCount: Int,
     use24Hour: Boolean,
+    showAmPm: Boolean,
     showDate: Boolean,
     showTagline: Boolean,
     showAppCount: Boolean,
@@ -474,7 +492,7 @@ private fun HomeScreen(
     showQuote: Boolean,
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
-    clockStyle: ClockStyle,
+    typographyStyle: TypographyStyle,
     wallpaperUri: String?,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
@@ -512,7 +530,11 @@ private fun HomeScreen(
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
-    val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
+    val timePattern = when {
+        use24Hour -> "HH:mm"
+        showAmPm -> "hh:mm a"
+        else -> "hh:mm"
+    }
     val time = remember(timePattern) { SimpleDateFormat(timePattern, Locale.getDefault()) }
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
@@ -609,7 +631,7 @@ private fun HomeScreen(
                         shadowY = 4.dp
                     ) {
                         Text(
-                            text = "NEO / HOME",
+                            text = "// Home",
                             fontFamily = BrutalTypography.Display,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Black,
@@ -667,70 +689,85 @@ private fun HomeScreen(
                     shadowY = 7.dp
                 ) {
                     BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp),
-                        contentAlignment = Alignment.CenterStart
+                        modifier = Modifier.fillMaxSize().padding(13.dp)
                     ) {
+                        val compact = minOf(maxWidth, maxHeight)
+                        val timeSize = when {
+                            compact < 130.dp -> 38.sp
+                            compact < 160.dp -> 46.sp
+                            else -> 56.sp
+                        }
+                        val sideSize = when {
+                            compact < 130.dp -> 7.sp
+                            compact < 160.dp -> 8.5.sp
+                            else -> 10.sp
+                        }
+
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             BrutalLabel(
-                                text = (if (use24Hour) "24H" else "12H") + " / " + clockStyle.label,
+                                text = (if (use24Hour) "24H" else "12H") + " / " + typographyStyle.label,
                                 background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
                             )
-                            Text(
-                                text = time.format(now),
-                                fontSize = when (clockStyle) {
-                                    ClockStyle.HUGE -> 58.sp
-                                    ClockStyle.CONDENSED -> 52.sp
-                                    ClockStyle.MONO -> 50.sp
-                                    ClockStyle.POSTER -> 54.sp
-                                },
-                                lineHeight = when (clockStyle) {
-                                    ClockStyle.HUGE -> 56.sp
-                                    ClockStyle.CONDENSED -> 50.sp
-                                    ClockStyle.MONO -> 48.sp
-                                    ClockStyle.POSTER -> 52.sp
-                                },
-                                fontWeight = FontWeight.Black,
-                                fontFamily = when (clockStyle) {
-                                    ClockStyle.MONO -> BrutalTypography.Mono
-                                    ClockStyle.CONDENSED -> BrutalTypography.Poster
-                                    ClockStyle.HUGE -> BrutalTypography.Poster
-                                    ClockStyle.POSTER -> BrutalTypography.Poster
-                                },
-                                color = homeClockText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip
-                            )
-                            if (showDate) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = longDay.format(now).uppercase(Locale.ENGLISH),
-                                        modifier = Modifier.weight(0.40f),
-                                        fontSize = 10.sp,
-                                        lineHeight = 11.sp,
-                                        fontWeight = FontWeight.Black,
-                                        fontFamily = BrutalTypography.Bricolage,
-                                        color = BrutalColors.Red,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = longDate.format(now).uppercase(Locale.ENGLISH),
-                                        modifier = Modifier.weight(0.60f),
-                                        fontSize = 10.sp,
-                                        lineHeight = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = BrutalTypography.Bricolage,
-                                        color = homeClockText,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = time.format(now),
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = timeSize,
+                                    lineHeight = timeSize,
+                                    fontWeight = FontWeight.Black,
+                                    fontFamily = when (typographyStyle) {
+                                        TypographyStyle.MONO -> BrutalTypography.Mono
+                                        else -> BrutalTypography.Poster
+                                    },
+                                    color = homeClockText,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Clip
+                                )
+
+                                if (showDate) {
+                                    Column(
+                                        modifier = Modifier
+                                            .width(if (compact < 150.dp) 64.dp else 82.dp)
+                                            .padding(start = 10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = longDay.format(now).uppercase(Locale.ENGLISH),
+                                            fontSize = sideSize,
+                                            lineHeight = sideSize + 1.sp,
+                                            fontWeight = FontWeight.Black,
+                                            fontFamily = BrutalTypography.Display,
+                                            color = BrutalColors.Red,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(2.dp)
+                                                .background(homeClockText)
+                                        )
+                                        Text(
+                                            text = longDate.format(now).uppercase(Locale.ENGLISH),
+                                            fontSize = sideSize,
+                                            lineHeight = sideSize + 1.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = BrutalTypography.Display,
+                                            color = homeClockText,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -755,10 +792,10 @@ private fun HomeScreen(
                         Text(
                             text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
                             fontFamily = BrutalTypography.Display,
-                            fontSize = 9.sp,
-                            lineHeight = 10.sp,
+                            fontSize = 7.5.sp,
+                            lineHeight = 8.5.sp,
                             fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.4.sp,
+                            letterSpacing = 0.25.sp,
                             color = BrutalColors.White,
                             maxLines = 3
                         )
@@ -1601,6 +1638,7 @@ private fun SettingsScreen(
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
     use24Hour: Boolean,
+    showAmPm: Boolean,
     showDate: Boolean,
     homeAppCount: Int,
     showTagline: Boolean,
@@ -1610,7 +1648,7 @@ private fun SettingsScreen(
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
     brutalityLevel: BrutalityLevel,
-    clockStyle: ClockStyle,
+    typographyStyle: TypographyStyle,
     wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
@@ -1619,6 +1657,7 @@ private fun SettingsScreen(
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
+    onShowAmPmChange: (Boolean) -> Unit,
     onShowDateChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
     onShowTaglineChange: (Boolean) -> Unit,
@@ -1630,7 +1669,7 @@ private fun SettingsScreen(
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onBrutalityLevelChange: (BrutalityLevel) -> Unit,
-    onClockStyleChange: (ClockStyle) -> Unit,
+    onTypographyStyleChange: (TypographyStyle) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit
@@ -1653,6 +1692,10 @@ private fun SettingsScreen(
             .mapNotNull { it.firstOrNull() }
             .filter { it.packageName != context.packageName }
             .sortedBy { it.label.lowercase() }
+    }
+    var showChatAppPicker by remember { mutableStateOf(false) }
+    val selectedChatApp = chatCandidates.firstOrNull {
+        it.packageName == chatNotificationPackages.firstOrNull()
     }
 
     Column(
@@ -1800,16 +1843,15 @@ private fun SettingsScreen(
                 }
             }
 
-            SettingsSectionTitle("CLOCK")
-
+            SettingsSectionTitle("TYPOGRAPHY")
 
             BrutalSection(
-                title = "TYPOGRAPHY STYLE",
+                title = "TILE TYPOGRAPHY",
                 modifier = Modifier.fillMaxWidth(),
                 background = BrutalColors.Purple
             ) {
                 Text(
-                    text = "Choose the visual personality of the home clock.",
+                    text = "Choose the typography style used across launcher tiles.",
                     fontSize = 11.sp,
                     lineHeight = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -1819,32 +1861,52 @@ private fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    ClockStyle.values().forEach { style ->
+                    TypographyStyle.values().forEach { style ->
                         ThemeButton(
                             label = style.label,
-                            selected = clockStyle == style,
+                            selected = typographyStyle == style,
                             background = when (style) {
-                                ClockStyle.POSTER -> BrutalColors.Yellow
-                                ClockStyle.MONO -> BrutalColors.Cyan
-                                ClockStyle.CONDENSED -> BrutalColors.Lime
-                                ClockStyle.HUGE -> BrutalColors.Pink
+                                TypographyStyle.POSTER -> BrutalColors.Yellow
+                                TypographyStyle.MONO -> BrutalColors.Cyan
+                                TypographyStyle.CONDENSED -> BrutalColors.Lime
+                                TypographyStyle.HUGE -> BrutalColors.Pink
                             },
                             modifier = Modifier.weight(1f),
-                            onClick = { onClockStyleChange(style) }
+                            onClick = { onTypographyStyleChange(style) }
                         )
                     }
                 }
             }
 
+            SettingsSectionTitle("CLOCK")
+
             SettingsSwitch(
                 title = "24-HOUR FORMAT",
-                description = "Use 24-hour time instead of AM/PM.",
+                description = "Use 24-hour time.",
                 checked = use24Hour,
                 background = BrutalColors.Yellow,
                 onCheckedChange = onUse24HourChange
             )
 
-                    SettingsSectionTitle("PERMISSIONS")
+            if (!use24Hour) {
+                SettingsSwitch(
+                    title = "SHOW AM / PM",
+                    description = "Show AM or PM beside the 12-hour clock.",
+                    checked = showAmPm,
+                    background = BrutalColors.Cyan,
+                    onCheckedChange = onShowAmPmChange
+                )
+            }
+
+            SettingsSwitch(
+                title = "SHOW DAY / DATE",
+                description = "Show the current day and date beside the clock.",
+                checked = showDate,
+                background = BrutalColors.Pink,
+                onCheckedChange = onShowDateChange
+            )
+
+            SettingsSectionTitle("PERMISSIONS")
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -1904,7 +1966,7 @@ private fun SettingsScreen(
                 }
             }
 
-            SettingsSectionTitle("CHAT NOTIFICATIONS")
+            SettingsSectionTitle("CHAT")
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -1914,85 +1976,47 @@ private fun SettingsScreen(
                 shadowY = 6.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "LIVE CHAT TILES",
-                            modifier = Modifier.weight(1f),
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = BrutalColors.Ink
-                        )
-                        BrutalLabel(
-                            text = chatNotificationPackages.size.toString() + "/1",
-                            background = BrutalColors.Yellow
-                        )
-                    }
                     Text(
-                        text = "Choose one app. Its latest active notification appears on LIVE; tap the tile to open the app.",
+                        text = "LIVE CHAT TILE",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = BrutalColors.Ink
+                    )
+                    Text(
+                        text = selectedChatApp?.label?.uppercase(Locale.ENGLISH)
+                            ?: "NO APP SELECTED",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "The latest notification from this app appears on LIVE.",
                         fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        lineHeight = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = BrutalColors.Ink
                     )
-                    LazyColumn(
-                        modifier = Modifier.height(250.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(
-                            items = chatCandidates,
-                            key = { it.packageName }
-                        ) { app ->
-                            val selected = app.packageName in chatNotificationPackages
-                            BrutalBlock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val next = when {
-                                            selected -> chatNotificationPackages - app.packageName
-                                            else -> listOf(app.packageName)
-                                        }
-                                        onChatNotificationPackagesChange(next)
-                                    },
-                                background = if (selected) BrutalColors.Yellow else BrutalColors.White,
-                                borderWidth = if (selected) 3.dp else 2.dp,
-                                shadowX = if (selected) 2.dp else 3.dp,
-                                shadowY = if (selected) 2.dp else 3.dp
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = app.label.uppercase(),
-                                        modifier = Modifier.weight(1f),
-                                        fontFamily = BrutalTypography.Display,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        color = BrutalColors.Ink,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = if (selected) "SELECTED" else "SELECT",
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = BrutalColors.Orange
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (chatNotificationPackages.size >= 1) {
-                        Text(
-                            text = "1/1 SELECTED — TAP IT AGAIN TO REMOVE.",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
+                        BrutalActionButton(
+                            title = if (selectedChatApp == null) "CHOOSE APP" else "CHANGE APP",
+                            background = BrutalColors.Yellow,
+                            modifier = Modifier.weight(1f),
+                            onClick = { showChatAppPicker = true }
                         )
+                        if (selectedChatApp != null) {
+                            BrutalActionButton(
+                                title = "CLEAR",
+                                background = BrutalColors.Pink,
+                                modifier = Modifier.weight(0.7f),
+                                onClick = { onChatNotificationPackagesChange(emptyList()) }
+                            )
+                        }
                     }
                 }
             }
@@ -2243,6 +2267,57 @@ private fun SettingsScreen(
             Spacer(Modifier.height(12.dp))
         }
     }
+
+    if (showChatAppPicker) {
+        AlertDialog(
+            onDismissRequest = { showChatAppPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE CHAT APP",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.height(360.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(
+                        items = chatCandidates,
+                        key = { it.packageName + "/" + it.activityName }
+                    ) { app ->
+                        BrutalBlock(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onChatNotificationPackagesChange(listOf(app.packageName))
+                                    showChatAppPicker = false
+                                },
+                            background = if (
+                                app.packageName == chatNotificationPackages.firstOrNull()
+                            ) BrutalColors.Yellow else MaterialTheme.colorScheme.surface,
+                            borderWidth = 3.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Text(
+                                text = app.label.uppercase(Locale.ENGLISH),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (
+                                    app.packageName == chatNotificationPackages.firstOrNull()
+                                ) BrutalColors.Ink else uiOnSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
 }
 
 @Composable
@@ -2354,4 +2429,3 @@ fun BrutalActionButton(
             letterSpacing = 0.5.sp
         )
     }
-}

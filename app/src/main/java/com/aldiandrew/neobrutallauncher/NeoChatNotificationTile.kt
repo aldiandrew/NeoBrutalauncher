@@ -134,7 +134,8 @@ fun NeoChatNotificationTile(
     packageName: String?,
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    onChooseApp: () -> Unit = {}
 ) {
     val notifications by NeoChatNotificationStore.state.collectAsState()
     val item = notifications.firstOrNull { it.packageName == packageName }
@@ -159,7 +160,7 @@ fun NeoChatNotificationTile(
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
                 }
-            }
+            } ?: onChooseApp()
         },
         background = background,
         borderWidth = 3.dp,

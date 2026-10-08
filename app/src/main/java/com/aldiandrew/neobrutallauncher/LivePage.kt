@@ -16,10 +16,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,13 +37,23 @@ import java.util.Locale
 
 @Composable
 fun LivePage(
+    apps: List<AppInfo>,
     selectedChatPackages: List<String>,
+    onSelectChatPackage: (String) -> Unit,
     onOpenHome: () -> Unit
 ) {
     BackHandler(onBack = onOpenHome)
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
+    var showChatAppPicker by remember { mutableStateOf(false) }
+    val chatCandidates = remember(apps) {
+        apps.groupBy { it.packageName }
+            .values
+            .mapNotNull { it.firstOrNull() }
+            .filter { it.packageName != context.packageName }
+            .sortedBy { it.label.lowercase() }
+    }
     val now = rememberMinuteClock()
     val quoteRotation = rememberLiveTileData(
         tileId = "live-quotes",
@@ -102,10 +118,10 @@ fun LivePage(
         }
 
         item {
-            NeoMusicTile(
+            NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                modifier = Modifier.fillMaxWidth().height(224.dp),
+                background = if (isDark) BrutalColors.Purple else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
@@ -116,15 +132,16 @@ fun LivePage(
                 packageName = selectedChatPackages.firstOrNull(),
                 modifier = Modifier.fillMaxWidth().height(126.dp),
                 background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
-                textColor = BrutalColors.Ink
+                textColor = BrutalColors.Ink,
+                onChooseApp = { showChatAppPicker = true }
             )
         }
 
         item {
-            NeoCalendarTile(
+            NeoMusicTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = if (isDark) BrutalColors.Purple else BrutalColors.Cyan,
+                modifier = Modifier.fillMaxWidth().height(126.dp),
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
@@ -188,5 +205,67 @@ fun LivePage(
                 paletteIndex = quoteRotation + 1
             )
         }
+    }
+
+    if (showChatAppPicker) {
+        AlertDialog(
+            onDismissRequest = { showChatAppPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE CHAT APP",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "SELECT THE APP USED BY THE LIVE CHAT TILE.",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    if (chatCandidates.isEmpty()) {
+                        Text(
+                            text = "NO LAUNCHABLE APPS",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.height(360.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(
+                                items = chatCandidates,
+                                key = { it.packageName + "/" + it.activityName }
+                            ) { app ->
+                                BrutalBlock(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onSelectChatPackage(app.packageName)
+                                            showChatAppPicker = false
+                                        },
+                                    background = BrutalColors.Yellow,
+                                    borderWidth = 3.dp,
+                                    shadowX = 3.dp,
+                                    shadowY = 3.dp
+                                ) {
+                                    Text(
+                                        text = app.label.uppercase(Locale.ENGLISH),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = BrutalColors.Ink,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
     }
 }
