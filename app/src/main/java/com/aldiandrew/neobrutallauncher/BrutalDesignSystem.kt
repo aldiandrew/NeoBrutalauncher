@@ -142,6 +142,8 @@ fun NeoTileDecoration(
     accent: Color,
     textColor: Color,
     modifier: Modifier = Modifier,
+    labelAlignment: Alignment = Alignment.TopStart,
+    showBottomLine: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier) {
@@ -149,7 +151,7 @@ fun NeoTileDecoration(
 
         BrutalLabel(
             text = label,
-            modifier = Modifier.align(Alignment.TopStart),
+            modifier = Modifier.align(labelAlignment),
             background = accent
         )
 
@@ -168,14 +170,16 @@ fun NeoTileDecoration(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(bottom = 2.dp)
-                .width(42.dp)
-                .height(2.dp)
-                .background(textColor)
-        )
+        if (showBottomLine) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 2.dp)
+                    .width(42.dp)
+                    .height(2.dp)
+                    .background(textColor)
+            )
+        }
 
         Text(
             text = "///",
