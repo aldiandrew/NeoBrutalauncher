@@ -1,7 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -62,12 +61,10 @@ fun NeoHomeReturnMotion(
         scale.snapTo(0.985f)
         alpha.snapTo(0.96f)
 
-        launch {
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 150)
-            )
-        }
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 150)
+        )
         alpha.animateTo(
             targetValue = 1f,
             animationSpec = tween(durationMillis = 130)
