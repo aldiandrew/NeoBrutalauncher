@@ -66,7 +66,7 @@ fun LivePage(
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
-    val accentSurface = if (isDark) BrutalColors.Pink else BrutalColors.Yellow
+    val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
 
     val dateText = SimpleDateFormat(
