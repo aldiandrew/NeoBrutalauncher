@@ -88,6 +88,7 @@ fun NeoWeatherTile(
     }
 
     val currentWeather = weather
+    val updatedTimeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val icon = when (currentWeather?.weatherCode) {
         0 -> Icons.Default.WbSunny
         1, 2, 3, 45, 48 -> Icons.Default.Cloud
@@ -110,7 +111,7 @@ fun NeoWeatherTile(
 
             if (currentWeather != null) {
                 val updatedText = lastUpdatedMillis?.let {
-                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
+                    updatedTimeFormatter.format(Date(it))
                 } ?: "--:--"
 
                 when {
