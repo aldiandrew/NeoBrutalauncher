@@ -36,6 +36,14 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_24_HOUR, value).apply()
     }
 
+    fun showAmPm(): Boolean {
+        return prefs.getBoolean(KEY_SHOW_AM_PM, true)
+    }
+
+    fun setShowAmPm(value: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_AM_PM, value).apply()
+    }
+
     fun showDate(): Boolean {
         return prefs.getBoolean(KEY_DATE, true)
     }
@@ -240,16 +248,16 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_BRUTALITY_LEVEL, value.name).apply()
     }
 
-    fun clockStyle(): ClockStyle {
+    fun typographyStyle(): TypographyStyle {
         return runCatching {
-            ClockStyle.valueOf(
-                prefs.getString(KEY_CLOCK_STYLE, ClockStyle.POSTER.name)
-                    ?: ClockStyle.POSTER.name
+            TypographyStyle.valueOf(
+                prefs.getString(KEY_CLOCK_STYLE, TypographyStyle.POSTER.name)
+                    ?: TypographyStyle.POSTER.name
             )
-        }.getOrDefault(ClockStyle.POSTER)
+        }.getOrDefault(TypographyStyle.POSTER)
     }
 
-    fun setClockStyle(value: ClockStyle) {
+    fun setTypographyStyle(value: TypographyStyle) {
         prefs.edit().putString(KEY_CLOCK_STYLE, value.name).apply()
     }
 
@@ -385,6 +393,7 @@ class LauncherPreferences(context: Context) {
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
+        private const val KEY_SHOW_AM_PM = "show_am_pm"
         private const val KEY_DATE = "show_date"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
         private const val KEY_TAGLINE = "show_tagline"
