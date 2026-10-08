@@ -36,6 +36,7 @@ object NeoMusicSessionStore {
 class NeoMusicNotificationListenerService : NotificationListenerService() {
     private lateinit var sessionManager: MediaSessionManager
     private var currentController: MediaController? = null
+    private val preferences by lazy { LauncherPreferences(applicationContext) }
 
     private val sessionListener =
         MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
@@ -126,6 +127,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         }.getOrNull() ?: return
 
         val label = packageManager.getApplicationLabel(appInfo).toString()
+        preferences.setLastMusicPackage(controller.packageName)
         val metadata = controller.metadata
         val playbackState = controller.playbackState
         val positionUpdatedAtMs = System.currentTimeMillis()
