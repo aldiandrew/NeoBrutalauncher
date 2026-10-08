@@ -97,6 +97,7 @@ fun NeoBrutalLauncherApp() {
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
     var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
+    var tileEditMode by remember { mutableStateOf(false) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
@@ -802,8 +803,9 @@ private fun HomeScreen(
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
-                        onTileLongPress = { selectedTile = it },
-                        editMode = selectedTile != null,
+                        onTileLongPress = { tileEditMode = true },
+                        onTileEdit = { selectedTile = it },
+                        editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
                     )
@@ -987,7 +989,10 @@ private fun HomeScreen(
         val locked = tile.id == lastId
 
         androidx.compose.material3.AlertDialog(
-            onDismissRequest = { selectedTile = null },
+            onDismissRequest = {
+                selectedTile = null
+                tileEditMode = false
+            },
             title = { Text(text = tile.label + " / TILE", fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1010,6 +1015,7 @@ private fun HomeScreen(
                                 onClick = {
                                     onTileSizeChange(tile.id, option)
                                     selectedTile = null
+                                    tileEditMode = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -1040,6 +1046,7 @@ private fun HomeScreen(
                                     onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
                                 }
                                 selectedTile = null
+                                tileEditMode = false
                             }
                         ) {
                             Text(
@@ -1050,7 +1057,12 @@ private fun HomeScreen(
                         }
                     }
 
-                    androidx.compose.material3.TextButton(onClick = { selectedTile = null }) {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            selectedTile = null
+                            tileEditMode = false
+                        }
+                    ) {
                         Text(text = "CLOSE", fontWeight = FontWeight.Black)
                     }
                 }
