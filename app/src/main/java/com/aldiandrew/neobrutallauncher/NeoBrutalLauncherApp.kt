@@ -1983,8 +1983,8 @@ private fun ThemeButton(
         modifier = modifier,
         background = if (selected) background else MaterialTheme.colorScheme.surface,
         borderWidth = if (selected) NeoBrutalTokens.Border.Strong else NeoBrutalTokens.Border.Secondary,
-        shadowX = NeoBrutalTokens.Shadow.Small,
-        shadowY = NeoBrutalTokens.Shadow.Small,
+        shadowX = NeoBrutalTokens.Shadow.Medium,
+        shadowY = NeoBrutalTokens.Shadow.Medium,
         onClick = onClick
     ) {
         Text(
@@ -2010,8 +2010,8 @@ fun BrutalActionButton(
         modifier = modifier.fillMaxWidth(),
         background = background,
         borderWidth = NeoBrutalTokens.Border.Primary,
-        shadowX = NeoBrutalTokens.Shadow.Small,
-        shadowY = NeoBrutalTokens.Shadow.Small,
+        shadowX = NeoBrutalTokens.Shadow.Medium,
+        shadowY = NeoBrutalTokens.Shadow.Medium,
         onClick = onClick
     ) {
         Text(
