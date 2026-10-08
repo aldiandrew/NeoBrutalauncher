@@ -62,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -1502,6 +1503,8 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.78f, 78.dp)
         }
 
+        val appTileTextColor = if (LocalNeoThemeIsDark.current) BrutalColors.DarkWhite else BrutalColors.Ink
+
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
             NeoTileSize.HORIZONTAL -> 15.sp
@@ -1553,7 +1556,7 @@ private fun AppTile(
                                 fontSize = maxTextSize,
                                 lineHeight = (maxTextSize.value * 1.02f).sp,
                                 fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink,
+                                color = appTileTextColor,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1583,7 +1586,7 @@ private fun AppTile(
                                     fontSize = maxTextSize,
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = appTileTextColor,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -1609,7 +1612,7 @@ private fun AppTile(
                                     fontSize = maxTextSize,
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = appTileTextColor,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -2207,7 +2210,9 @@ private fun ThemeButton(
             fontFamily = BrutalTypography.Display,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
-            color = if (selected) BrutalColors.Ink else MaterialTheme.colorScheme.onSurface
+            color = if (selected) {
+                if (background.luminance() < 0.45f) BrutalColors.White else BrutalColors.Ink
+            } else MaterialTheme.colorScheme.onSurface
         )
     }
 }
