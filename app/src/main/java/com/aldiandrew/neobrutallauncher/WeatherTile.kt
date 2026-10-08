@@ -231,8 +231,8 @@ fun NeoWeatherTile(
                                 )
                                 Spacer(Modifier.height(5.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    WeatherMetric("HUMIDITY", "${currentWeather!!.humidityPercent}%")
-                                    WeatherMetric("WIND", "${currentWeather!!.windKph.toInt()} KM/H")
+                                    WeatherMetric("HUMIDITY", "${currentWeather!!.humidityPercent}%", tileText)
+                                    WeatherMetric("WIND", "${currentWeather!!.windKph.toInt()} KM/H", tileText)
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Text(
@@ -293,7 +293,8 @@ fun NeoWeatherTile(
 @Composable
 private fun WeatherMetric(
     label: String,
-    value: String
+    value: String,
+    textColor: androidx.compose.ui.graphics.Color
 ) {
     Column {
         Text(
@@ -301,7 +302,7 @@ private fun WeatherMetric(
             fontSize = 9.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.5.sp,
-            color = tileText.copy(alpha = 0.75f)
+            color = textColor.copy(alpha = 0.75f)
         )
         Text(
             text = value,
