@@ -93,7 +93,6 @@ fun NeoBrutalLauncherApp() {
     var settingsOpen by remember { mutableStateOf(false) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
-    var themeProfile by remember { mutableStateOf(preferences.themeProfile()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
     var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
@@ -104,10 +103,8 @@ fun NeoBrutalLauncherApp() {
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
-    var iconThemeStyle by remember { mutableStateOf(preferences.iconThemeStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
-    var animationStyle by remember { mutableStateOf(preferences.animationStyle()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var launchApp by remember { mutableStateOf<AppInfo?>(null) }
@@ -247,7 +244,6 @@ fun NeoBrutalLauncherApp() {
     }
 
     val motionConfig = NeoMotionConfig(
-        animationStyle = animationStyle,
         smoothness = motionSmoothness,
         reduceMotion = reduceMotion
     )
@@ -266,26 +262,21 @@ fun NeoBrutalLauncherApp() {
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
-                themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
                 CompositionLocalProvider(
                     LocalNeoMotionConfig provides motionConfig,
-                    LocalIconThemeStyle provides iconThemeStyle
                 ) {
                     SettingsScreen(
                     themePreference = themePreference,
-                    themeProfile = themeProfile,
-                    use24Hour = use24Hour,
+                        use24Hour = use24Hour,
                     showAmPm = showAmPm,
                     homeAppCount = homeAppCount,
                     showWeather = showWeather,
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
-                    iconThemeStyle = iconThemeStyle,
                     customQuotes = customQuotes,
-                    animationStyle = animationStyle,
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
@@ -298,10 +289,6 @@ fun NeoBrutalLauncherApp() {
                     onThemeChange = {
                         themePreference = it
                         preferences.setTheme(it)
-                    },
-                    onThemeProfileChange = {
-                        themeProfile = it
-                        preferences.setThemeProfile(it)
                     },
                     onUse24HourChange = {
                         use24Hour = it
@@ -377,17 +364,9 @@ fun NeoBrutalLauncherApp() {
                         preferences.setIconPackPackage(it)
                         refreshApps()
                     },
-                    onIconThemeStyleChange = {
-                        iconThemeStyle = it
-                        preferences.setIconThemeStyle(it)
-                    },
                     onCustomQuotesChange = {
                         customQuotes = it
                         preferences.setCustomQuotes(it)
-                    },
-                    onAnimationStyleChange = {
-                        animationStyle = it
-                        preferences.setAnimationStyle(it)
                     },
                     onMotionSmoothnessChange = {
                         motionSmoothness = it
@@ -422,12 +401,10 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
-                themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
                 CompositionLocalProvider(
                     LocalNeoMotionConfig provides motionConfig,
-                    LocalIconThemeStyle provides iconThemeStyle
                 ) {
                     LauncherPageHost(
                         currentPage = currentPage,
@@ -586,13 +563,11 @@ private fun LauncherPageHost(
                         .width(10.dp)
                         .height(10.dp)
                         .background(
-                            if (pagerState.currentPage == index) LocalNeoThemePalette.current.accent(
-                                pagerState.currentPage == 2
-                            ) else Color.Transparent
+                            if (pagerState.currentPage == index) BrutalColors.Orange else Color.Transparent
                         )
                         .border(
                             width = 2.dp,
-                            color = LocalNeoThemePalette.current.accent(pagerState.currentPage == 2)
+                            color = BrutalColors.Orange
                         )
                 )
             }
@@ -605,7 +580,7 @@ private fun LauncherPageHost(
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
-                color = LocalNeoThemePalette.current.accent(pagerState.currentPage == 2)
+                color = BrutalColors.Orange
             )
         }
     }
@@ -638,11 +613,10 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = LocalNeoThemeIsDark.current
-    val themePalette = LocalNeoThemePalette.current
-    val homeClockBackground = themePalette.accent(isDarkTheme)
-    val homeClockText = themePalette.onAccent(isDarkTheme)
-    val homeMusicBackground = themePalette.secondary(isDarkTheme)
-    val homeNotesBackground = themePalette.tilePalette(isDarkTheme).getOrElse(1) { themePalette.surface(isDarkTheme) }
+    val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
+    val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
+    val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
+    val homeNotesBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -668,13 +642,6 @@ private fun HomeScreen(
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
 
-    val launchCounts = remember(apps) { preferences.appLaunchCounts() }
-    val rankedApps = apps.sortedWith(
-        compareByDescending<AppInfo> { launchCounts[it.packageName + "/" + it.activityName] ?: 0 }
-            .thenByDescending { favorites.contains(it.packageName + "/" + it.activityName) }
-            .thenBy { it.label.lowercase() }
-    )
-
     val appKeys = apps.map { it.packageName + "/" + it.activityName }
     val storedHomeOrder = remember(appKeys) { preferences.homeAppOrder() }
     var stableHomeOrder by remember(appKeys, storedHomeOrder) {
@@ -686,7 +653,7 @@ private fun HomeScreen(
                 if (existing.isNotEmpty()) {
                     existing + missing
                 } else {
-                    rankedApps.map { it.packageName + "/" + it.activityName }
+                    appKeys
                 }
             }
         )
@@ -723,7 +690,7 @@ private fun HomeScreen(
         )
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
-    val palette = themePalette.tilePalette(isDarkTheme)
+    val palette = remember { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
@@ -1170,7 +1137,7 @@ private fun HomeScreen(
         }
         val locked = tile.id == lastId
 
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = {
                 selectedTile = null
                 tileEditMode = false
@@ -1184,7 +1151,7 @@ private fun HomeScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = if (locked) {
                             "FIXED 4x1 / LAST HOME APP"
@@ -1193,6 +1160,7 @@ private fun HomeScreen(
                         },
                         fontWeight = FontWeight.Black
                     )
+
                     if (!locked) {
                         listOf(
                             NeoTileSize.SMALL,
@@ -1217,10 +1185,7 @@ private fun HomeScreen(
                             }
                         }
                     }
-                }
-            },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
                     if (!locked && homeAppCount > 2) {
                         androidx.compose.material3.TextButton(
                             onClick = {
@@ -1232,14 +1197,16 @@ private fun HomeScreen(
                                     val updatedExcluded = excludedHomeApps + key
                                     excludedHomeApps = updatedExcluded
                                     preferences.setExcludedHomeApps(updatedExcluded)
-                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
                                 }
                                 selectedTile = null
                                 tileEditMode = false
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = "REMOVE FROM HOME",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Start,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Orange
                             )
@@ -1250,22 +1217,26 @@ private fun HomeScreen(
                         onClick = {
                             selectedTile = null
                             tileEditMode = true
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = "MOVE TILE",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start,
                             fontWeight = FontWeight.Black
                         )
                     }
-
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            selectedTile = null
-                            tileEditMode = false
-                        }
-                    ) {
-                        Text(text = "DONE", fontWeight = FontWeight.Black)
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        selectedTile = null
+                        tileEditMode = false
                     }
+                ) {
+                    Text("DONE", fontWeight = FontWeight.Black)
                 }
             }
         )
@@ -1340,14 +1311,12 @@ private fun NeoAddAppTile(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    NeoAppIcon(
-                        app = app,
-                        size = 48.dp,
-                        style = iconThemeStyle
+                    Image(
+                        bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                        contentDescription = app.label,
+                        modifier = Modifier.size(48.dp)
                     )
-                    if (iconThemeStyle.showsIcon()) {
-                        Spacer(Modifier.height(6.dp))
-                    }
+                    Spacer(Modifier.height(6.dp))
                     Text(
                         text = app.label.uppercase(),
                         modifier = Modifier.fillMaxWidth(),
@@ -1492,10 +1461,6 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val iconThemeStyle = LocalIconThemeStyle.current
-        val effectiveContentMode =
-            if (iconThemeStyle == IconThemeStyle.TEXT_ONLY) TileContentMode.TEXT else contentMode
-
         val iconSize = when (tileSize) {
             NeoTileSize.SMALL -> 28.dp
             NeoTileSize.HORIZONTAL -> 30.dp
@@ -1520,14 +1485,14 @@ private fun AppTile(
             shadowY = 5.dp
         ) {
             Box(Modifier.fillMaxSize()) {
-                when (effectiveContentMode) {
+                when (contentMode) {
                     TileContentMode.ICON -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            NeoAppIcon(
-                                app = app,
-                                size = iconSize,
-                                style = iconThemeStyle
-                            )
+                            Image(
+                                        bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
                         }
                     }
 
@@ -1572,11 +1537,11 @@ private fun AppTile(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                NeoAppIcon(
-                                    app = app,
-                                    size = iconSize,
-                                    style = iconThemeStyle
-                                )
+                                Image(
+                                        bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
                                 Spacer(Modifier.height(3.dp))
                                 Text(
                                     text = app.label.uppercase(),
@@ -1599,11 +1564,11 @@ private fun AppTile(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                NeoAppIcon(
-                                    app = app,
-                                    size = iconSize,
-                                    style = iconThemeStyle
-                                )
+                                Image(
+                                        bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
                                 Text(
                                     text = app.label.uppercase(),
                                     modifier = Modifier.weight(1f),
@@ -1630,7 +1595,6 @@ private fun SettingsScreen(
     apps: List<AppInfo>,
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
-    themeProfile: NeoThemeProfile,
     use24Hour: Boolean,
     showAmPm: Boolean,
     homeAppCount: Int,
@@ -1638,8 +1602,6 @@ private fun SettingsScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
-    iconThemeStyle: IconThemeStyle,
-    animationStyle: AnimationStyle,
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
@@ -1650,7 +1612,6 @@ private fun SettingsScreen(
     onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
-    onThemeProfileChange: (NeoThemeProfile) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
     onShowAmPmChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
@@ -1660,9 +1621,7 @@ private fun SettingsScreen(
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
-    onIconThemeStyleChange: (IconThemeStyle) -> Unit,
     onCustomQuotesChange: (List<String>) -> Unit,
-    onAnimationStyleChange: (AnimationStyle) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
@@ -1677,7 +1636,6 @@ private fun SettingsScreen(
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
     val isDark = LocalNeoThemeIsDark.current
-    val themePalette = LocalNeoThemePalette.current
     val darkTileBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Ink
     var editedQuotes by remember(customQuotes) { mutableStateOf(customQuotes) }
     val iconPacks = remember { IconPackManager(context).installedIconPacks() }
@@ -1699,8 +1657,20 @@ private fun SettingsScreen(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = uiOnSurface) }
-            BrutalBlock(modifier = Modifier.weight(1f), background = themePalette.accent(isDark), borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
-                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = 26.sp, fontWeight = FontWeight.Normal, color = themePalette.onAccent(isDark))
+            BrutalBlock(
+                modifier = Modifier.weight(1f),
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                borderWidth = 4.dp,
+                shadowX = 6.dp,
+                shadowY = 6.dp
+            ) {
+                Text(
+                    "SETTINGS",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                )
             }
         }
 
@@ -1714,30 +1684,6 @@ private fun SettingsScreen(
                     ThemeButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
                     ThemeButton("DARK", themePreference == ThemePreference.DARK, BrutalColors.Pink, Modifier.weight(1f)) { onThemeChange(ThemePreference.DARK) }
                 }
-                Text("COLOR THEME", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Choose the launcher color identity independently from light/dark mode.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    NeoThemeProfile.values().toList().chunked(3).forEach { rowProfiles ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            rowProfiles.forEach { profile ->
-                                val profilePalette = NeoThemePalettes.forProfile(profile)
-                                ThemeButton(
-                                    label = profile.label,
-                                    selected = themeProfile == profile,
-                                    background = profilePalette.lightAccent,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { onThemeProfileChange(profile) }
-                                )
-                            }
-                            repeat(3 - rowProfiles.size) {
-                                Spacer(Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         SettingsSectionTitle("CLOCK")
         SettingsSwitch("24-HOUR TIME", "Use 24-hour time on Home.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("AM / PM", "Show the AM/PM marker with 12-hour time.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
@@ -1759,30 +1705,22 @@ private fun SettingsScreen(
             shadowY = 5.dp
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("ANIMATION STYLE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
                 Text(
-                    "Controls page motion and app launch motion. Smooth is the restrained default.",
+                    "SMOOTHNESS",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Normal
+                )
+                Text(
+                    "Controls how quickly launcher movement settles. The same launcher motion is used for every selection.",
                     fontSize = 10.sp,
                     lineHeight = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    AnimationStyle.values().forEach { style ->
-                        ThemeButton(
-                            label = style.label,
-                            selected = animationStyle == style,
-                            background = when (style) {
-                                AnimationStyle.SMOOTH -> BrutalColors.Cyan
-                                AnimationStyle.TAP_FLIP -> BrutalColors.Pink
-                                AnimationStyle.CUBE_3D -> BrutalColors.Purple
-                            },
-                            modifier = Modifier.weight(1f),
-                            onClick = { onAnimationStyleChange(style) }
-                        )
-                    }
-                }
-                Text("SMOOTHNESS", fontFamily = BrutalTypography.Display, fontSize = 15.sp, fontWeight = FontWeight.Normal)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     MotionSmoothness.values().forEach { smoothness ->
                         ThemeButton(
                             label = smoothness.label,
@@ -1802,8 +1740,7 @@ private fun SettingsScreen(
             BrutalColors.Cyan,
             onReduceMotionChange
         )
-
-        SettingsSectionTitle("HOME CONTENT")
+SettingsSectionTitle("HOME CONTENT")
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
         if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
 
@@ -1839,7 +1776,7 @@ private fun SettingsScreen(
                     )
                 } else {
                     editedQuotes.forEachIndexed { index, quote ->
-                        val quotePalette = themePalette.tilePalette(isDark)
+                        val quotePalette = BrutalColors.appPalette(index)
                         BrutalBlock(
                             Modifier.fillMaxWidth(),
                             background = quotePalette[index % quotePalette.size],
@@ -1914,10 +1851,10 @@ private fun SettingsScreen(
                     ThemeButton(
                         label = "ADD QUOTE",
                         selected = true,
-                        background = themePalette.accent(isDark),
+                        background = BrutalColors.Cyan,
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            if (editedQuotes.size < 100) {
+                            if (editedQuotes.size < 5) {
                                 editedQuotes = editedQuotes + ""
                             }
                         }
@@ -1957,61 +1894,6 @@ private fun SettingsScreen(
                 }
             }
         }
-
-        SettingsSectionTitle("ICON STYLE")
-        BrutalBlock(
-            Modifier.fillMaxWidth(),
-            background = uiSurface,
-            borderWidth = 3.dp,
-            shadowX = 5.dp,
-            shadowY = 5.dp
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text(
-                    "APP ICON STYLE",
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = uiOnSurface
-                )
-                Text(
-                    "Controls how app icons are rendered across Home and Apps.",
-                    fontSize = 10.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = uiOnSurface.copy(alpha = .75f)
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    IconThemeStyle.values().toList().chunked(3).forEach { rowStyles ->
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            rowStyles.forEach { style ->
-                                ThemeButton(
-                                    label = style.label,
-                                    selected = iconThemeStyle == style,
-                                    background = when (style) {
-                                        IconThemeStyle.ORIGINAL -> BrutalColors.Cyan
-                                        IconThemeStyle.MONOCHROME -> BrutalColors.Ink
-                                        IconThemeStyle.ACCENT_TINTED -> LocalNeoThemePalette.current.accent(LocalNeoThemeIsDark.current)
-                                        IconThemeStyle.TEXT_ONLY -> BrutalColors.Yellow
-                                        IconThemeStyle.CIRCLE -> BrutalColors.Pink
-                                        IconThemeStyle.ROUNDED_SQUARE -> BrutalColors.Lime
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { onIconThemeStyleChange(style) }
-                                )
-                            }
-                            repeat(3 - rowStyles.size) {
-                                Spacer(Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         SettingsSectionTitle("ICON PACK")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
