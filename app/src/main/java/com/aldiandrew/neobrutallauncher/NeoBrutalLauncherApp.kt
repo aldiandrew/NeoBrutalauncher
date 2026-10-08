@@ -88,6 +88,7 @@ fun NeoBrutalLauncherApp() {
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
+    var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var showDate by remember { mutableStateOf(preferences.showDate()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
     var showTagline by remember { mutableStateOf(preferences.showTagline()) }
@@ -100,7 +101,7 @@ fun NeoBrutalLauncherApp() {
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
     var brutalityLevel by remember { mutableStateOf(preferences.brutalityLevel()) }
-    var clockStyle by remember { mutableStateOf(preferences.clockStyle()) }
+    var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -182,10 +183,12 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 brutalityLevel = brutalityLevel,
+                typographyStyle = typographyStyle,
             ) {
                 SettingsScreen(
                     themePreference = themePreference,
                     use24Hour = use24Hour,
+                    showAmPm = showAmPm,
                     showDate = showDate,
                     homeAppCount = homeAppCount,
                     showTagline = showTagline,
@@ -210,6 +213,10 @@ fun NeoBrutalLauncherApp() {
                     onUse24HourChange = {
                         use24Hour = it
                         preferences.setUse24Hour(it)
+                    },
+                    onShowAmPmChange = {
+                        showAmPm = it
+                        preferences.setShowAmPm(it)
                     },
                     onShowDateChange = {
                         showDate = it
@@ -292,9 +299,9 @@ fun NeoBrutalLauncherApp() {
                         brutalityLevel = it
                         preferences.setBrutalityLevel(it)
                     },
-                    onClockStyleChange = {
-                        clockStyle = it
-                        preferences.setClockStyle(it)
+                    onTypographyStyleChange = {
+                        typographyStyle = it
+                        preferences.setTypographyStyle(it)
                     },
                     onChooseWallpaper = {
                         wallpaperPickerLauncher.launch(arrayOf("image/*"))
@@ -329,6 +336,7 @@ fun NeoBrutalLauncherApp() {
                             favorites = favorites,
                             homeAppCount = homeAppCount,
                             use24Hour = use24Hour,
+                            showAmPm = showAmPm,
                             showDate = showDate,
                             showTagline = showTagline,
                             showAppCount = showAppCount,
@@ -377,7 +385,15 @@ fun NeoBrutalLauncherApp() {
                         )
                     } else {
                         LivePage(
+                            apps = apps,
                             selectedChatPackages = selectedChatPackages,
+                            onSelectChatPackage = { packageName ->
+                                val normalized = listOfNotNull(packageName).take(1)
+                                selectedChatPackages = normalized
+                                preferences.setChatNotificationPackages(normalized)
+                                NeoChatNotificationStore.setSelectedPackages(normalized)
+                                NeoNotificationServiceRegistry.service?.refreshChatNotifications()
+                            },
                             onOpenHome = { currentPage = 0 }
                         )
                     }
@@ -467,6 +483,7 @@ private fun HomeScreen(
     favorites: Set<String>,
     homeAppCount: Int,
     use24Hour: Boolean,
+    showAmPm: Boolean,
     showDate: Boolean,
     showTagline: Boolean,
     showAppCount: Boolean,
@@ -474,7 +491,7 @@ private fun HomeScreen(
     showQuote: Boolean,
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
-    clockStyle: ClockStyle,
+    typographyStyle: TypographyStyle,
     wallpaperUri: String?,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
@@ -512,7 +529,11 @@ private fun HomeScreen(
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
-    val timePattern = if (use24Hour) "HH:mm" else "hh:mm a"
+    val timePattern = when {
+        use24Hour -> "HH:mm"
+        showAmPm -> "hh:mm a"
+        else -> "hh:mm"
+    }
     val time = remember(timePattern) { SimpleDateFormat(timePattern, Locale.getDefault()) }
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
@@ -1601,6 +1622,7 @@ private fun SettingsScreen(
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
     use24Hour: Boolean,
+    showAmPm: Boolean,
     showDate: Boolean,
     homeAppCount: Int,
     showTagline: Boolean,
@@ -1610,7 +1632,7 @@ private fun SettingsScreen(
     showBattery: Boolean,
     appTileContentMode: TileContentMode,
     brutalityLevel: BrutalityLevel,
-    clockStyle: ClockStyle,
+    typographyStyle: TypographyStyle,
     wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
