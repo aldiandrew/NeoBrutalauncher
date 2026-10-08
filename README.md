@@ -208,7 +208,7 @@ Neo Brutal Launcher tersedia di bawah **MIT License**.
 
 Lihat [LICENSE](LICENSE) untuk teks lisensi lengkap.
 
-Copyright © 2026 Aldi Andrew.
+Copyright © 2026 Insomdroid.
 
 ---
 
