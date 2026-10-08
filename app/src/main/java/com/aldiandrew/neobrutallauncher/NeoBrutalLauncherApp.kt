@@ -364,7 +364,7 @@ fun NeoBrutalLauncherApp() {
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
                         preferences.resetCustomizations()
-                        context.recreate()
+                        (context as? Activity)?.recreate()
                     },
                     onChooseWallpaper = {
                         wallpaperPickerLauncher.launch(arrayOf("image/*"))
