@@ -1409,8 +1409,8 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val iconBitmap = remember(app.packageName) {
-            app.icon.toBitmap(96, 96).asImageBitmap()
+        val iconBitmap = remember(app.packageName, app.icon) {
+            app.icon.toBitmap(64, 64).asImageBitmap()
         }
 
         val iconSize = when (tileSize) {
