@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.sp
 fun BrutalBlock(
     modifier: Modifier = Modifier,
     background: Color,
-    borderWidth: Dp = 4.dp,
-    shadowX: Dp = 7.dp,
-    shadowY: Dp = 7.dp,
+    borderWidth: Dp = NeoBrutalTokens.Border.Primary,
+    shadowX: Dp = NeoBrutalTokens.Shadow.Medium,
+    shadowY: Dp = NeoBrutalTokens.Shadow.Medium,
     borderColor: Color? = null,
     shadowColor: Color? = null,
     content: @Composable ColumnScope.() -> Unit
@@ -64,7 +64,7 @@ fun BrutalBlock(
                     .fillMaxWidth()
                     .border(actualBorderWidth, resolvedBorderColor, shape)
                     .background(background, shape)
-                    .padding(10.dp),
+                    .padding(NeoBrutalTokens.Spacing.Small),
                 content = content
             )
         }
@@ -90,7 +90,7 @@ fun BrutalToggle(
     Box(
         modifier = modifier
             .size(width = 56.dp, height = 30.dp)
-            .border(3.dp, BrutalColors.Ink, RoundedCornerShape(0.dp))
+            .border(NeoBrutalTokens.Border.Primary, BrutalColors.Ink, RoundedCornerShape(0.dp))
             .background(
                 if (checked) accent else BrutalColors.White,
                 RoundedCornerShape(0.dp)
@@ -100,9 +100,9 @@ fun BrutalToggle(
     ) {
         Box(
             modifier = Modifier
-                .padding(2.dp)
+                .padding(NeoBrutalTokens.Spacing.Micro)
                 .size(22.dp)
-                .border(2.dp, BrutalColors.Ink, RoundedCornerShape(0.dp))
+                .border(NeoBrutalTokens.Border.Secondary, BrutalColors.Ink, RoundedCornerShape(0.dp))
                 .background(BrutalColors.Ink, RoundedCornerShape(0.dp))
         )
     }
@@ -130,7 +130,7 @@ fun BrutalCheckbox(
         if (checked) {
             Text(
                 text = "✓",
-                fontSize = 14.sp,
+                fontSize = NeoBrutalTokens.Type.Label,
                 fontWeight = FontWeight.Black,
                 color = BrutalColors.Ink
             )
