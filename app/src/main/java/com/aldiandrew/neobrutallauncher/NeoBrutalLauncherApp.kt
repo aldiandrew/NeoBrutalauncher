@@ -472,10 +472,11 @@ fun NeoBrutalLauncherApp(
                             config = motionConfig,
                             onFinished = {
                                 val target = launchingApp
-                                if (target == null) return@NeoLaunchTransition
-                                launchingApp = null
-                                if (repository.launch(target)) {
-                                    awaitingHomeReturn = true
+                                if (target != null) {
+                                    launchingApp = null
+                                    if (repository.launch(target)) {
+                                        awaitingHomeReturn = true
+                                    }
                                 }
                             }
                         ) {
@@ -550,6 +551,7 @@ fun NeoBrutalLauncherApp(
                             },
                             onOpenHome = { currentPage = 0 }
                         )
+                    }
                             }
                         }
                     }
