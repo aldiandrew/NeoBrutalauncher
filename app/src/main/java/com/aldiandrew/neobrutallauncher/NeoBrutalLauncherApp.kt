@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -1691,6 +1692,10 @@ private fun SettingsScreen(
             .filter { it.packageName != context.packageName }
             .sortedBy { it.label.lowercase() }
     }
+    var showChatAppPicker by remember { mutableStateOf(false) }
+    val selectedChatApp = chatCandidates.firstOrNull {
+        it.packageName == chatNotificationPackages.firstOrNull()
+    }
 
     Column(
         modifier = Modifier
@@ -1837,16 +1842,15 @@ private fun SettingsScreen(
                 }
             }
 
-            SettingsSectionTitle("CLOCK")
-
+            SettingsSectionTitle("TYPOGRAPHY")
 
             BrutalSection(
-                title = "TYPOGRAPHY STYLE",
+                title = "TILE TYPOGRAPHY",
                 modifier = Modifier.fillMaxWidth(),
                 background = BrutalColors.Purple
             ) {
                 Text(
-                    text = "Choose the visual personality of the home clock.",
+                    text = "Choose the typography style used across launcher tiles.",
                     fontSize = 11.sp,
                     lineHeight = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -1873,15 +1877,35 @@ private fun SettingsScreen(
                 }
             }
 
+            SettingsSectionTitle("CLOCK")
+
             SettingsSwitch(
                 title = "24-HOUR FORMAT",
-                description = "Use 24-hour time instead of AM/PM.",
+                description = "Use 24-hour time.",
                 checked = use24Hour,
                 background = BrutalColors.Yellow,
                 onCheckedChange = onUse24HourChange
             )
 
-                    SettingsSectionTitle("PERMISSIONS")
+            if (!use24Hour) {
+                SettingsSwitch(
+                    title = "SHOW AM / PM",
+                    description = "Show AM or PM beside the 12-hour clock.",
+                    checked = showAmPm,
+                    background = BrutalColors.Cyan,
+                    onCheckedChange = onShowAmPmChange
+                )
+            }
+
+            SettingsSwitch(
+                title = "SHOW DAY / DATE",
+                description = "Show the current day and date beside the clock.",
+                checked = showDate,
+                background = BrutalColors.Pink,
+                onCheckedChange = onShowDateChange
+            )
+
+            SettingsSectionTitle("PERMISSIONS")
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -1941,7 +1965,7 @@ private fun SettingsScreen(
                 }
             }
 
-            SettingsSectionTitle("CHAT NOTIFICATIONS")
+            SettingsSectionTitle("CHAT")
 
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
@@ -1951,85 +1975,47 @@ private fun SettingsScreen(
                 shadowY = 6.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "LIVE CHAT TILES",
-                            modifier = Modifier.weight(1f),
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = BrutalColors.Ink
-                        )
-                        BrutalLabel(
-                            text = chatNotificationPackages.size.toString() + "/1",
-                            background = BrutalColors.Yellow
-                        )
-                    }
                     Text(
-                        text = "Choose one app. Its latest active notification appears on LIVE; tap the tile to open the app.",
+                        text = "LIVE CHAT TILE",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = BrutalColors.Ink
+                    )
+                    Text(
+                        text = selectedChatApp?.label?.uppercase(Locale.ENGLISH)
+                            ?: "NO APP SELECTED",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "The latest notification from this app appears on LIVE.",
                         fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        lineHeight = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = BrutalColors.Ink
                     )
-                    LazyColumn(
-                        modifier = Modifier.height(250.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(
-                            items = chatCandidates,
-                            key = { it.packageName }
-                        ) { app ->
-                            val selected = app.packageName in chatNotificationPackages
-                            BrutalBlock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val next = when {
-                                            selected -> chatNotificationPackages - app.packageName
-                                            else -> listOf(app.packageName)
-                                        }
-                                        onChatNotificationPackagesChange(next)
-                                    },
-                                background = if (selected) BrutalColors.Yellow else BrutalColors.White,
-                                borderWidth = if (selected) 3.dp else 2.dp,
-                                shadowX = if (selected) 2.dp else 3.dp,
-                                shadowY = if (selected) 2.dp else 3.dp
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = app.label.uppercase(),
-                                        modifier = Modifier.weight(1f),
-                                        fontFamily = BrutalTypography.Display,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        color = BrutalColors.Ink,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = if (selected) "SELECTED" else "SELECT",
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = BrutalColors.Orange
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (chatNotificationPackages.size >= 1) {
-                        Text(
-                            text = "1/1 SELECTED — TAP IT AGAIN TO REMOVE.",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
+                        BrutalActionButton(
+                            title = if (selectedChatApp == null) "CHOOSE APP" else "CHANGE APP",
+                            background = BrutalColors.Yellow,
+                            modifier = Modifier.weight(1f),
+                            onClick = { showChatAppPicker = true }
                         )
+                        if (selectedChatApp != null) {
+                            BrutalActionButton(
+                                title = "CLEAR",
+                                background = BrutalColors.Pink,
+                                modifier = Modifier.weight(0.7f),
+                                onClick = { onChatNotificationPackagesChange(emptyList()) }
+                            )
+                        }
                     }
                 }
             }
@@ -2389,6 +2375,57 @@ fun BrutalActionButton(
             fontWeight = FontWeight.Black,
             color = BrutalColors.Ink,
             letterSpacing = 0.5.sp
+        )
+    }    }
+
+    if (showChatAppPicker) {
+        AlertDialog(
+            onDismissRequest = { showChatAppPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE CHAT APP",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.height(360.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(
+                        items = chatCandidates,
+                        key = { it.packageName + "/" + it.activityName }
+                    ) { app ->
+                        BrutalBlock(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onChatNotificationPackagesChange(listOf(app.packageName))
+                                    showChatAppPicker = false
+                                },
+                            background = if (
+                                app.packageName == chatNotificationPackages.firstOrNull()
+                            ) BrutalColors.Yellow else MaterialTheme.colorScheme.surface,
+                            borderWidth = 3.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Text(
+                                text = app.label.uppercase(Locale.ENGLISH),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (
+                                    app.packageName == chatNotificationPackages.firstOrNull()
+                                ) BrutalColors.Ink else uiOnSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
         )
     }
 }
