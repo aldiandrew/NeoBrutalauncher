@@ -102,6 +102,7 @@ fun NeoBrutalLauncherApp() {
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
+    var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -135,6 +136,51 @@ fun NeoBrutalLauncherApp() {
         }
     }
 
+    val backupFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    output.write(preferences.exportBackupJson().toByteArray(Charsets.UTF_8))
+                } ?: error("Unable to open backup destination")
+            }.onFailure {
+                android.widget.Toast.makeText(context, "BACKUP FAILED", android.widget.Toast.LENGTH_SHORT).show()
+            }.onSuccess {
+                android.widget.Toast.makeText(context, "BACKUP SAVED", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val restoreFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            val result = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    val output = java.io.ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        if (total > 512 * 1024) error("Backup too large")
+                        output.write(buffer, 0, read)
+                    }
+                    preferences.importBackupJson(output.toString(Charsets.UTF_8.name()))
+                } ?: false
+            }.getOrDefault(false)
+
+            if (result) {
+                android.widget.Toast.makeText(context, "BACKUP RESTORED", android.widget.Toast.LENGTH_SHORT).show()
+                context.recreate()
+            } else {
+                android.widget.Toast.makeText(context, "INVALID BACKUP", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -153,6 +199,16 @@ fun NeoBrutalLauncherApp() {
             val loadedApps = repository.loadApps()
             withContext(Dispatchers.Main.immediate) {
                 apps = loadedApps
+                if (!preferences.homeAppsInitialized() && favorites.isEmpty()) {
+                    val initialFavorites = loadedApps
+                        .filter { it.packageName != context.packageName }
+                        .take(5)
+                        .map { it.packageName + "/" + it.activityName }
+                        .toSet()
+                    favorites = initialFavorites
+                    preferences.setFavorites(initialFavorites)
+                    preferences.setHomeAppsInitialized(true)
+                }
             }
         }
     }
@@ -197,6 +253,7 @@ fun NeoBrutalLauncherApp() {
                     showBattery = showBattery,
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
+                    iconPackPackage = iconPackPackage,
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -296,6 +353,17 @@ fun NeoBrutalLauncherApp() {
                     onTypographyStyleChange = {
                         typographyStyle = it
                         preferences.setTypographyStyle(it)
+                    },
+                    onIconPackChange = {
+                        iconPackPackage = it
+                        preferences.setIconPackPackage(it)
+                        refreshApps()
+                    },
+                    onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
+                    onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
+                    onResetAll = {
+                        preferences.resetCustomizations()
+                        context.recreate()
                     },
                     onChooseWallpaper = {
                         wallpaperPickerLauncher.launch(arrayOf("image/*"))
