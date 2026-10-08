@@ -123,12 +123,21 @@ fun NeoMusicTile(
 
     BrutalBlock(
         modifier = modifier.then(
-            if (!hasAccess) Modifier.clickable {
-                context.startActivity(
-                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            } else Modifier
+            Modifier.clickable {
+                if (!hasAccess) {
+                    context.startActivity(
+                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                } else {
+                    musicPackage?.let { packageName ->
+                        context.packageManager.getLaunchIntentForPackage(packageName)?.let { intent ->
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+            }
         ),
         background = background,
         borderWidth = 4.dp,
