@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.Geocoder
 import android.location.LocationManager
 import android.location.LocationListener
 import android.os.Build
@@ -20,6 +21,7 @@ import java.net.URL
 import kotlin.coroutines.resume
 
 data class WeatherData(
+    val locationName: String,
     val temperatureC: Double,
     val weatherCode: Int,
     val description: String,
@@ -49,7 +51,8 @@ object WeatherRepository {
         val location = getLocation(locationManager, context)
             ?: throw IllegalStateException("Unable to determine current location")
 
-        return fetchWeather(location.latitude, location.longitude)
+        val locationName = resolveLocationName(context, location)
+        return fetchWeather(location.latitude, location.longitude, locationName)
     }
 
     @SuppressLint("MissingPermission")
@@ -156,9 +159,35 @@ object WeatherRepository {
         return null
     }
 
+    @Suppress("DEPRECATION")
+    private suspend fun resolveLocationName(
+        context: Context,
+        location: Location
+    ): String = withContext(Dispatchers.IO) {
+        runCatching {
+            if (!Geocoder.isPresent()) return@runCatching null
+            val geocoder = Geocoder(context, java.util.Locale.getDefault())
+            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                ?.firstOrNull()
+                ?.let { address ->
+                    listOfNotNull(
+                        address.locality,
+                        address.subAdminArea,
+                        address.adminArea
+                    )
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .distinct()
+                        .joinToString(", ")
+                        .takeIf { it.isNotEmpty() }
+                }
+        }.getOrNull() ?: "CURRENT LOCATION"
+    }
+
     private suspend fun fetchWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        locationName: String
     ): WeatherData = withContext(Dispatchers.IO) {
         val endpoint =
             "https://api.open-meteo.com/v1/forecast" +
@@ -194,6 +223,7 @@ object WeatherRepository {
             val windKph = current.getDouble("wind_speed_10m")
 
             WeatherData(
+                locationName = locationName,
                 temperatureC = temperature,
                 weatherCode = weatherCode,
                 description = weatherDescription(weatherCode),

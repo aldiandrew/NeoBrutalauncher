@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -144,23 +145,25 @@ fun NeoTileGrid(
     gap: Dp = 8.dp
 ) {
     val density = LocalDensity.current
-    val ordered = orderedTiles(tiles, positions)
+    val ordered = remember(tiles, positions) { orderedTiles(tiles, positions) }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val cellWidth =
             ((maxWidth - gap * (TILE_COLUMNS - 1)) / TILE_COLUMNS).coerceAtLeast(1.dp)
         val cellHeight = cellWidth
 
-        val packed = packDense(ordered)
-        val placements = packed.map { (tile, cell) ->
-            GridPlacement(
-                tile = tile,
-                column = cell.first,
-                row = cell.second,
-                width = cellWidth * tile.size.columns + gap * (tile.size.columns - 1),
-                height = cellHeight * tile.size.rows + gap * (tile.size.rows - 1)
-            )
+        val placements = remember(ordered, cellWidth, gap) {
+            packDense(ordered).map { (tile, cell) ->
+                GridPlacement(
+                    tile = tile,
+                    column = cell.first,
+                    row = cell.second,
+                    width = cellWidth * tile.size.columns + gap * (tile.size.columns - 1),
+                    height = cellHeight * tile.size.rows + gap * (tile.size.rows - 1)
+                )
+            }
         }
+        val latestPlacements = rememberUpdatedState(placements)
 
         val totalRows = placements.maxOfOrNull { it.row + it.tile.size.rows } ?: 1
         val totalHeight = cellHeight * totalRows + gap * (totalRows - 1)
@@ -210,15 +213,16 @@ fun NeoTileGrid(
                                 width = 2.dp,
                                 color = if (isDragging) MaterialTheme.colorScheme.onBackground else BrutalColors.Ink
                             )
-                            .pointerInput(placement.tile.id, placements) {
+                            .pointerInput(placement.tile.id) {
                                 detectDragGestures(
                                     onDragStart = {
                                         draggedId = placement.tile.id
                                         dragDelta = Offset.Zero
                                     },
                                     onDragEnd = {
+                                        val currentPlacements = latestPlacements.value
                                         val draggedPlacement =
-                                            placements.firstOrNull { it.tile.id == placement.tile.id }
+                                            currentPlacements.firstOrNull { it.tile.id == placement.tile.id }
                                         if (draggedPlacement != null) {
                                             val centerX =
                                                 with(density) {
@@ -233,7 +237,7 @@ fun NeoTileGrid(
                                                         draggedPlacement.height / 2f).toPx()
                                                 } + dragDelta.y
 
-                                            val target = placements
+                                            val target = currentPlacements
                                                 .filter { it.tile.id != placement.tile.id }
                                                 .minByOrNull {
                                                     val targetX =

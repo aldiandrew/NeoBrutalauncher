@@ -55,6 +55,29 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_HOME_APPS_INITIALIZED, value).apply()
     }
 
+    fun onboardingCompleted(): Boolean {
+        if (prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)) return true
+
+        // Existing installations already have launcher preferences, so do not interrupt
+        // an upgrade with first-run onboarding.
+        return prefs.contains(KEY_FAVORITES) ||
+            prefs.contains(KEY_HOME_APP_COUNT) ||
+            prefs.contains(KEY_HOME_APPS_INITIALIZED)
+    }
+
+    fun setOnboardingCompleted(value: Boolean) {
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, value).apply()
+    }
+
+    fun lastMusicPackage(): String? =
+        prefs.getString(KEY_LAST_MUSIC_PACKAGE, null)?.takeIf { it.isNotBlank() }
+
+    fun setLastMusicPackage(value: String?) {
+        prefs.edit().apply {
+            if (value.isNullOrBlank()) remove(KEY_LAST_MUSIC_PACKAGE) else putString(KEY_LAST_MUSIC_PACKAGE, value)
+        }.apply()
+    }
+
     fun setHomeAppCount(value: Int) {
         prefs.edit().putInt(KEY_HOME_APP_COUNT, normalizePinnedCount(value)).apply()
     }
@@ -595,6 +618,8 @@ class LauncherPreferences(context: Context) {
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_LAST_MUSIC_PACKAGE = "last_music_package"
         private const val MAX_BACKUP_ITEMS = 500
         private const val MAX_CUSTOM_QUOTES = 5
         private const val MAX_QUOTE_LENGTH = 300

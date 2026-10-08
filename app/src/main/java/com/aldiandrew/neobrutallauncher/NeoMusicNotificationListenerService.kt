@@ -36,6 +36,9 @@ object NeoMusicSessionStore {
 class NeoMusicNotificationListenerService : NotificationListenerService() {
     private lateinit var sessionManager: MediaSessionManager
     private var currentController: MediaController? = null
+    private val preferences by lazy { LauncherPreferences(applicationContext) }
+    private var cachedAlbumArtKey: String? = null
+    private var cachedAlbumArt: Bitmap? = null
 
     private val sessionListener =
         MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
@@ -83,6 +86,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         }
         currentController?.unregisterCallback(controllerCallback)
         currentController = null
+        clearAlbumArtCache()
         NeoMusicSessionStore.update(null)
         super.onListenerDisconnected()
     }
@@ -107,6 +111,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     private fun selectController(controllers: List<MediaController>) {
         currentController?.unregisterCallback(controllerCallback)
+        clearAlbumArtCache()
         currentController = controllers.firstOrNull {
             it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
         } ?: controllers.firstOrNull()
@@ -115,21 +120,25 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         publish(currentController)
     }
 
-    private fun publish(controller: MediaController?) {
-        if (controller == null) {
-            NeoMusicSessionStore.update(null)
-            return
+    private fun clearAlbumArtCache() {
+        cachedAlbumArtKey = null
+        cachedAlbumArt = null
+    }
+
+    private fun albumArtFor(metadata: MediaMetadata?): Bitmap? {
+        val sourceKey = listOf(
+            metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI),
+            metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI),
+            metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
+            metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
+            metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM)
+        ).joinToString("|")
+
+        if (sourceKey == cachedAlbumArtKey) {
+            return cachedAlbumArt
         }
 
-        val appInfo = runCatching {
-            packageManager.getApplicationInfo(controller.packageName, 0)
-        }.getOrNull() ?: return
-
-        val label = packageManager.getApplicationLabel(appInfo).toString()
-        val metadata = controller.metadata
-        val playbackState = controller.playbackState
-        val positionUpdatedAtMs = System.currentTimeMillis()
-        val albumArt = runCatching {
+        val loaded = runCatching {
             metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
                 ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)?.let { uri ->
@@ -143,6 +152,46 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
                     )
                 }
         }.getOrNull()
+
+        val limited = loaded?.let { bitmap ->
+            val largestSide = maxOf(bitmap.width, bitmap.height)
+            if (largestSide <= 256) {
+                bitmap
+            } else {
+                runCatching {
+                    val scale = 256f / largestSide.toFloat()
+                    Bitmap.createScaledBitmap(
+                        bitmap,
+                        (bitmap.width * scale).toInt().coerceAtLeast(1),
+                        (bitmap.height * scale).toInt().coerceAtLeast(1),
+                        true
+                    )
+                }.getOrDefault(bitmap)
+            }
+        }
+
+        cachedAlbumArtKey = sourceKey
+        cachedAlbumArt = limited
+        return limited
+    }
+
+    private fun publish(controller: MediaController?) {
+        if (controller == null) {
+            clearAlbumArtCache()
+            NeoMusicSessionStore.update(null)
+            return
+        }
+
+        val appInfo = runCatching {
+            packageManager.getApplicationInfo(controller.packageName, 0)
+        }.getOrNull() ?: return
+
+        val label = packageManager.getApplicationLabel(appInfo).toString()
+        preferences.setLastMusicPackage(controller.packageName)
+        val metadata = controller.metadata
+        val playbackState = controller.playbackState
+        val positionUpdatedAtMs = System.currentTimeMillis()
+        val albumArt = albumArtFor(metadata)
 
         NeoMusicSessionStore.update(
             MusicInfo(
