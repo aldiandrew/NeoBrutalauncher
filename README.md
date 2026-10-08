@@ -2,24 +2,72 @@
 
 NeoBrutalauncher is an Android home launcher built around a Neo-Brutalist design language.
 
-## Principles
+## Current stable baseline
+
+The current stable baseline is the latest successful feature build represented by the current `main` branch state.
+
+This baseline should be preserved for future development unless a change is explicitly requested.
+
+## Current features
+
+### Launcher
+- Android HOME launcher activity.
+- Installed-app discovery and launching.
+- Dedicated Home, Apps, and Live pages.
+- App drawer with app search.
+- Pinned/favorite apps for Home tiles.
+- Configurable number of Home app tiles.
+- Configurable app tile content: icon, icon + text, or text.
+- Per-tile position and size controls.
+- Neo-Brutalist visual design with borders, offset shadows, bold typography, and saturated colors.
+- Smooth animated transitions between Home, Apps, and Live pages.
+
+### Home
+- Large clock with 12-hour or 24-hour mode.
+- Optional AM/PM display for 12-hour mode.
+- Selectable typography styles.
+- Optional local weather display.
+- Custom image wallpaper with **Choose Image** and **Clear** controls.
+- Home app tiles without the removed decorative line/marker.
+
+### Live
+- Live clock/date header.
+- Calendar tile.
+- Live chat notification tile with selectable app.
+- Music tile using Android notification/media information.
+- Recent local notes/tasks section.
+- Rotating quote tile.
+- Notification access controls for Music and Live Chat features.
+
+### Appearance and settings
+- System, Light, and Dark theme modes.
+- Typography style selection.
+- App tile content selection.
+- Third-party icon pack support where compatible.
+- Wallpaper selection from an image and wallpaper clearing.
+- Backup and restore of launcher settings.
+- Pinned app management.
+- Live Chat app selection and clearing.
+- Notification access management.
+
+## Design principles
 
 - Kotlin + Jetpack Compose.
-- Simple, flat architecture.
-- No root, Shizuku, Xposed, Accessibility Service, or Notification Listener is required by the launcher core.
+- Simple, focused launcher experience.
+- No root or Shizuku is required for the launcher core.
+- No Accessibility Service is required by the launcher core.
 - Hard borders and offset shadows instead of blurred elevation.
 - Saturated colors and large typography.
 - Usability comes before decoration.
+- Removed features are not reintroduced unless explicitly requested.
 
-## Current 0.1 scope
+## Permissions and integrations
 
-- Android HOME activity.
-- Installed-app discovery.
-- App launching.
-- Neo-Brutalist home screen.
-- App drawer.
-- App search.
-- No external runtime permissions.
+The launcher can request:
+- Coarse location for the optional weather feature.
+- Android Notification Listener access for Music and Live Chat features.
+
+These permissions are only used by the corresponding optional features.
 
 ## License policy
 
