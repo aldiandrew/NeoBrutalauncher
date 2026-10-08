@@ -256,15 +256,7 @@ fun AppsPage(
                                 app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
-                            val lightCardPalette = listOf(
-                                BrutalColors.White,
-                                BrutalColors.Yellow,
-                                BrutalColors.Pink,
-                                BrutalColors.Cyan,
-                                BrutalColors.Peach,
-                                BrutalColors.Mint,
-                                BrutalColors.Lavender
-                            )
+                            val lightCardPalette = BrutalColors.appPalette(0)
                             val darkCardPalette = listOf(
                                 BrutalColors.DarkTile
                             )
@@ -312,7 +304,7 @@ fun AppsPage(
                                             text = firstLetter,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Orange
+                                            color = BrutalColors.Yellow
                                         )
                                         Text(
                                             text = app.label.uppercase(),
@@ -329,7 +321,7 @@ fun AppsPage(
                                             modifier = Modifier
                                                 .width(12.dp)
                                                 .height(12.dp),
-                                            background = BrutalColors.Orange,
+                                            background = BrutalColors.Yellow,
                                             borderWidth = 2.dp,
                                             shadowX = 0.dp,
                                             shadowY = 0.dp
@@ -441,7 +433,7 @@ fun AppsPage(
                         onClick = { onLaunch(app); contextApp = null }
                     )
                     BrutalActionButton(
-                        title = "APP INFO", background = BrutalColors.Lime,
+                        title = "APP INFO", background = BrutalColors.Cyan,
                         onClick = {
                             runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = Uri.parse("package:" + app.packageName) }) }
                             contextApp = null
