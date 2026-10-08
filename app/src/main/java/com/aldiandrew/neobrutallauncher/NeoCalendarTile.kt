@@ -113,7 +113,7 @@ fun NeoCalendarTile(
                     text = monthTitle,
                     modifier = Modifier.weight(1f),
                     fontFamily = BrutalTypography.Display,
-                    fontSize = 19.sp,
+                    fontSize = NeoBrutalTokens.Type.Tile,
                     fontWeight = FontWeight.Normal,
                     letterSpacing = 0.8.sp,
                     color = textColor
