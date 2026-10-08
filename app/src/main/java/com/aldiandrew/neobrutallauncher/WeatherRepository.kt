@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationListener
 import android.os.Build
 import android.os.CancellationSignal
+import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -55,19 +57,21 @@ object WeatherRepository {
         locationManager: LocationManager,
         context: Context
     ): Location? {
-        val providers = listOf(
-            LocationManager.NETWORK_PROVIDER,
-            LocationManager.GPS_PROVIDER,
-            LocationManager.PASSIVE_PROVIDER
-        )
-
-        val lastKnown = providers
-            .filter { provider ->
-                runCatching {
-                    provider == LocationManager.PASSIVE_PROVIDER ||
-                        locationManager.isProviderEnabled(provider)
-                }.getOrDefault(false)
+        val providers = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(LocationManager.FUSED_PROVIDER)
             }
+            add(LocationManager.NETWORK_PROVIDER)
+            add(LocationManager.GPS_PROVIDER)
+        }
+
+        val enabledProviders = providers.filter { provider ->
+            runCatching {
+                locationManager.isProviderEnabled(provider)
+            }.getOrDefault(false)
+        }
+
+        val lastKnown = enabledProviders
             .mapNotNull { provider ->
                 runCatching {
                     locationManager.getLastKnownLocation(provider)
@@ -80,15 +84,7 @@ object WeatherRepository {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val provider = providers
-                .filter { it != LocationManager.PASSIVE_PROVIDER }
-                .firstOrNull { candidate ->
-                    runCatching {
-                        locationManager.isProviderEnabled(candidate)
-                    }.getOrDefault(false)
-                }
-
-            if (provider != null) {
+            for (provider in enabledProviders) {
                 val current = withTimeoutOrNull(8_000L) {
                     suspendCancellableCoroutine<Location?> { continuation ->
                         val signal = CancellationSignal()
@@ -104,6 +100,47 @@ object WeatherRepository {
                         ) { location ->
                             if (continuation.isActive) {
                                 continuation.resume(location)
+                            }
+                        }
+                    }
+                }
+
+                if (current != null) {
+                    return current
+                }
+            }
+        } else {
+            for (provider in enabledProviders) {
+                val current = withTimeoutOrNull(8_000L) {
+                    suspendCancellableCoroutine<Location?> { continuation ->
+                        val listener = object : LocationListener {
+                            override fun onLocationChanged(location: Location) {
+                                if (continuation.isActive) {
+                                    runCatching {
+                                        locationManager.removeUpdates(this)
+                                    }
+                                    continuation.resume(location)
+                                }
+                            }
+                        }
+
+                        continuation.invokeOnCancellation {
+                            runCatching {
+                                locationManager.removeUpdates(listener)
+                            }
+                        }
+
+                        runCatching {
+                            locationManager.requestLocationUpdates(
+                                provider,
+                                0L,
+                                0f,
+                                listener,
+                                Looper.getMainLooper()
+                            )
+                        }.onFailure {
+                            if (continuation.isActive) {
+                                continuation.resume(null)
                             }
                         }
                     }
