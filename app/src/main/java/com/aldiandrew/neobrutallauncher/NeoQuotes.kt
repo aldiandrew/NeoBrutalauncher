@@ -9,7 +9,7 @@ data class NeoQuotePalette(
 )
 
 object NeoQuotes {
-    private val quotes = listOf(
+    private val defaultQuotes = listOf(
         "Raw structure is not a flaw. It is the message.",
         "Make the grid visible. Make the interface honest.",
         "Strong borders turn space into architecture.",
@@ -36,7 +36,18 @@ object NeoQuotes {
         "Make the system visible, then make it useful."
     )
 
-    fun pairForRotation(rotation: Int): Pair<String, String> {
+    fun allQuotes(customQuotes: List<String> = emptyList()): List<String> =
+        (defaultQuotes + customQuotes)
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+
+    fun pairForRotation(
+        rotation: Int,
+        customQuotes: List<String> = emptyList()
+    ): Pair<String, String> {
+        val quotes = allQuotes(customQuotes)
+        if (quotes.size == 1) return quotes.first() to quotes.first()
         val offset = Math.floorMod(rotation, quotes.size)
         return quotes[offset] to quotes[(offset + 1) % quotes.size]
     }
