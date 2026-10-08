@@ -1523,6 +1523,7 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
+        val tileMaxHeight = maxHeight
         val isSmall = tileSize == NeoTileSize.SMALL
         val isHorizontal = tileSize == NeoTileSize.HORIZONTAL
         val isThreeByOne = tileSize == NeoTileSize.THREE_BY_ONE
@@ -1565,7 +1566,7 @@ private fun AppTile(
         ) {
             when {
                 isFourByOne -> {
-                    val iconSize = minOf(this@BoxWithConstraints.maxHeight * 0.78f, 78.dp)
+                    val iconSize = minOf(tileMaxHeight * 0.78f, 78.dp)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
