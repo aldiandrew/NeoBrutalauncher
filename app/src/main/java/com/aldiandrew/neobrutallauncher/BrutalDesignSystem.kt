@@ -98,13 +98,13 @@ fun BrutalLabel(
                 color = BrutalColors.Ink,
                 shape = RoundedCornerShape(0.dp)
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = NeoBrutalTokens.Spacing.Small, vertical = NeoBrutalTokens.Spacing.Micro),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             fontFamily = BrutalTypography.Display,
-            fontSize = 10.sp,
+            fontSize = NeoBrutalTokens.Type.Label,
             fontWeight = FontWeight.Normal,
             letterSpacing = 0.8.sp,
             color = BrutalColors.Ink
@@ -126,7 +126,7 @@ fun BrutalTape(
                 color = BrutalColors.Ink,
                 shape = RoundedCornerShape(0.dp)
             )
-            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .padding(horizontal = NeoBrutalTokens.Spacing.Small, vertical = NeoBrutalTokens.Spacing.Micro)
     ) {
         Text(
             text = text,
@@ -159,8 +159,8 @@ fun NeoTileDecoration(
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 2.dp, end = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                .padding(top = NeoBrutalTokens.Spacing.Micro / 2, end = NeoBrutalTokens.Spacing.Micro / 2),
+            horizontalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Micro - 1.dp)
         ) {
             repeat(3) {
                 Box(
@@ -184,9 +184,9 @@ fun NeoTileDecoration(
             text = "///",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 2.dp, bottom = 0.dp),
+                .padding(end = NeoBrutalTokens.Spacing.Micro / 2, bottom = 0.dp),
             fontFamily = BrutalTypography.Display,
-            fontSize = 8.sp,
+            fontSize = NeoBrutalTokens.Type.Label - 2.sp,
             fontWeight = FontWeight.Black,
             color = textColor
         )
@@ -203,13 +203,13 @@ fun BrutalSection(
     BrutalBlock(
         modifier = modifier,
         background = background,
-        borderWidth = 3.dp,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        borderWidth = NeoBrutalTokens.Border.Primary,
+        shadowX = NeoBrutalTokens.Shadow.Medium,
+        shadowY = NeoBrutalTokens.Shadow.Medium
     ) {
         Column {
             BrutalLabel(text = title, background = BrutalColors.Yellow)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NeoBrutalTokens.Spacing.Small))
             content()
         }
     }
