@@ -49,9 +49,9 @@ fun LivePage(
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val pageText = MaterialTheme.colorScheme.onBackground
     val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
     val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Orange
+    val pageText = MaterialTheme.colorScheme.onBackground
     val secondarySurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
 
     val launchCounts = remember(apps) {
@@ -98,14 +98,16 @@ fun LivePage(
                         text = "LIVE",
                         fontFamily = BrutalTypography.Display,
                         fontSize = 28.sp,
-                        fontWeight = FontWeight.Normal
+                        fontWeight = FontWeight.Normal,
+                        color = pageText
                     )
-                    Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
                         fontSize = 42.sp,
                         lineHeight = 42.sp,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Black,
+                        color = pageText
                     )
                 }
             }
@@ -149,7 +151,8 @@ fun LivePage(
                         text = "LIVE ACTIVITY",
                         fontFamily = BrutalTypography.Display,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal
+                        fontWeight = FontWeight.Normal,
+                        color = pageText
                     )
                     liveApps.forEachIndexed { index, app ->
                         val count = launchCounts[app.packageName + "/" + app.activityName] ?: 0
@@ -172,13 +175,15 @@ fun LivePage(
                                 modifier = Modifier.weight(1f),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Black,
+                                color = pageText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "$count LAUNCH",
                                 fontSize = 8.sp,
-                                fontWeight = FontWeight.Black
+                                fontWeight = FontWeight.Black,
+                                color = pageText
                             )
                         }
                     }
@@ -200,13 +205,15 @@ fun LivePage(
                         text = "LATEST NOTES / TASKS",
                         fontFamily = BrutalTypography.Display,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal
+                        fontWeight = FontWeight.Normal,
+                        color = pageText
                     )
                     if (notes.isEmpty() && tasks.isEmpty()) {
                         Text(
                             text = "NO LOCAL ACTIVITY YET",
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.Black
+                            fontWeight = FontWeight.Black,
+                            color = pageText
                         )
                     } else {
                         notes.forEach {
@@ -214,6 +221,7 @@ fun LivePage(
                                 text = "NOTE  /  " + it.text,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
+                                color = pageText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
