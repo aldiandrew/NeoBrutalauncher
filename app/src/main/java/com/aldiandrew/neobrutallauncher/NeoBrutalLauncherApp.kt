@@ -90,6 +90,7 @@ fun NeoBrutalLauncherApp() {
     var settingsOpen by remember { mutableStateOf(false) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
+    var themeProfile by remember { mutableStateOf(preferences.themeProfile()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
     var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
@@ -260,6 +261,7 @@ fun NeoBrutalLauncherApp() {
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
@@ -285,6 +287,10 @@ fun NeoBrutalLauncherApp() {
                     onThemeChange = {
                         themePreference = it
                         preferences.setTheme(it)
+                    },
+                    onThemeProfileChange = {
+                        themeProfile = it
+                        preferences.setThemeProfile(it)
                     },
                     onUse24HourChange = {
                         use24Hour = it
@@ -397,6 +403,7 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
@@ -1584,6 +1591,7 @@ private fun SettingsScreen(
     apps: List<AppInfo>,
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
+    themeProfile: NeoThemeProfile,
     use24Hour: Boolean,
     showAmPm: Boolean,
     homeAppCount: Int,
@@ -1601,6 +1609,7 @@ private fun SettingsScreen(
     onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onThemeProfileChange: (NeoThemeProfile) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
     onShowAmPmChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
@@ -1653,11 +1662,32 @@ private fun SettingsScreen(
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("APPEARANCE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Choose the launcher color mode.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Text("Choose the launcher light/dark behavior.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ThemeButton("SYSTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
                     ThemeButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
                     ThemeButton("DARK", themePreference == ThemePreference.DARK, BrutalColors.Pink, Modifier.weight(1f)) { onThemeChange(ThemePreference.DARK) }
+                }
+                Text("COLOR THEME", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Choose the launcher color identity independently from light/dark mode.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    NeoThemeProfile.values().chunked(3).forEach { rowProfiles ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            rowProfiles.forEach { profile ->
+                                val profilePalette = NeoThemePalettes.forProfile(profile)
+                                ThemeButton(
+                                    label = profile.label,
+                                    selected = themeProfile == profile,
+                                    background = profilePalette.lightAccent,
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onThemeProfileChange(profile) }
+                                )
+                            }
+                            repeat(3 - rowProfiles.size) {
+                                Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
         }
