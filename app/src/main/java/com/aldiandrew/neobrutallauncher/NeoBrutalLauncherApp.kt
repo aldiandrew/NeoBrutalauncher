@@ -1467,7 +1467,7 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.78f, 78.dp)
         }
 
-        val appTileTextColor = if (LocalNeoThemeIsDark.current) BrutalColors.DarkWhite else BrutalColors.Ink
+        val appTileTextColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink
 
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
