@@ -1538,6 +1538,7 @@ private fun AppTile(
                         }
                     }
                 }
+                }
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
