@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.Layout
@@ -23,6 +25,14 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+
+private fun brutalContentColor(background: Color): Color = when (background) {
+    BrutalColors.DarkPaper,
+    BrutalColors.DarkTile,
+    BrutalColors.Ink -> BrutalColors.DarkWhite
+    else -> BrutalColors.Ink
+}
 
 @Composable
 fun BrutalBlock(
@@ -59,14 +69,18 @@ fun BrutalBlock(
         modifier = modifier,
         content = {
             Box(modifier = Modifier.background(color = resolvedShadowColor, shape = shape))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(actualBorderWidth, resolvedBorderColor, shape)
-                    .background(background, shape)
-                    .padding(NeoBrutalTokens.Spacing.Small),
-                content = content
-            )
+            CompositionLocalProvider(
+                LocalContentColor provides brutalContentColor(background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(actualBorderWidth, resolvedBorderColor, shape)
+                        .background(background, shape)
+                        .padding(NeoBrutalTokens.Spacing.Small),
+                    content = content
+                )
+            }
         }
     ) { measurables, constraints ->
         val contentPlaceable = measurables[1].measure(constraints)
