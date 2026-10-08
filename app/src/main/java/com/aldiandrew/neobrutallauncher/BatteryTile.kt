@@ -109,7 +109,7 @@ fun BatteryTile(
                         fontSize = 18.sp,
                         lineHeight = 19.sp,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = BrutalColors.Ink,
                         maxLines = 1
                     )
                     Text(
