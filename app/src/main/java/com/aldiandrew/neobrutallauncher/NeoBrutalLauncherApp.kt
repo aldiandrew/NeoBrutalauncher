@@ -105,6 +105,7 @@ fun NeoBrutalLauncherApp() {
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
+    var hideStatusBar by remember { mutableStateOf(preferences.hideStatusBar()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -252,12 +253,26 @@ fun NeoBrutalLauncherApp() {
         !onboardingCompleted -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
-                typographyStyle = typographyStyle
+                typographyStyle = typographyStyle,
+                hideStatusBar = hideStatusBar
             ) {
                 NeoOnboardingScreen(
                     apps = apps,
                     initialFavorites = favorites,
                     favoriteLimit = homeAppCount,
+                    locationPermissionGranted = locationPermissionGranted,
+                    notificationAccessGranted = notificationAccessGranted,
+                    onRequestLocationPermission = {
+                        locationPermissionLauncher.launch(
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    },
+                    onOpenNotificationAccess = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
                     onFavoritesChange = { updated ->
                         favorites = updated
                         preferences.setFavorites(updated)
@@ -285,6 +300,7 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 typographyStyle = typographyStyle,
+                hideStatusBar = hideStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     SettingsScreen(
@@ -302,6 +318,7 @@ fun NeoBrutalLauncherApp() {
                     wallpaperUri = wallpaperUri,
                     favorites = favorites,
                     favoritesCount = favorites.size,
+                    hideStatusBar = hideStatusBar,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
                     chatNotificationPackages = selectedChatPackages,
@@ -408,6 +425,10 @@ fun NeoBrutalLauncherApp() {
                         reduceMotion = it
                         preferences.setReduceMotion(it)
                     },
+                    onHideStatusBarChange = {
+                        hideStatusBar = it
+                        preferences.setHideStatusBar(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -434,6 +455,7 @@ fun NeoBrutalLauncherApp() {
             NeoBrutalTheme(
                 themePreference = themePreference,
                 typographyStyle = typographyStyle,
+                hideStatusBar = hideStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     LauncherPageHost(
@@ -635,10 +657,10 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val homeClockBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Yellow
-    val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
-    val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
-    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
+    val homeClockBackground = BrutalColors.Yellow
+    val homeClockText = BrutalColors.Ink
+    val homeMusicBackground = BrutalColors.Cyan
+    val homeTasksBackground = BrutalColors.Cyan
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -827,7 +849,7 @@ private fun HomeScreen(
                         ) {
                             BrutalLabel(
                                 text = (if (use24Hour) "24H" else "12H") + " / " + typographyStyle.label,
-                                background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                                background = BrutalColors.Pink
                             )
 
                             Row(
@@ -1003,7 +1025,7 @@ private fun HomeScreen(
             item(key = "tasks") {
                 NeoTasksTile(
                     tasks = taskItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(2f),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f),
                     background = homeTasksBackground,
                     textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
                     onAddTask = { text ->
@@ -1612,6 +1634,7 @@ private fun SettingsScreen(
     wallpaperUri: String?,
     favorites: Set<String>,
     favoritesCount: Int,
+    hideStatusBar: Boolean,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
     onChatNotificationPackagesChange: (List<String>) -> Unit,
@@ -1630,6 +1653,7 @@ private fun SettingsScreen(
     onCustomQuotesChange: (List<String>) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
+    onHideStatusBarChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1745,6 +1769,14 @@ private fun SettingsScreen(
             reduceMotion,
             BrutalColors.Cyan,
             onReduceMotionChange
+        )
+
+        SettingsSwitch(
+            "HIDE STATUS BAR",
+            "Hide the Android status bar while using the launcher.",
+            hideStatusBar,
+            BrutalColors.Yellow,
+            onHideStatusBarChange
         )
 
         SettingsSectionTitle("QUOTES")
