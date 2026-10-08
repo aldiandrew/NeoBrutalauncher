@@ -69,7 +69,7 @@ private val DarkScheme = darkColorScheme(
 @Composable
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
-    typographyStyle: TypographyStyle = TypographyStyle.POSTER,
+    typographyStyle: TypographyStyle = TypographyStyle.DEFAULT,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
