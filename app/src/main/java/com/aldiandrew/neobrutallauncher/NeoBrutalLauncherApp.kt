@@ -37,6 +37,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
@@ -62,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -1658,6 +1660,7 @@ private fun SettingsScreen(
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
     onIconThemeStyleChange: (IconThemeStyle) -> Unit,
+    onCustomQuotesChange: (List<String>) -> Unit,
     onAnimationStyleChange: (AnimationStyle) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
@@ -1672,7 +1675,10 @@ private fun SettingsScreen(
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
-    val darkTileBackground = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Ink
+    val isDark = LocalNeoThemeIsDark.current
+    val themePalette = LocalNeoThemePalette.current
+    val darkTileBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Ink
+    var editedQuotes by remember(customQuotes) { mutableStateOf(customQuotes) }
     val iconPacks = remember { IconPackManager(context).installedIconPacks() }
     val chatCandidates = remember(apps) {
         apps.groupBy { it.packageName }.values.mapNotNull { it.firstOrNull() }
@@ -1692,8 +1698,8 @@ private fun SettingsScreen(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = uiOnSurface) }
-            BrutalBlock(modifier = Modifier.weight(1f), background = BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
-                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = 26.sp, fontWeight = FontWeight.Normal, color = BrutalColors.Ink)
+            BrutalBlock(modifier = Modifier.weight(1f), background = themePalette.accent(isDark), borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
+                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = 26.sp, fontWeight = FontWeight.Normal, color = themePalette.onAccent(isDark))
             }
         }
 
@@ -1799,6 +1805,144 @@ private fun SettingsScreen(
         SettingsSectionTitle("HOME CONTENT")
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
         if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
+
+        SettingsSectionTitle("QUOTES")
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = uiSurface,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "QUOTES EDITOR",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = uiOnSurface
+                )
+                Text(
+                    "${editedQuotes.size} CUSTOM / ${NeoQuotes.allQuotes(customQuotes).size} TOTAL",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    color = uiOnSurface.copy(alpha = .7f)
+                )
+                if (editedQuotes.isEmpty()) {
+                    Text(
+                        "NO CUSTOM QUOTES. BUILT-IN QUOTES ARE STILL USED.",
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface.copy(alpha = .7f)
+                    )
+                } else {
+                    editedQuotes.forEachIndexed { index, quote ->
+                        val quotePalette = themePalette.tilePalette(isDark)
+                        BrutalBlock(
+                            Modifier.fillMaxWidth(),
+                            background = quotePalette[index % quotePalette.size],
+                            borderWidth = 2.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = (index + 1).toString() + ".",
+                                    modifier = Modifier.padding(start = 7.dp, top = 10.dp),
+                                    fontFamily = BrutalTypography.Display,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                                )
+                                BasicTextField(
+                                    value = quote,
+                                    onValueChange = { value ->
+                                        editedQuotes = editedQuotes.toMutableList().also {
+                                            it[index] = value.take(300)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 7.dp, vertical = 8.dp),
+                                    minLines = 2,
+                                    maxLines = 4,
+                                    textStyle = TextStyle(
+                                        color = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                                        fontSize = 12.sp,
+                                        lineHeight = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        if (quote.isBlank()) {
+                                            Text(
+                                                "WRITE A QUOTE…",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (isDark) BrutalColors.DarkWhite.copy(alpha = .45f) else BrutalColors.Ink.copy(alpha = .45f)
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                )
+                                ThemeButton(
+                                    label = "DELETE",
+                                    selected = true,
+                                    background = BrutalColors.Pink,
+                                    modifier = Modifier
+                                        .width(66.dp)
+                                        .padding(end = 5.dp, top = 6.dp),
+                                    onClick = {
+                                        editedQuotes = editedQuotes.toMutableList().also {
+                                            it.removeAt(index)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    ThemeButton(
+                        label = "ADD QUOTE",
+                        selected = true,
+                        background = themePalette.accent(isDark),
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (editedQuotes.size < 100) {
+                                editedQuotes = editedQuotes + ""
+                            }
+                        }
+                    )
+                    ThemeButton(
+                        label = "SAVE",
+                        selected = true,
+                        background = BrutalColors.Lime,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            onCustomQuotesChange(editedQuotes)
+                        }
+                    )
+                    ThemeButton(
+                        label = "RESET",
+                        selected = true,
+                        background = BrutalColors.Orange,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            editedQuotes = emptyList()
+                            onCustomQuotesChange(emptyList())
+                        }
+                    )
+                }
+            }
+        }
 
         SettingsSectionTitle("APP TILES")
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
