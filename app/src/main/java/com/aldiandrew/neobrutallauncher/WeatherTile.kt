@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,6 +89,7 @@ fun NeoWeatherTile(
     }
 
     val currentWeather = weather
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val icon = when (currentWeather?.weatherCode) {
         0 -> Icons.Default.WbSunny
         1, 2, 3, 45, 48 -> Icons.Default.Cloud
@@ -110,7 +112,7 @@ fun NeoWeatherTile(
 
             if (currentWeather != null) {
                 val updatedText = lastUpdatedMillis?.let {
-                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
+                    timeFormatter.format(Date(it))
                 } ?: "--:--"
 
                 when {
@@ -156,7 +158,8 @@ fun NeoWeatherTile(
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Ink,
-                                maxLines = 1
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -178,11 +181,14 @@ fun NeoWeatherTile(
                                 )
                             }
                             Text(
-                                text = "H ${currentWeather!!.humidityPercent}%   W ${currentWeather!!.windKph.toInt()}K",
-                                fontSize = 9.sp,
+                                text = "H" + currentWeather!!.humidityPercent + "% · W" + currentWeather!!.windKph.toInt() + "K",
+                                fontSize = 8.sp,
+                                lineHeight = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Ink,
-                                maxLines = 1
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -211,7 +217,8 @@ fun NeoWeatherTile(
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Black,
                                     color = BrutalColors.Ink,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
@@ -229,11 +236,12 @@ fun NeoWeatherTile(
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = "UPDATED $updatedText • TAP TO REFRESH",
+                                    text = "UPDATED " + updatedText + " • TAP TO REFRESH",
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Black,
                                     color = BrutalColors.Ink.copy(alpha = 0.72f),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
 
