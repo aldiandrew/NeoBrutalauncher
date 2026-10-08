@@ -1,6 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
@@ -174,7 +175,7 @@ fun NeoBrutalLauncherApp() {
 
             if (result) {
                 android.widget.Toast.makeText(context, "BACKUP RESTORED", android.widget.Toast.LENGTH_SHORT).show()
-                context.recreate()
+                (context as? Activity)?.recreate()
             } else {
                 android.widget.Toast.makeText(context, "INVALID BACKUP", android.widget.Toast.LENGTH_SHORT).show()
             }
