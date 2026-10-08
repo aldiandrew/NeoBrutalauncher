@@ -587,7 +587,7 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val homeClockBackground = if (isDarkTheme) BrutalColors.Pink else BrutalColors.Yellow
+    val homeClockBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Yellow
     val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
     val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
     val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
