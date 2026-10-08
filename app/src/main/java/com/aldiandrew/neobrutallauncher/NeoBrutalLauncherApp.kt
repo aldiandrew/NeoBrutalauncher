@@ -2096,7 +2096,7 @@ private fun SettingsScreen(
                                     modifier = Modifier.weight(1f),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -2104,7 +2104,7 @@ private fun SettingsScreen(
                                     text = if (selected) "SELECTED" else "USE",
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface
                                 )
                             }
                         }
@@ -2171,7 +2171,7 @@ private fun SettingsScreen(
                                             modifier = Modifier.weight(1f),
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Ink.copy(alpha = if (enabled) 1f else .45f),
+                                            color = uiOnSurface.copy(alpha = if (enabled) 1f else .45f),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -2179,7 +2179,7 @@ private fun SettingsScreen(
                                             text = if (selected) "SELECTED" else "ADD",
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Ink.copy(alpha = if (enabled) 1f else .45f)
+                                            color = uiOnSurface.copy(alpha = if (enabled) 1f else .45f)
                                         )
                                     }
                                 }
