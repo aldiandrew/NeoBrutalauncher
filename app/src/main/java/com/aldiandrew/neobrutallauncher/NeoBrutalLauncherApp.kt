@@ -1884,6 +1884,13 @@ private fun SettingsScreen(
             BrutalColors.Ink
         }
 
+    val chatCandidates = remember(apps) {
+        apps.groupBy { it.packageName }
+            .values
+            .mapNotNull { it.firstOrNull() }
+            .sortedBy { it.label.lowercase() }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
