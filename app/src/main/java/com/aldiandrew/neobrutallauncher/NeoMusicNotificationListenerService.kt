@@ -55,6 +55,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         NeoChatNotificationStore.setSelectedPackages(
             LauncherPreferences(this).chatNotificationPackages()
         )
+        refreshChatNotifications()
         sessionManager = getSystemService(MediaSessionManager::class.java)
         sessionManager.addOnActiveSessionsChangedListener(
             sessionListener,
