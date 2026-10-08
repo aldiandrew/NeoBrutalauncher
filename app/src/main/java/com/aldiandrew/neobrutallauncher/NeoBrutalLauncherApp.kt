@@ -679,13 +679,17 @@ private fun HomeScreen(
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
-    val launchableApps = stableHomeOrder
-        .filterNot { excludedHomeApps.contains(it) }
-        .sortedWith(
-            compareByDescending<String> { favorites.contains(it) }
-        )
+    val pinnedHomeApps = favorites
         .mapNotNull { appsByKey[it] }
-        .take(homeAppCount.coerceIn(2, 8))
+        .filterNot { excludedHomeApps.contains(it.packageName + "/" + it.activityName) }
+
+    val remainingHomeApps = stableHomeOrder
+        .filterNot { excludedHomeApps.contains(it) || favorites.contains(it) }
+        .mapNotNull { appsByKey[it] }
+
+    val launchableApps = (pinnedHomeApps + remainingHomeApps)
+        .distinctBy { it.packageName + "/" + it.activityName }
+        .take(homeAppCount.coerceIn(1, 7))
         .sortedWith(
             compareBy<AppInfo> {
                 tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
