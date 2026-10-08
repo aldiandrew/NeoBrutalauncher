@@ -47,15 +47,7 @@ fun NeoNotesTasksTile(
 ) {
     var noteDraft by remember { mutableStateOf("") }
 
-    fun saveDraft() {
-        taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
-            onAddTask(it)
-            taskDraft = ""
-        }
-    }
 
-    BrutalBlock(
-        modifier = modifier.clickable(enabled = taskDraft.isNotBlank()) { saveDraft() },
         background = background,
         borderWidth = 4.dp,
         borderColor = if (
@@ -203,7 +195,7 @@ private fun NotesTasksColumn(
                     .weight(1f)
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused) {
-                            saveDraft()
+                            onAdd()
                         }
                     },
                 singleLine = true,
@@ -249,7 +241,12 @@ fun NeoTasksTile(
     var taskDraft by remember { mutableStateOf("") }
 
     BrutalBlock(
-        modifier = modifier,
+        modifier = modifier.clickable(enabled = taskDraft.isNotBlank()) {
+            taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
+                onAddTask(it)
+                taskDraft = ""
+            }
+        },
         background = background,
         borderWidth = 4.dp,
         borderColor = if (
@@ -267,7 +264,12 @@ fun NeoTasksTile(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             isTasks = true,
             onDraftChange = { taskDraft = it },
-            onAdd = { saveDraft() },
+            onAdd = {
+                taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
+                    onAddTask(it)
+                    taskDraft = ""
+                }
+            },
             onEditItem = onEditTask,
             onToggleItem = onToggleTask
         )
