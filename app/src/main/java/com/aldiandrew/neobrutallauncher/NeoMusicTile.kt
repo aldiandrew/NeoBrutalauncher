@@ -84,9 +84,7 @@ fun NeoMusicTile(
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                hasAccess = hasMusicAccess(context)
-            }
+            if (event == Lifecycle.Event.ON_RESUME) hasAccess = hasMusicAccess(context)
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -106,29 +104,19 @@ fun NeoMusicTile(
 
     BrutalBlock(
         modifier = modifier.then(
-            if (!hasAccess) {
-                Modifier.clickable {
-                    context.startActivity(
-                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    )
-                }
-            } else {
-                Modifier
-            }
+            if (!hasAccess) Modifier.clickable {
+                context.startActivity(
+                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            } else Modifier
         ),
         background = background,
         borderWidth = 4.dp,
-        borderColor = if (
-            background == BrutalColors.DarkTile ||
-            background == BrutalColors.DarkPaper
-        ) BrutalColors.DarkWhite else BrutalColors.Ink,
+        borderColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
         shadowX = 6.dp,
         shadowY = 6.dp,
-        shadowColor = if (
-            background == BrutalColors.DarkTile ||
-            background == BrutalColors.DarkPaper
-        ) BrutalColors.DarkWhite else BrutalColors.Ink
+        shadowColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         if (decorated) {
             NeoTileDecoration(
@@ -136,145 +124,87 @@ fun NeoMusicTile(
                 accent = BrutalColors.Yellow,
                 textColor = textColor,
                 modifier = Modifier.fillMaxSize()
-            )     {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 6.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.size(58.dp),
-                contentAlignment = Alignment.Center
             ) {
-                if (iconBitmap != null) {
-                    Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
-                } else {
-                    Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
-                }
+                MusicTileContent(hasAccess, musicLabel, musicInfo, iconBitmap, textColor, context)
             }
-            Spacer(Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1
-                )
-                Text(
-                    text = musicLabel.uppercase(),
-                    fontSize = 12.sp,
-                    lineHeight = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
-                    val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
-                    Text(
-                        text = if (artist != null) "$" + "{title} — $" + "{artist}" else title,
-                        fontSize = 8.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if (!hasAccess) {
-                    Text(
-                        text = "TAP TILE TO ALLOW MUSIC ACCESS",
-                        fontSize = 6.sp,
-                        lineHeight = 7.sp,
-                        fontWeight = FontWeight.Black,
-                        color = textColor,
-                        maxLines = 1
-                    )
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
-                MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
-                MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
-            }
-        }
-    }
-}
-        } else     {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 6.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.size(58.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (iconBitmap != null) {
-                    Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
-                } else {
-                    Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
-                }
-            }
-            Spacer(Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1
-                )
-                Text(
-                    text = musicLabel.uppercase(),
-                    fontSize = 12.sp,
-                    lineHeight = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
-                    val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
-                    Text(
-                        text = if (artist != null) "$" + "{title} — $" + "{artist}" else title,
-                        fontSize = 8.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if (!hasAccess) {
-                    Text(
-                        text = "TAP TILE TO ALLOW MUSIC ACCESS",
-                        fontSize = 6.sp,
-                        lineHeight = 7.sp,
-                        fontWeight = FontWeight.Black,
-                        color = textColor,
-                        maxLines = 1
-                    )
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
-                MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
-                MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
-            }
+        } else {
+            MusicTileContent(hasAccess, musicLabel, musicInfo, iconBitmap, textColor, context)
         }
     }
 }
 
+@Composable
+private fun MusicTileContent(
+    hasAccess: Boolean,
+    musicLabel: String,
+    musicInfo: NeoMusicInfo?,
+    iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
+    textColor: Color,
+    context: Context
+) {
+    Row(
+        modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.size(58.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (iconBitmap != null) {
+                Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
+            } else {
+                Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+            Text(
+                text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Black,
+                color = textColor,
+                maxLines = 1
+            )
+            Text(
+                text = musicLabel.uppercase(),
+                fontSize = 12.sp,
+                lineHeight = 13.sp,
+                fontWeight = FontWeight.Black,
+                color = textColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
+                val artist = musicInfo.artist?.takeIf { it.isNotBlank() }
+                Text(
+                    text = if (artist != null) "$title — $artist" else title,
+                    fontSize = 8.sp,
+                    lineHeight = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (!hasAccess) {
+                Text(
+                    text = "TAP TILE TO ALLOW MUSIC ACCESS",
+                    fontSize = 6.sp,
+                    lineHeight = 7.sp,
+                    fontWeight = FontWeight.Black,
+                    color = textColor,
+                    maxLines = 1
+                )
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
+            MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
+            MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
+        }
     }
 }
 
