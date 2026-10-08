@@ -248,9 +248,7 @@ fun NeoBrutalLauncherApp() {
     )
 
     fun requestLaunch(app: AppInfo) {
-        if (launchApp == null) {
-            launchApp = app
-        }
+        repository.launch(app)
     }
 
     LaunchedEffect(Unit) {
@@ -405,6 +403,7 @@ fun NeoBrutalLauncherApp() {
                         currentPage = currentPage,
                         homeReturnTrigger = homeReturnTrigger,
                         motionConfig = motionConfig,
+                        wallpaperUri = wallpaperUri,
                     onPageChange = {
                         currentPage = it.coerceIn(0, 2)
                         if (currentPage == 1) refreshApps()
@@ -497,6 +496,7 @@ private fun LauncherPageHost(
     currentPage: Int,
     homeReturnTrigger: Int,
     motionConfig: NeoMotionConfig,
+    wallpaperUri: String?,
     onPageChange: (Int) -> Unit,
     content: @Composable (Int) -> Unit
 ) {
@@ -524,7 +524,16 @@ private fun LauncherPageHost(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        BrutalWallpaper(
+            uriString = wallpaperUri,
+            modifier = Modifier.fillMaxSize()
+        )
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
@@ -532,14 +541,8 @@ private fun LauncherPageHost(
             userScrollEnabled = true,
             key = { it }
         ) { page ->
-            NeoHomeReturnMotion(
-                trigger = homeReturnTrigger,
-                config = motionConfig,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    content(page)
-                }
+            Box(modifier = Modifier.fillMaxSize()) {
+                content(page)
             }
         }
 
@@ -611,7 +614,7 @@ private fun HomeScreen(
     val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
     val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
     val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
-    val homeNotesBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
+    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -621,7 +624,7 @@ private fun HomeScreen(
     }.value ?: 0
 
     var weatherRefreshToken by remember { mutableIntStateOf(0) }
-    var noteItems by remember { mutableStateOf(preferences.noteItems()) }
+    var taskItems by remember { mutableStateOf(preferences.taskItems()) }
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
     var tileEditMode by remember { mutableStateOf(false) }
     var showAppPicker by remember { mutableStateOf(false) }
@@ -881,8 +884,8 @@ private fun HomeScreen(
                         Text(
                             text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
                             fontFamily = BrutalTypography.Display,
-                            fontSize = 7.5.sp,
-                            lineHeight = 8.5.sp,
+                            fontSize = 6.5.sp,
+                            lineHeight = 7.5.sp,
                             fontWeight = FontWeight.Normal,
                             letterSpacing = 0.25.sp,
                             color = BrutalColors.White,
@@ -973,23 +976,30 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "notes-tasks") {
-                NeoNotesTasksTile(
-                    notes = noteItems,
+            item(key = "tasks") {
+                NeoTasksTile(
+                    tasks = taskItems,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                    background = homeNotesBackground,
+                    background = homeTasksBackground,
                     textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
-                    onAddNote = { text ->
-                        val updated = noteItems + NeoListItem(text = text)
-                        noteItems = updated
-                        preferences.setNoteItems(updated)
+                    onAddTask = { text ->
+                        val updated = taskItems + NeoListItem(text = text)
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
                     },
-                    onEditNote = { index, text ->
-                        val updated = noteItems.mapIndexed { itemIndex, item ->
+                    onEditTask = { index, text ->
+                        val updated = taskItems.mapIndexed { itemIndex, item ->
                             if (itemIndex == index) item.copy(text = text) else item
                         }
-                        noteItems = updated
-                        preferences.setNoteItems(updated)
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
+                    },
+                    onToggleTask = { index ->
+                        val updated = taskItems.mapIndexed { itemIndex, item ->
+                            if (itemIndex == index) item.copy(checked = !item.checked) else item
+                        }
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
                     }
                 )
             }
@@ -1132,7 +1142,7 @@ private fun HomeScreen(
         }
         val locked = tile.id == lastId
 
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = {
                 selectedTile = null
                 tileEditMode = false
@@ -1146,7 +1156,7 @@ private fun HomeScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = if (locked) {
                             "FIXED 4x1 / LAST HOME APP"
@@ -1155,6 +1165,7 @@ private fun HomeScreen(
                         },
                         fontWeight = FontWeight.Black
                     )
+
                     if (!locked) {
                         listOf(
                             NeoTileSize.SMALL,
@@ -1162,64 +1173,42 @@ private fun HomeScreen(
                             NeoTileSize.THREE_BY_ONE,
                             NeoTileSize.FOUR_BY_ONE
                         ).forEach { option ->
-                            androidx.compose.material3.TextButton(
-                                onClick = {
-                                    onTileSizeChange(tile.id, option)
-                                    selectedTile = null
-                                    tileEditMode = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                            BrutalActionButton(
+                                title = "SET ${option.label}",
+                                background = BrutalColors.White
                             ) {
-                                Text(
-                                    text = "SET " + option.label,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Black
-                                )
+                                onTileSizeChange(tile.id, option)
+                                selectedTile = null
+                                tileEditMode = false
                             }
                         }
 
                         if (homeAppCount > 2) {
-                            androidx.compose.material3.TextButton(
-                                onClick = {
-                                    val app = launchableApps.firstOrNull {
-                                        "app_" + it.packageName + "_" + it.activityName == tile.id
-                                    }
-                                    if (app != null) {
-                                        val key = app.packageName + "/" + app.activityName
-                                        val updatedExcluded = excludedHomeApps + key
-                                        excludedHomeApps = updatedExcluded
-                                        preferences.setExcludedHomeApps(updatedExcluded)
-                                        onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
-                                    }
-                                    selectedTile = null
-                                    tileEditMode = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                            BrutalActionButton(
+                                title = "REMOVE FROM HOME",
+                                background = BrutalColors.Pink
                             ) {
-                                Text(
-                                    text = "REMOVE FROM HOME",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Orange
-                                )
+                                val app = launchableApps.firstOrNull {
+                                    "app_" + it.packageName + "_" + it.activityName == tile.id
+                                }
+                                if (app != null) {
+                                    val key = app.packageName + "/" + app.activityName
+                                    val updatedExcluded = excludedHomeApps + key
+                                    excludedHomeApps = updatedExcluded
+                                    preferences.setExcludedHomeApps(updatedExcluded)
+                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
+                                }
+                                selectedTile = null
+                                tileEditMode = false
                             }
                         }
 
-                        androidx.compose.material3.TextButton(
-                            onClick = {
-                                selectedTile = null
-                                tileEditMode = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        BrutalActionButton(
+                            title = "MOVE TILE",
+                            background = BrutalColors.Cyan
                         ) {
-                            Text(
-                                text = "MOVE TILE",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Black
-                            )
+                            selectedTile = null
+                            tileEditMode = true
                         }
                     }
                 }
@@ -1231,15 +1220,11 @@ private fun HomeScreen(
                         tileEditMode = false
                     }
                 ) {
-                    Text(
-                        text = "DONE",
-                        fontWeight = FontWeight.Black
-                    )
+                    Text("DONE", fontWeight = FontWeight.Black)
                 }
             }
         )
     }
-}
 
 @Composable
 private fun FixedSmallTile(
@@ -1675,7 +1660,16 @@ private fun SettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("TYPOGRAPHY", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TypographyStyle.values().forEach { style -> ThemeButton(style.label, typographyStyle == style, BrutalColors.Cyan, Modifier.weight(1f)) { onTypographyStyleChange(style) } }
+                    listOf(TypographyStyle.DEFAULT, TypographyStyle.CONDENSED).forEach { style ->
+                        ThemeButton(
+                            style.label,
+                            typographyStyle == style,
+                            BrutalColors.Cyan,
+                            Modifier.weight(1f)
+                        ) {
+                            onTypographyStyleChange(style)
+                        }
+                    }
                 }
             }
         }
@@ -1987,8 +1981,9 @@ private fun SettingsSwitch(
                 )
             }
 
-            Switch(
+            BrutalToggle(
                 checked = checked,
+                accent = background,
                 onCheckedChange = onCheckedChange
             )
         }
