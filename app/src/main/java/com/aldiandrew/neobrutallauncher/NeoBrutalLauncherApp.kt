@@ -789,7 +789,7 @@ private fun HomeScreen(
                                     textAlign = TextAlign.Center,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = if (selected) BrutalColors.Ink else uiOnSurface
+                                    color = BrutalColors.Ink
                                 )
                             }
                         }
