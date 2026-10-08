@@ -1,4 +1,7 @@
 package com.aldiandrew.neobrutallauncher
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.offset
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
@@ -76,9 +79,9 @@ fun AppsPage(
     }
 
     val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val uiBackground = if (isDark) BrutalColors.Ink else BrutalColors.Paper
-    val uiSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.White
-    val uiOnSurface = if (isDark) BrutalColors.Ink else BrutalColors.Ink
+    val uiBackground = if (isDark) BrutalColors.DarkPaper else BrutalColors.Paper
+    val uiSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.White
+    val uiOnSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
 
     Box(
         modifier = Modifier
@@ -174,10 +177,19 @@ fun AppsPage(
                                 lightCardPalette[index % lightCardPalette.size]
                             }
 
+                            val cardInteractionSource = remember(app.packageName) { MutableInteractionSource() }
+                            val cardPressed by cardInteractionSource.collectIsPressedAsState()
+
                             BrutalBlock(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .offset(
+                                        x = if (cardPressed) 2.dp else 0.dp,
+                                        y = if (cardPressed) 2.dp else 0.dp
+                                    )
                                     .combinedClickable(
+                                        interactionSource = cardInteractionSource,
+                                        indication = null,
                                         onClick = { onLaunch(app) },
                                         onLongClick = { onToggleFavorite(app) }
                                     ),
