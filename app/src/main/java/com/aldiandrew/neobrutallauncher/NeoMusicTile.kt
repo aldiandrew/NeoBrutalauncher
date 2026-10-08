@@ -137,7 +137,7 @@ fun NeoMusicTile(
 private fun MusicTileContent(
     hasAccess: Boolean,
     musicLabel: String,
-    musicInfo: NeoMusicInfo?,
+    musicInfo: MusicInfo?,
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
     context: Context
