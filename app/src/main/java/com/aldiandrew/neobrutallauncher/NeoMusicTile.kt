@@ -131,12 +131,6 @@ fun NeoMusicTile(
                     context
                 )
 
-                BrutalLabel(
-                    text = "MUSIC",
-                    modifier = Modifier.align(Alignment.BottomStart),
-                    background = BrutalColors.Yellow
-                )
-
                 Text(
                     text = "///",
                     modifier = Modifier
