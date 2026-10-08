@@ -378,14 +378,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(key, array.toString()).apply()
     }
 
-    fun chaosSeed(): Int {
-        return prefs.getInt(KEY_CHAOS_SEED, 0)
-    }
-
-    fun setChaosSeed(value: Int) {
-        prefs.edit().putInt(KEY_CHAOS_SEED, value).apply()
-    }
-
     companion object {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
@@ -404,7 +396,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_BRUTALITY_LEVEL = "brutality_level"
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
-        private const val KEY_CHAOS_SEED = "chaos_seed"
         private const val KEY_NOTE_TEXT = "note_text"
         private const val KEY_NOTE_ITEMS = "note_items"
         private const val KEY_TASK_ITEMS = "task_items"
