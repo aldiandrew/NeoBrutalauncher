@@ -2,6 +2,7 @@ package com.aldiandrew.neobrutallauncher
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
