@@ -79,3 +79,12 @@ No Vanta source code, assets, logos, fonts, or other repository files are copied
 A public GitHub repository is not automatically licensed for source-code reuse.
 
 For future implementation, permissive licenses such as Apache-2.0 or MIT will be preferred when source reuse is actually necessary. Required copyright and license notices will be preserved.
+
+
+### android-common welcome & onboarding
+
+Repository: https://github.com/sameerasw/android-common
+
+Reference: `ui/layout/welcome.md` for the multi-step onboarding structure, progress indication, skip behavior, preference setup, feature introduction, and completion flow.
+
+Use here: design and interaction reference only. No source code or assets are copied.
