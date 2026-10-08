@@ -143,23 +143,12 @@ private fun NotesTasksColumn(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isTasks) {
-                        Box(
-                            modifier = Modifier
-                                .size(15.dp)
-                                .border(2.dp, textColor, RoundedCornerShape(0.dp))
-                                .clickable { onToggleItem(actualIndex) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (item.checked) {
-                                Text(
-                                    text = "✓",
-                                    fontSize = 11.sp,
-                                    lineHeight = 11.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = textColor
-                                )
-                            }
-                        }
+                        BrutalCheckbox(
+                            checked = item.checked,
+                            onCheckedChange = { onToggleItem(actualIndex) },
+                            size = 18.dp,
+                            accent = BrutalColors.Yellow
+                        )
                     } else {
                         Box(
                             modifier = Modifier
@@ -231,5 +220,48 @@ private fun NotesTasksColumn(
                 color = textColor.copy(alpha = 0.5f)
             )
         }
+    }
+}
+
+@Composable
+fun NeoTasksTile(
+    tasks: List<NeoListItem>,
+    modifier: Modifier = Modifier,
+    background: Color = MaterialTheme.colorScheme.surface,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    onAddTask: (String) -> Unit,
+    onEditTask: (Int, String) -> Unit,
+    onToggleTask: (Int) -> Unit
+) {
+    var taskDraft by remember { mutableStateOf("") }
+
+    BrutalBlock(
+        modifier = modifier,
+        background = background,
+        borderWidth = 4.dp,
+        borderColor = if (
+            background == BrutalColors.DarkTile ||
+            background == BrutalColors.DarkPaper
+        ) BrutalColors.DarkWhite else BrutalColors.Ink,
+        shadowX = 6.dp,
+        shadowY = 6.dp
+    ) {
+        NotesTasksColumn(
+            title = "TASKS",
+            inputHint = "TYPE TASK…",
+            items = tasks,
+            draft = taskDraft,
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            isTasks = true,
+            onDraftChange = { taskDraft = it },
+            onAdd = {
+                taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
+                    onAddTask(it)
+                    taskDraft = ""
+                }
+            },
+            onEditItem = onEditTask,
+            onToggleItem = onToggleTask
+        )
     }
 }
