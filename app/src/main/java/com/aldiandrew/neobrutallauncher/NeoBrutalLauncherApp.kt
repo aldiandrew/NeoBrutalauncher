@@ -215,9 +215,25 @@ fun NeoBrutalLauncherApp() {
                         showDate = it
                         preferences.setShowDate(it)
                     },
-                    onHomeAppCountChange = {
-                        homeAppCount = it
-                        preferences.setHomeAppCount(it)
+                    onHomeAppCountChange = { count ->
+                        val normalized = when (count) {
+                            3, 5, 7 -> count
+                            else -> 5
+                        }
+                        homeAppCount = normalized
+                        preferences.setHomeAppCount(normalized)
+
+                        if (favorites.size > normalized) {
+                            val favoriteKeysInAppOrder = apps.map {
+                                it.packageName + "/" + it.activityName
+                            }
+                            val trimmed = favoriteKeysInAppOrder
+                                .filter { favorites.contains(it) }
+                                .take(normalized)
+                                .toSet()
+                            favorites = trimmed
+                            preferences.setFavorites(trimmed)
+                        }
                     },
                     onShowTaglineChange = {
                         showTagline = it
@@ -254,7 +270,7 @@ fun NeoBrutalLauncherApp() {
                         )
                     },
                     onChatNotificationPackagesChange = { updated ->
-                        val normalized = updated.distinct().take(2)
+                        val normalized = updated.distinct().take(1)
                         selectedChatPackages = normalized
                         preferences.setChatNotificationPackages(normalized)
                         NeoChatNotificationStore.setSelectedPackages(normalized)
