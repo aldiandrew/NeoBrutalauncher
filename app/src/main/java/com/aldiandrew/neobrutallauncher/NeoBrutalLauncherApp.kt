@@ -744,7 +744,7 @@ private fun HomeScreen(
                                         Text(
                                             text = longDay.format(now).uppercase(Locale.ENGLISH),
                                             fontSize = sideSize,
-                                            lineHeight = sideSize + 1.sp,
+                                            lineHeight = sideSize,
                                             fontWeight = FontWeight.Black,
                                             fontFamily = BrutalTypography.Display,
                                             color = BrutalColors.Red,
@@ -2429,3 +2429,4 @@ fun BrutalActionButton(
             letterSpacing = 0.5.sp
         )
     }
+}
