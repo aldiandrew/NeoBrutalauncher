@@ -1,1 +1,1 @@
-# NeoBrutalauncher keeps release shrinking disabled for the first development build.
+# R8 uses the optimized Android defaults; no custom keep rules are required for the manifest-registered launcher activity and notification listener.
