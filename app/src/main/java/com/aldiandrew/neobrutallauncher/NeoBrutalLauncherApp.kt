@@ -37,6 +37,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
@@ -62,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -1612,6 +1614,7 @@ private fun SettingsScreen(
     onRestore: () -> Unit,
     onResetAll: () -> Unit
 ) {
+    var editedQuotes by remember(customQuotes) { mutableStateOf(customQuotes) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
@@ -1675,29 +1678,8 @@ private fun SettingsScreen(
             shadowY = 5.dp
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("ANIMATION STYLE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
-                Text(
-                    "Controls page motion and app launch motion. Smooth is the restrained default.",
-                    fontSize = 10.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    AnimationStyle.values().forEach { style ->
-                        ThemeButton(
-                            label = style.label,
-                            selected = animationStyle == style,
-                            background = when (style) {
-                                AnimationStyle.SMOOTH -> BrutalColors.Cyan
-                                AnimationStyle.TAP_FLIP -> BrutalColors.Pink
-                                AnimationStyle.CUBE_3D -> BrutalColors.Purple
-                            },
-                            modifier = Modifier.weight(1f),
-                            onClick = { onAnimationStyleChange(style) }
-                        )
-                    }
-                }
-                Text("SMOOTHNESS", fontFamily = BrutalTypography.Display, fontSize = 15.sp, fontWeight = FontWeight.Normal)
+                Text("SMOOTHNESS", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
+                Text("Controls how quickly launcher movement settles.", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MotionSmoothness.values().forEach { smoothness ->
                         ThemeButton(
@@ -1713,11 +1695,101 @@ private fun SettingsScreen(
         }
         SettingsSwitch(
             "REDUCE MOTION",
-            "Disable decorative launch and return movement while keeping normal launcher behavior.",
+            "Disable decorative launch and return movement.",
             reduceMotion,
             BrutalColors.Cyan,
             onReduceMotionChange
         )
+
+        SettingsSectionTitle("QUOTES")
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = uiSurface,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("QUOTES EDITOR", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text(
+                    "${editedQuotes.size} CUSTOM / ${NeoQuotes.allQuotes(editedQuotes).size} TOTAL",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    color = uiOnSurface.copy(alpha = .7f)
+                )
+                if (editedQuotes.isEmpty()) {
+                    Text("NO CUSTOM QUOTES. BUILT-IN QUOTES REMAIN ACTIVE.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .7f))
+                } else {
+                    editedQuotes.forEachIndexed { index, quote ->
+                        val quotePalette = BrutalColors.appPalette(index)
+                        BrutalBlock(
+                            Modifier.fillMaxWidth(),
+                            background = quotePalette[index % quotePalette.size],
+                            borderWidth = 2.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                                Text(
+                                    text = (index + 1).toString() + ".",
+                                    modifier = Modifier.padding(start = 7.dp, top = 10.dp),
+                                    fontFamily = BrutalTypography.Display,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                                )
+                                BasicTextField(
+                                    value = quote,
+                                    onValueChange = { value ->
+                                        editedQuotes = editedQuotes.toMutableList().also { it[index] = value.take(300) }
+                                    },
+                                    modifier = Modifier.weight(1f).padding(horizontal = 7.dp, vertical = 8.dp),
+                                    minLines = 2,
+                                    maxLines = 4,
+                                    textStyle = TextStyle(
+                                        color = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                                        fontSize = 12.sp,
+                                        lineHeight = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        if (quote.isBlank()) {
+                                            Text(
+                                                "WRITE A QUOTE…",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (isDark) BrutalColors.DarkWhite.copy(alpha = .45f) else BrutalColors.Ink.copy(alpha = .45f)
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                )
+                                ThemeButton(
+                                    label = "DELETE",
+                                    selected = true,
+                                    background = BrutalColors.Pink,
+                                    modifier = Modifier.width(66.dp).padding(end = 5.dp, top = 6.dp),
+                                    onClick = { editedQuotes = editedQuotes.filterIndexed { quoteIndex, _ -> quoteIndex != index } }
+                                )
+                            }
+                        }
+                    }
+                }
+                if (editedQuotes.size < 5) {
+                    BrutalActionButton("ADD QUOTE", BrutalColors.Cyan) { editedQuotes = editedQuotes + "" }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BrutalActionButton("SAVE QUOTES", BrutalColors.Yellow, Modifier.weight(1f)) {
+                        editedQuotes = editedQuotes.map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(5)
+                        onCustomQuotesChange(editedQuotes)
+                    }
+                    BrutalActionButton("RESET", BrutalColors.White, Modifier.weight(.7f)) {
+                        editedQuotes = emptyList()
+                        onCustomQuotesChange(emptyList())
+                    }
+                }
+            }
+        }
 
         SettingsSectionTitle("HOME CONTENT")
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
