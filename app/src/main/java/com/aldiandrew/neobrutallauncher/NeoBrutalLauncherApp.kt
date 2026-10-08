@@ -827,6 +827,7 @@ private fun HomeScreen(
                             selectedTile = tile
                         },
                         onTileEdit = { selectedTile = it },
+                        onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
