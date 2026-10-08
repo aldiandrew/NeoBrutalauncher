@@ -300,6 +300,7 @@ fun NeoBrutalLauncherApp() {
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
+                    favorites = favorites,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
@@ -383,6 +384,17 @@ fun NeoBrutalLauncherApp() {
                         iconPackPackage = it
                         preferences.setIconPackPackage(it)
                         refreshApps()
+                    },
+                    onTogglePinnedApp = { app ->
+                        val key = app.packageName + "/" + app.activityName
+                        val updated = favorites.toMutableSet()
+                        if (updated.contains(key)) {
+                            updated.remove(key)
+                        } else if (updated.size < homeAppCount) {
+                            updated.add(key)
+                        }
+                        favorites = updated
+                        preferences.setFavorites(updated)
                     },
                     onCustomQuotesChange = {
                         customQuotes = it
@@ -1598,6 +1610,7 @@ private fun SettingsScreen(
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
+    favorites: Set<String>,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
@@ -1613,6 +1626,7 @@ private fun SettingsScreen(
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
+    onTogglePinnedApp: (AppInfo) -> Unit,
     onCustomQuotesChange: (List<String>) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
@@ -1636,8 +1650,18 @@ private fun SettingsScreen(
             .filter { it.packageName != context.packageName }.sortedBy { it.label.lowercase() }
     }
     var showChatAppPicker by remember { mutableStateOf(false) }
+    var showIconPackPicker by remember { mutableStateOf(false) }
+    var showPinnedAppPicker by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
     val selectedChatApp = chatCandidates.firstOrNull { it.packageName == chatNotificationPackages.firstOrNull() }
+    val selectedIconPack = iconPacks.firstOrNull { it.packageName == iconPackPackage }
+    val pinnedCandidates = remember(apps) {
+        apps.groupBy { it.packageName }
+            .values
+            .mapNotNull { it.firstOrNull() }
+            .filter { it.packageName != context.packageName }
+            .sortedBy { it.label.lowercase() }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(uiBackground)
@@ -1831,14 +1855,34 @@ private fun SettingsScreen(
         }
 
         SettingsSectionTitle("ICON PACK")
-        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("THIRD-PARTY ICON PACKS", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Standard launcher icon packs with appfilter.xml are supported. Icons without a matching pack entry keep the normal app icon.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
-                ThemeButton("SYSTEM ICONS", iconPackPackage == null, BrutalColors.Cyan, Modifier.fillMaxWidth()) { onIconPackChange(null) }
-                if (iconPacks.isEmpty()) Text("NO COMPATIBLE ICON PACKS DETECTED", fontSize = 9.sp, fontWeight = FontWeight.Black, color = uiOnSurface.copy(alpha = .6f))
-                iconPacks.forEach { pack ->
-                    ThemeButton(pack.label.uppercase(Locale.ENGLISH), iconPackPackage == pack.packageName, BrutalColors.Yellow, Modifier.fillMaxWidth()) { onIconPackChange(pack.packageName) }
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = uiSurface,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = selectedIconPack?.label?.uppercase(Locale.ENGLISH) ?: "SYSTEM ICONS",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = uiOnSurface
+                )
+                Text(
+                    text = "Choose the icon pack used by Home and Apps.",
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = uiOnSurface.copy(alpha = .75f)
+                )
+                BrutalActionButton(
+                    title = "CHOOSE ICON PACK",
+                    background = BrutalColors.Yellow,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    showIconPackPicker = true
                 }
             }
         }
@@ -1864,14 +1908,56 @@ private fun SettingsScreen(
         }
 
         SettingsSectionTitle("PINNED APPS")
-        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = uiSurface,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                Text("$favoritesCount PINNED APPS", fontFamily = BrutalTypography.Display, fontSize = 18.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Choose how many Home app tiles are available.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(3,5,7).forEach { count -> ThemeButton(count.toString(), homeAppCount == count, if(count==3) BrutalColors.Cyan else if(count==5) BrutalColors.Yellow else BrutalColors.Pink, Modifier.weight(1f)) { onHomeAppCountChange(count) } }
+                Text(
+                    "$favoritesCount PINNED APPS",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = uiOnSurface
+                )
+                Text(
+                    "Choose how many Home app tiles are available.",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = uiOnSurface.copy(alpha = .75f)
+                )
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(3, 5, 7).forEach { count ->
+                        ThemeButton(
+                            count.toString(),
+                            homeAppCount == count,
+                            if (count == 3) BrutalColors.Cyan
+                            else if (count == 5) BrutalColors.Yellow
+                            else BrutalColors.Pink,
+                            Modifier.weight(1f)
+                        ) {
+                            onHomeAppCountChange(count)
+                        }
+                    }
                 }
-                BrutalActionButton("CLEAR ALL PINNED APPS", BrutalColors.Yellow, onClick = onClearFavorites)
+                BrutalActionButton(
+                    "CHOOSE PINNED APPS",
+                    BrutalColors.Cyan,
+                    Modifier.fillMaxWidth()
+                ) {
+                    showPinnedAppPicker = true
+                }
+                BrutalActionButton(
+                    "CLEAR ALL PINNED APPS",
+                    BrutalColors.Yellow,
+                    onClick = onClearFavorites
+                )
             }
         }
 
@@ -1931,6 +2017,179 @@ private fun SettingsScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
+    }
+
+    if (showIconPackPicker) {
+        AlertDialog(
+            onDismissRequest = { showIconPackPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE ICON PACK",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.height(360.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    item {
+                        val selected = iconPackPackage == null
+                        BrutalBlock(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onIconPackChange(null)
+                                    showIconPackPicker = false
+                                },
+                            background = if (selected) BrutalColors.Yellow else uiBackground,
+                            borderWidth = 3.dp,
+                            shadowX = if (selected) 0.dp else 3.dp,
+                            shadowY = if (selected) 0.dp else 3.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "SYSTEM ICONS",
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = if (selected) "SELECTED" else "USE",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink
+                                )
+                            }
+                        }
+                    }
+                    items(
+                        items = iconPacks,
+                        key = { it.packageName }
+                    ) { pack ->
+                        val selected = iconPackPackage == pack.packageName
+                        BrutalBlock(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onIconPackChange(pack.packageName)
+                                    showIconPackPicker = false
+                                },
+                            background = if (selected) BrutalColors.Yellow else uiBackground,
+                            borderWidth = 3.dp,
+                            shadowX = if (selected) 0.dp else 3.dp,
+                            shadowY = if (selected) 0.dp else 3.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = pack.label.uppercase(Locale.ENGLISH),
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = if (selected) "SELECTED" else "USE",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
+    if (showPinnedAppPicker) {
+        AlertDialog(
+            onDismissRequest = { showPinnedAppPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE PINNED APPS",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = favorites.size.toString() + " / " + homeAppCount + " SELECTED",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    if (pinnedCandidates.isEmpty()) {
+                        Text(
+                            text = "NO LAUNCHABLE APPS",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.height(360.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(
+                                items = pinnedCandidates,
+                                key = { it.packageName + "/" + it.activityName }
+                            ) { app ->
+                                val key = app.packageName + "/" + app.activityName
+                                val selected = favorites.contains(key)
+                                val enabled = selected || favorites.size < homeAppCount
+                                BrutalBlock(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            enabled = enabled,
+                                            onClick = { onTogglePinnedApp(app) }
+                                        ),
+                                    background = if (selected) BrutalColors.Yellow else uiBackground,
+                                    borderWidth = 3.dp,
+                                    shadowX = if (selected) 0.dp else 3.dp,
+                                    shadowY = if (selected) 0.dp else 3.dp
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = app.label.uppercase(Locale.ENGLISH),
+                                            modifier = Modifier.weight(1f),
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = BrutalColors.Ink.copy(alpha = if (enabled) 1f else .45f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = if (selected) "SELECTED" else "ADD",
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = BrutalColors.Ink.copy(alpha = if (enabled) 1f else .45f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
     }
 
     if (showChatAppPicker) {
