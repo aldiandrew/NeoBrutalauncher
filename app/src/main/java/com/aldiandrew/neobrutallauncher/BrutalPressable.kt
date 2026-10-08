@@ -3,6 +3,7 @@ package com.aldiandrew.neobrutallauncher
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,8 +26,25 @@ fun BrutalPressableBlock(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val pressedOffsetX = if (pressed) shadowX else 0.dp
-    val pressedOffsetY = if (pressed) shadowY else 0.dp
+    val motionConfig = LocalNeoMotionConfig.current
+    val pressedOffsetX by animateDpAsState(
+        targetValue = if (pressed && !motionConfig.reduceMotion) shadowX else if (pressed) shadowX else 0.dp,
+        animationSpec = if (motionConfig.reduceMotion) {
+            androidx.compose.animation.core.tween(durationMillis = 1)
+        } else {
+            motionConfig.springSpec()
+        },
+        label = "brutal-press-x"
+    )
+    val pressedOffsetY by animateDpAsState(
+        targetValue = if (pressed && !motionConfig.reduceMotion) shadowY else if (pressed) shadowY else 0.dp,
+        animationSpec = if (motionConfig.reduceMotion) {
+            androidx.compose.animation.core.tween(durationMillis = 1)
+        } else {
+            motionConfig.springSpec()
+        },
+        label = "brutal-press-y"
+    )
 
     BrutalBlock(
         modifier = modifier
