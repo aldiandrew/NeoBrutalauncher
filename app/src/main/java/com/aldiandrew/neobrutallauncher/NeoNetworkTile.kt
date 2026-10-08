@@ -57,17 +57,24 @@ fun NeoNetworkTile(context: Context, modifier: Modifier = Modifier) {
     DisposableEffect(context) {
         val manager = context.getSystemService(ConnectivityManager::class.java)
         val callback = object : ConnectivityManager.NetworkCallback() {
+            private fun update() {
+                val updated = readNetworkState(context)
+                if (updated != state) {
+                    state = updated
+                }
+            }
+
             override fun onAvailable(network: Network) {
-                state = readNetworkState(context)
+                update()
             }
             override fun onLost(network: Network) {
-                state = readNetworkState(context)
+                update()
             }
             override fun onCapabilitiesChanged(
                 network: Network,
                 networkCapabilities: NetworkCapabilities
             ) {
-                state = readNetworkState(context)
+                update()
             }
         }
         runCatching { manager.registerDefaultNetworkCallback(callback) }
