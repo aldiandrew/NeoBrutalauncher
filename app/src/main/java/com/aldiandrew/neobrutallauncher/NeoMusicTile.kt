@@ -157,12 +157,13 @@ fun NeoMusicTile(
         shadowColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         MusicTileContent(
-            hasAccess,
-            musicLabel,
-            musicInfo,
-            iconBitmap,
-            textColor,
-            context
+            hasAccess = hasAccess,
+            musicLabel = musicLabel,
+            musicInfo = musicInfo,
+            iconBitmap = iconBitmap,
+            textColor = textColor,
+            context = context,
+            musicProgress = musicProgress
         )
     }
 }
@@ -174,7 +175,8 @@ private fun MusicTileContent(
     musicInfo: MusicInfo?,
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
-    context: Context
+    context: Context,
+    musicProgress: Float
 ) {
     Row(
         modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
