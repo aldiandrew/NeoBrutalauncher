@@ -101,9 +101,9 @@ fun NeoBrutalLauncherApp() {
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
-    var animationStyle by remember { mutableStateOf(preferences.animationStyle()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
+    var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var launchApp by remember { mutableStateOf<AppInfo?>(null) }
     var homeReturnTrigger by remember { mutableIntStateOf(0) }
     var launcherWasPaused by remember { mutableStateOf(false) }
@@ -241,7 +241,6 @@ fun NeoBrutalLauncherApp() {
     }
 
     val motionConfig = NeoMotionConfig(
-        animationStyle = animationStyle,
         smoothness = motionSmoothness,
         reduceMotion = reduceMotion
     )
@@ -272,7 +271,6 @@ fun NeoBrutalLauncherApp() {
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
-                    animationStyle = animationStyle,
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
@@ -360,9 +358,9 @@ fun NeoBrutalLauncherApp() {
                         preferences.setIconPackPackage(it)
                         refreshApps()
                     },
-                    onAnimationStyleChange = {
-                        animationStyle = it
-                        preferences.setAnimationStyle(it)
+                    onCustomQuotesChange = {
+                        customQuotes = it
+                        preferences.setCustomQuotes(it)
                     },
                     onMotionSmoothnessChange = {
                         motionSmoothness = it
@@ -417,6 +415,7 @@ fun NeoBrutalLauncherApp() {
                             use24Hour = use24Hour,
                             showAmPm = showAmPm,
                             showWeather = showWeather,
+                            customQuotes = customQuotes,
                             appTileContentMode = appTileContentMode,
                             typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
@@ -460,6 +459,7 @@ fun NeoBrutalLauncherApp() {
                     } else {
                         LivePage(
                             apps = apps,
+                            customQuotes = customQuotes,
                             selectedChatPackages = selectedChatPackages,
                             onSelectChatPackage = { packageName ->
                                 val normalized = listOfNotNull(packageName).take(1)
@@ -586,6 +586,7 @@ private fun HomeScreen(
     use24Hour: Boolean,
     showAmPm: Boolean,
     showWeather: Boolean,
+    customQuotes: List<String>,
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     wallpaperUri: String?,
@@ -633,13 +634,6 @@ private fun HomeScreen(
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
 
-    val launchCounts = remember(apps) { preferences.appLaunchCounts() }
-    val rankedApps = apps.sortedWith(
-        compareByDescending<AppInfo> { launchCounts[it.packageName + "/" + it.activityName] ?: 0 }
-            .thenByDescending { favorites.contains(it.packageName + "/" + it.activityName) }
-            .thenBy { it.label.lowercase() }
-    )
-
     val appKeys = apps.map { it.packageName + "/" + it.activityName }
     val storedHomeOrder = remember(appKeys) { preferences.homeAppOrder() }
     var stableHomeOrder by remember(appKeys, storedHomeOrder) {
@@ -651,7 +645,7 @@ private fun HomeScreen(
                 if (existing.isNotEmpty()) {
                     existing + missing
                 } else {
-                    rankedApps.map { it.packageName + "/" + it.activityName }
+                    appKeys
                 }
             }
         )
@@ -1010,7 +1004,7 @@ private fun HomeScreen(
                         },
                         onLongClick = { showAppPicker = true }
                     )
-                    val quotePair = NeoQuotes.pairForRotation(quoteRotation)
+                    val quotePair = NeoQuotes.pairForRotation(quoteRotation, customQuotes)
                     NeoQuoteTilePlain(
                         quote = quotePair.first,
                         modifier = Modifier.weight(1f).aspectRatio(1f),
@@ -1591,7 +1585,6 @@ private fun SettingsScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
-    animationStyle: AnimationStyle,
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
@@ -1610,7 +1603,6 @@ private fun SettingsScreen(
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
-    onAnimationStyleChange: (AnimationStyle) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
