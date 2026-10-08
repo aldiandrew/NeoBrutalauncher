@@ -101,7 +101,6 @@ fun NeoBrutalLauncherApp() {
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
-    var brutalityLevel by remember { mutableStateOf(preferences.brutalityLevel()) }
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var locationPermissionGranted by remember {
@@ -183,7 +182,6 @@ fun NeoBrutalLauncherApp() {
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
-                brutalityLevel = brutalityLevel,
                 typographyStyle = typographyStyle,
             ) {
                 SettingsScreen(
@@ -198,7 +196,6 @@ fun NeoBrutalLauncherApp() {
                     showQuote = showQuote,
                     showBattery = showBattery,
                     appTileContentMode = appTileContentMode,
-                    brutalityLevel = brutalityLevel,
                     typographyStyle = typographyStyle,
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
@@ -296,10 +293,6 @@ fun NeoBrutalLauncherApp() {
                         appTileContentMode = it
                         preferences.setAppTileContentMode(it)
                     },
-                    onBrutalityLevelChange = {
-                        brutalityLevel = it
-                        preferences.setBrutalityLevel(it)
-                    },
                     onTypographyStyleChange = {
                         typographyStyle = it
                         preferences.setTypographyStyle(it)
@@ -322,7 +315,6 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
-                brutalityLevel = brutalityLevel,
             ) {
                 LauncherPageHost(
                     currentPage = currentPage,
@@ -1259,16 +1251,10 @@ private fun NeoQuoteTilePlain(
         shadowY = 6.dp,
         shadowColor = BrutalColors.Ink
     ) {
-        NeoTileDecoration(
-            label = "QUOTE",
-            accent = BrutalColors.Yellow,
-            textColor = palette.text,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 9.dp, top = 25.dp, end = 9.dp, bottom = 10.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 10.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
@@ -1282,7 +1268,6 @@ private fun NeoQuoteTilePlain(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-        }
     }
 }
 
@@ -1304,26 +1289,12 @@ fun NeoQuoteTile(
         shadowY = 6.dp,
         shadowColor = BrutalColors.Ink
     ) {
-        NeoTileDecoration(
-            label = "QUOTE",
-            accent = BrutalColors.Yellow,
-            textColor = palette.text,
-            modifier = Modifier.fillMaxSize()
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 10.dp)
         ) {
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 9.dp, top = 25.dp, end = 9.dp, bottom = 10.dp)
-            ) {
                 val compact = minOf(maxWidth, maxHeight)
-                val headerSize = if (emphasized) 12.sp else {
-                    when {
-                        compact < 78.dp -> 7.sp
-                        compact < 155.dp -> 10.sp
-                        else -> 11.sp
-                    }
-                }
-
                 val availableHeight = (maxHeight.value - if (emphasized) 43f else 30f)
                     .coerceAtLeast(18f)
                 var quoteSize = if (emphasized) {
@@ -1359,17 +1330,6 @@ fun NeoQuoteTile(
                     verticalArrangement = Arrangement.spacedBy(if (emphasized) 6.dp else 5.dp)
                 ) {
                     Text(
-                        text = "NEO QUOTE",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = headerSize,
-                        lineHeight = headerSize,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = if (emphasized) 0.5.sp else 1.sp,
-                        color = palette.text,
-                        maxLines = 1
-                    )
-
-                    Text(
                         text = "“$quote”",
                         modifier = Modifier.fillMaxWidth(),
                         fontFamily = BrutalTypography.Body,
@@ -1383,7 +1343,6 @@ fun NeoQuoteTile(
                     )
                 }
             }
-        }
     }
 }
 
@@ -1397,39 +1356,24 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val tileMaxHeight = maxHeight
-        val isSmall = tileSize == NeoTileSize.SMALL
-        val isHorizontal = tileSize == NeoTileSize.HORIZONTAL
-        val isThreeByOne = tileSize == NeoTileSize.THREE_BY_ONE
-        val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE
-
         val iconBitmap = remember(app.packageName) {
-            app.icon.toBitmap(64, 64).asImageBitmap()
+            app.icon.toBitmap(96, 96).asImageBitmap()
         }
-
-        val smallTextSize = when {
-            app.label.length > 18 -> 7.sp
-            app.label.length > 11 -> 8.sp
-            else -> 9.sp
+        val shortest = minOf(maxWidth, maxHeight)
+        val iconSize = when {
+            shortest < 70.dp -> 24.dp
+            shortest < 110.dp -> 34.dp
+            shortest < 170.dp -> 46.dp
+            else -> minOf(72.dp, shortest * 0.42f)
         }
-
-        val horizontalTextSize = when {
-            app.label.length > 18 -> 10.sp
-            app.label.length > 12 -> 12.sp
-            else -> 15.sp
+        val textSize = when {
+            shortest < 70.dp -> 7.sp
+            shortest < 110.dp -> 9.sp
+            shortest < 170.dp -> 13.sp
+            shortest < 230.dp -> 18.sp
+            else -> 24.sp
         }
-
-        val threeByOneTextSize = when {
-            app.label.length > 20 -> 15.sp
-            app.label.length > 14 -> 19.sp
-            else -> 23.sp
-        }
-
-        val fourByOneTextSize = when {
-            app.label.length > 22 -> 19.sp
-            app.label.length > 15 -> 24.sp
-            else -> 30.sp
-        }
+        val horizontal = maxWidth > maxHeight * 1.35f
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1438,164 +1382,20 @@ private fun AppTile(
             shadowX = 5.dp,
             shadowY = 5.dp
         ) {
-            when {
-                isFourByOne -> {
-                    val iconSize = minOf(tileMaxHeight * 0.78f, 78.dp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .fillMaxWidth()
-                                .padding(end = iconSize + 12.dp),
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = fourByOneTextSize,
-                            lineHeight = (fourByOneTextSize.value * 1.02f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+            when (contentMode) {
+                TileContentMode.ICON -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Image(
                             bitmap = iconBitmap,
                             contentDescription = app.label,
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(iconSize)
+                            modifier = Modifier.size(iconSize)
                         )
                     }
                 }
 
-                isHorizontal -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 9.dp, vertical = 7.dp),
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            bitmap = iconBitmap,
-                            contentDescription = app.label,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier.weight(1f),
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = horizontalTextSize,
-                            lineHeight = (horizontalTextSize.value * 1.05f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                isThreeByOne -> {
+                TileContentMode.TEXT -> {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 11.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .fillMaxWidth()
-                                .padding(end = 44.dp),
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = threeByOneTextSize,
-                            lineHeight = (threeByOneTextSize.value * 1.02f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Image(
-                            bitmap = iconBitmap,
-                            contentDescription = app.label,
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(30.dp)
-                        )
-                    }
-                }
-
-                isSmall && contentMode == TileContentMode.ICON -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            bitmap = iconBitmap,
-                            contentDescription = app.label,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-
-                isSmall && contentMode == TileContentMode.TEXT -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(7.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = smallTextSize,
-                            lineHeight = (smallTextSize.value * 1.05f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                isSmall -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 5.dp, vertical = 5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            bitmap = iconBitmap,
-                            contentDescription = app.label,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = smallTextSize,
-                            lineHeight = (smallTextSize.value * 1.05f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                else -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp),
+                        Modifier.fillMaxSize().padding(6.dp),
                         contentAlignment = when (variant % 4) {
                             0 -> Alignment.TopStart
                             1 -> Alignment.TopEnd
@@ -1603,23 +1403,68 @@ private fun AppTile(
                             else -> Alignment.Center
                         }
                     ) {
-                        if (contentMode == TileContentMode.TEXT) {
-                            Text(
-                                text = app.label.uppercase(),
-                                modifier = Modifier.fillMaxWidth(),
-                                fontFamily = BrutalTypography.Display,
-                                fontSize = 18.sp,
-                                lineHeight = 19.sp,
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        } else {
+                        Text(
+                            text = app.label.uppercase(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+                            textAlign = if (horizontal) TextAlign.Start else TextAlign.Center,
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = textSize,
+                            lineHeight = (textSize.value * 1.02f).sp,
+                            fontWeight = FontWeight.Black,
+                            color = BrutalColors.Ink,
+                            maxLines = if (horizontal) 2 else 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                TileContentMode.ICON_TEXT -> {
+                    if (horizontal) {
+                        Row(
+                            Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Image(
                                 bitmap = iconBitmap,
                                 contentDescription = app.label,
-                                modifier = Modifier.size(60.dp)
+                                modifier = Modifier.size(iconSize.coerceAtMost(52.dp))
+                            )
+                            Text(
+                                text = app.label.uppercase(),
+                                modifier = Modifier.weight(1f),
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = textSize,
+                                lineHeight = (textSize.value * 1.02f).sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    } else {
+                        Column(
+                            Modifier.fillMaxSize().padding(6.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = app.label,
+                                modifier = Modifier.size(iconSize.coerceAtMost(56.dp))
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = app.label.uppercase(),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = textSize,
+                                lineHeight = (textSize.value * 1.02f).sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
