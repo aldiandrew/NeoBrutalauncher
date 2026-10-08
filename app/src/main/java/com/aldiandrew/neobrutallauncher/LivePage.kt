@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -79,7 +80,7 @@ fun LivePage(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+             .background(Color.Transparent)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp,
