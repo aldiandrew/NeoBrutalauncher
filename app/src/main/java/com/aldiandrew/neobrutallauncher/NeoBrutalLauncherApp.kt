@@ -184,7 +184,6 @@ fun NeoBrutalLauncherApp() {
                 brutalityLevel = brutalityLevel,
             ) {
                 SettingsScreen(
-                    appsCount = apps.size,
                     themePreference = themePreference,
                     use24Hour = use24Hour,
                     showDate = showDate,
@@ -216,9 +215,25 @@ fun NeoBrutalLauncherApp() {
                         showDate = it
                         preferences.setShowDate(it)
                     },
-                    onHomeAppCountChange = {
-                        homeAppCount = it
-                        preferences.setHomeAppCount(it)
+                    onHomeAppCountChange = { count ->
+                        val normalized = when (count) {
+                            3, 5, 7 -> count
+                            else -> 5
+                        }
+                        homeAppCount = normalized
+                        preferences.setHomeAppCount(normalized)
+
+                        if (favorites.size > normalized) {
+                            val favoriteKeysInAppOrder = apps.map {
+                                it.packageName + "/" + it.activityName
+                            }
+                            val trimmed = favoriteKeysInAppOrder
+                                .filter { favorites.contains(it) }
+                                .take(normalized)
+                                .toSet()
+                            favorites = trimmed
+                            preferences.setFavorites(trimmed)
+                        }
                     },
                     onShowTaglineChange = {
                         showTagline = it
@@ -255,7 +270,7 @@ fun NeoBrutalLauncherApp() {
                         )
                     },
                     onChatNotificationPackagesChange = { updated ->
-                        val normalized = updated.distinct().take(2)
+                        val normalized = updated.distinct().take(1)
                         selectedChatPackages = normalized
                         preferences.setChatNotificationPackages(normalized)
                         NeoChatNotificationStore.setSelectedPackages(normalized)
@@ -288,7 +303,6 @@ fun NeoBrutalLauncherApp() {
                         wallpaperUri = null
                         preferences.setWallpaperUri(null)
                     },
-                    onRefreshApps = { refreshApps() },
                     onClearFavorites = {
                         favorites = emptySet()
                         preferences.clearFavorites()
@@ -346,12 +360,13 @@ fun NeoBrutalLauncherApp() {
                         AppsPage(
                             apps = apps,
                             favorites = favorites,
+                            favoriteLimit = homeAppCount,
                             onToggleFavorite = { app ->
                                 val key = app.packageName + "/" + app.activityName
                                 val updated = favorites.toMutableSet()
                                 if (updated.contains(key)) {
                                     updated.remove(key)
-                                } else if (updated.size < 5) {
+                                } else if (updated.size < homeAppCount) {
                                     updated.add(key)
                                 }
                                 favorites = updated
@@ -362,9 +377,7 @@ fun NeoBrutalLauncherApp() {
                         )
                     } else {
                         LivePage(
-                            apps = apps,
                             selectedChatPackages = selectedChatPackages,
-                            onLaunch = repository::launch,
                             onOpenHome = { currentPage = 0 }
                         )
                     }
@@ -1584,7 +1597,6 @@ private fun AppTile(
 
 @Composable
 private fun SettingsScreen(
-    appsCount: Int,
     apps: List<AppInfo>,
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
@@ -1621,7 +1633,6 @@ private fun SettingsScreen(
     onClockStyleChange: (ClockStyle) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
-    onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -1916,12 +1927,12 @@ private fun SettingsScreen(
                             color = BrutalColors.Ink
                         )
                         BrutalLabel(
-                            text = chatNotificationPackages.size.toString() + "/2",
+                            text = chatNotificationPackages.size.toString() + "/1",
                             background = BrutalColors.Yellow
                         )
                     }
                     Text(
-                        text = "Choose up to 2 apps. Their latest active notification appears on LIVE; tap a tile to open the app.",
+                        text = "Choose one app. Its latest active notification appears on LIVE; tap the tile to open the app.",
                         fontSize = 10.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -1942,8 +1953,7 @@ private fun SettingsScreen(
                                     .clickable {
                                         val next = when {
                                             selected -> chatNotificationPackages - app.packageName
-                                            chatNotificationPackages.size < 2 -> chatNotificationPackages + app.packageName
-                                            else -> chatNotificationPackages
+                                            else -> listOf(app.packageName)
                                         }
                                         onChatNotificationPackagesChange(next)
                                     },
@@ -1976,9 +1986,9 @@ private fun SettingsScreen(
                             }
                         }
                     }
-                    if (chatNotificationPackages.size >= 2) {
+                    if (chatNotificationPackages.size >= 1) {
                         Text(
-                            text = "2/2 SELECTED — TAP ONE TO REMOVE.",
+                            text = "1/1 SELECTED — TAP IT AGAIN TO REMOVE.",
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black,
                             color = BrutalColors.Ink
@@ -1987,43 +1997,74 @@ private fun SettingsScreen(
                 }
             }
 
+            SettingsSectionTitle("FAVORITES")
+
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Lime,
+                background = uiSurface,
                 borderWidth = 3.dp,
                 shadowX = 5.dp,
                 shadowY = 5.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "HOME APP COUNT",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = "Show $homeAppCount launchable apps on the home screen.",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "$favoritesCount PINNED APPS",
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = uiOnSurface
+                            )
+                            Text(
+                                text = "Choose how many pinned app slots are available on Home.",
+                                fontSize = 10.sp,
+                                lineHeight = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = uiOnSurface.copy(alpha = 0.75f)
+                            )
+                        }
+                        BrutalLabel(
+                            text = homeAppCount.toString(),
+                            background = BrutalColors.Yellow
+                        )
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        for (count in 2..8) {
+                        listOf(3, 5, 7).forEach { count ->
                             ThemeButton(
                                 label = count.toString(),
                                 selected = homeAppCount == count,
                                 background = when (count) {
-                                    3 -> BrutalColors.Pink
+                                    3 -> BrutalColors.Cyan
                                     5 -> BrutalColors.Orange
-                                    else -> BrutalColors.Cyan
+                                    else -> BrutalColors.Pink
                                 },
                                 modifier = Modifier.weight(1f),
                                 onClick = { onHomeAppCountChange(count) }
                             )
                         }
                     }
+
+                    Text(
+                        text = "Long-press an app on APPS to pin it. Extra pinned apps are trimmed when the limit is reduced.",
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface.copy(alpha = 0.75f)
+                    )
+
+                    BrutalActionButton(
+                        title = "CLEAR ALL PINNED APPS",
+                        background = BrutalColors.Orange,
+                        onClick = onClearFavorites
+                    )
                 }
             }
 
@@ -2113,67 +2154,6 @@ private fun SettingsScreen(
                             )
                         }
                     }
-                }
-            }
-
-            SettingsSectionTitle("FAVORITES")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = uiSurface,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "$favoritesCount PINNED APPS",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Black,
-                        color = uiOnSurface
-                    )
-                    Text(
-                        text = "Long-press any app on the APPS page to pin or unpin it. Pinned apps appear first on the home screen.",
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface
-                    )
-                    BrutalActionButton(
-                        title = "CLEAR ALL PINNED APPS",
-                        background = BrutalColors.Orange,
-                        onClick = onClearFavorites
-                    )
-                }
-            }
-
-            SettingsSectionTitle("APP LIST")
-
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = uiSurface,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "$appsCount LAUNCHABLE APPS DETECTED",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Black,
-                        color = uiOnSurface
-                    )
-                    Text(
-                        text = "Refresh the launcher app list after installing or removing apps.",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = uiOnSurface
-                    )
-                    BrutalActionButton(
-                        title = "REFRESH APP LIST",
-                        background = BrutalColors.Orange,
-                        onClick = onRefreshApps
-                    )
                 }
             }
 

@@ -2,7 +2,6 @@ package com.aldiandrew.neobrutallauncher
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,9 +31,7 @@ import java.util.Locale
 
 @Composable
 fun LivePage(
-    apps: List<AppInfo>,
     selectedChatPackages: List<String>,
-    onLaunch: (AppInfo) -> Unit,
     onOpenHome: () -> Unit
 ) {
     BackHandler(onBack = onOpenHome)
@@ -54,24 +51,13 @@ fun LivePage(
     val accentSurface = if (isDark) BrutalColors.Purple else BrutalColors.Orange
     val pageText = MaterialTheme.colorScheme.onBackground
 
-    val launchCounts = remember(apps) {
-        preferences.appLaunchCounts()
-    }
-    val liveApps = remember(apps, launchCounts) {
-        apps.sortedWith(
-            compareByDescending<AppInfo> {
-                launchCounts[it.packageName + "/" + it.activityName] ?: 0
-            }.thenBy { it.label.lowercase() }
-        ).take(6)
-    }
-
-    val notes = remember { preferences.noteItems().takeLast(3).reversed() }
-    val tasks = remember { preferences.taskItems().takeLast(3).reversed() }
-
     val dateText = SimpleDateFormat(
         "EEEE / d MMMM yyyy",
         Locale.ENGLISH
     ).format(now)
+
+    val notes = remember { preferences.noteItems().takeLast(3).reversed() }
+    val tasks = remember { preferences.taskItems().takeLast(3).reversed() }
 
     LazyColumn(
         modifier = Modifier
@@ -125,79 +111,22 @@ fun LivePage(
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                NeoChatNotificationTile(
-                    context = context,
-                    packageName = selectedChatPackages.getOrNull(0),
-                    modifier = Modifier.weight(1f).height(150.dp),
-                    background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
-                    textColor = BrutalColors.Ink
-                )
-                NeoChatNotificationTile(
-                    context = context,
-                    packageName = selectedChatPackages.getOrNull(1),
-                    modifier = Modifier.weight(1f).height(150.dp),
-                    background = if (isDark) BrutalColors.Cyan else BrutalColors.Peach,
-                    textColor = BrutalColors.Ink
-                )
-            }
+            NeoChatNotificationTile(
+                context = context,
+                packageName = selectedChatPackages.firstOrNull(),
+                modifier = Modifier.fillMaxWidth().height(126.dp),
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
+                textColor = BrutalColors.Ink
+            )
         }
 
         item {
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = neutralSurface,
-                borderWidth = 3.dp,
-                borderColor = pageText,
-                shadowX = 0.dp,
-                shadowY = 0.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "LIVE ACTIVITY",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = pageText
-                    )
-                    liveApps.forEachIndexed { index, app ->
-                        val count = launchCounts[app.packageName + "/" + app.activityName] ?: 0
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onLaunch(app) }
-                                .padding(vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "%02d".format(Locale.ENGLISH, index + 1),
-                                modifier = Modifier.width(28.dp),
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (isDark) BrutalColors.Cyan else BrutalColors.Orange
-                            )
-                            Text(
-                                text = app.label.uppercase(),
-                                modifier = Modifier.weight(1f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                color = pageText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "$count LAUNCH",
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Black,
-                                color = pageText
-                            )
-                        }
-                    }
-                }
-            }
+            NeoCalendarTile(
+                context = context,
+                modifier = Modifier.fillMaxWidth().height(224.dp),
+                background = if (isDark) BrutalColors.Purple else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+            )
         }
 
         item {

@@ -46,6 +46,7 @@ private val Alphabet = ('A'..'Z').toList()
 fun AppsPage(
     apps: List<AppInfo>,
     favorites: Set<String>,
+    favoriteLimit: Int,
     onToggleFavorite: (AppInfo) -> Unit,
     onLaunch: (AppInfo) -> Unit,
     onOpenHome: () -> Unit
