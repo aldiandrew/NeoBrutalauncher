@@ -91,10 +91,7 @@ fun NeoBrutalLauncherApp() {
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
     var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
-    var showDate by remember { mutableStateOf(preferences.showDate()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
-    var showTagline by remember { mutableStateOf(preferences.showTagline()) }
-    var showAppCount by remember { mutableStateOf(preferences.showAppCount()) }
     var showWeather by remember { mutableStateOf(preferences.showWeather()) }
     var favorites by remember { mutableStateOf(preferences.favorites()) }
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
@@ -243,10 +240,7 @@ fun NeoBrutalLauncherApp() {
                     themePreference = themePreference,
                     use24Hour = use24Hour,
                     showAmPm = showAmPm,
-                    showDate = showDate,
                     homeAppCount = homeAppCount,
-                    showTagline = showTagline,
-                    showAppCount = showAppCount,
                     showWeather = showWeather,
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
@@ -270,10 +264,6 @@ fun NeoBrutalLauncherApp() {
                         showAmPm = it
                         preferences.setShowAmPm(it)
                     },
-                    onShowDateChange = {
-                        showDate = it
-                        preferences.setShowDate(it)
-                    },
                     onHomeAppCountChange = { count ->
                         val normalized = when (count) {
                             3, 5, 7 -> count
@@ -293,14 +283,6 @@ fun NeoBrutalLauncherApp() {
                             favorites = trimmed
                             preferences.setFavorites(trimmed)
                         }
-                    },
-                    onShowTaglineChange = {
-                        showTagline = it
-                        preferences.setShowTagline(it)
-                    },
-                    onShowAppCountChange = {
-                        showAppCount = it
-                        preferences.setShowAppCount(it)
                     },
                     onShowWeatherChange = { enabled ->
                         if (enabled) {
@@ -388,9 +370,6 @@ fun NeoBrutalLauncherApp() {
                             homeAppCount = homeAppCount,
                             use24Hour = use24Hour,
                             showAmPm = showAmPm,
-                            showDate = showDate,
-                            showTagline = showTagline,
-                            showAppCount = showAppCount,
                             showWeather = showWeather,
                             appTileContentMode = appTileContentMode,
                             typographyStyle = typographyStyle,
@@ -533,9 +512,6 @@ private fun HomeScreen(
     homeAppCount: Int,
     use24Hour: Boolean,
     showAmPm: Boolean,
-    showDate: Boolean,
-    showTagline: Boolean,
-    showAppCount: Boolean,
     showWeather: Boolean,
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
@@ -779,7 +755,6 @@ private fun HomeScreen(
                                     overflow = TextOverflow.Clip
                                 )
 
-                                if (showDate) {
                                     Column(
                                         modifier = Modifier
                                             .width(if (compact < 150.dp) 78.dp else 102.dp)
@@ -813,7 +788,6 @@ private fun HomeScreen(
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                }
                             }
                         }
                     }
@@ -855,6 +829,12 @@ private fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
+
+                    BatteryTile(
+                        context = context,
+                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                        background = BrutalColors.Orange
+                    )
 
                     NeoNetworkTile(
                         context = context,
@@ -1415,15 +1395,12 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.78f, 78.dp)
         }
 
-        // Keep the largest designed text size for each wide tile; only SMALL remains compact.
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
             NeoTileSize.HORIZONTAL -> 15.sp
             NeoTileSize.THREE_BY_ONE -> 23.sp
             NeoTileSize.FOUR_BY_ONE -> 30.sp
         }
-
-        val horizontal = tileSize != NeoTileSize.SMALL
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1444,55 +1421,104 @@ private fun AppTile(
                 }
 
                 TileContentMode.TEXT -> {
+                    val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 8.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.CenterStart
+                        contentAlignment = if (isFourByOne) Alignment.CenterEnd else Alignment.CenterStart
                     ) {
                         Text(
                             text = app.label.uppercase(),
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Start,
+                            textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
                             fontFamily = BrutalTypography.Display,
                             fontSize = maxTextSize,
                             lineHeight = (maxTextSize.value * 1.02f).sp,
                             fontWeight = FontWeight.Black,
                             color = BrutalColors.Ink,
-                            maxLines = if (horizontal) 2 else 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
 
                 TileContentMode.ICON_TEXT -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            bitmap = iconBitmap,
-                            contentDescription = app.label,
-                            modifier = Modifier.size(iconSize)
-                        )
-                        Text(
-                            text = app.label.uppercase(),
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Start,
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = maxTextSize,
-                            lineHeight = (maxTextSize.value * 1.02f).sp,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = if (horizontal) 2 else 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    if (tileSize == NeoTileSize.SMALL) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = app.label,
+                                modifier = Modifier.size(iconSize)
+                            )
+                            Spacer(Modifier.height(3.dp))
+                            Text(
+                                text = app.label.uppercase(),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = maxTextSize,
+                                lineHeight = (maxTextSize.value * 1.02f).sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = app.label,
+                                modifier = Modifier.size(iconSize)
+                            )
+                            Text(
+                                text = app.label.uppercase(),
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Start,
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = maxTextSize,
+                                lineHeight = (maxTextSize.value * 1.02f).sp,
+                                fontWeight = FontWeight.Black,
+                                color = BrutalColors.Ink,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 4.dp, bottom = 3.dp)
+                    .width(34.dp)
+                    .height(2.dp)
+                    .background(BrutalColors.Ink)
+            )
+            Text(
+                text = "///",
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 4.dp),
+                fontFamily = BrutalTypography.Display,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Black,
+                color = BrutalColors.Ink
+            )
         }
     }
 }
@@ -1504,10 +1530,7 @@ private fun SettingsScreen(
     themePreference: ThemePreference,
     use24Hour: Boolean,
     showAmPm: Boolean,
-    showDate: Boolean,
     homeAppCount: Int,
-    showTagline: Boolean,
-    showAppCount: Boolean,
     showWeather: Boolean,
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
@@ -1521,10 +1544,7 @@ private fun SettingsScreen(
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
     onShowAmPmChange: (Boolean) -> Unit,
-    onShowDateChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
-    onShowTaglineChange: (Boolean) -> Unit,
-    onShowAppCountChange: (Boolean) -> Unit,
     onShowWeatherChange: (Boolean) -> Unit,
     onRequestWeatherPermission: () -> Unit,
     onOpenNotificationAccess: () -> Unit,
@@ -1583,7 +1603,6 @@ private fun SettingsScreen(
         SettingsSectionTitle("CLOCK")
         SettingsSwitch("24-HOUR TIME", "Use 24-hour time on Home.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("AM / PM", "Show the AM/PM marker with 12-hour time.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
-        SettingsSwitch("DATE", "Show the day and date beside the Home clock.", showDate, BrutalColors.Pink, onShowDateChange)
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("TYPOGRAPHY", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
@@ -1594,8 +1613,6 @@ private fun SettingsScreen(
         }
 
         SettingsSectionTitle("HOME CONTENT")
-        SettingsSwitch("TAGLINE", "Show the small Home manifesto/tagline.", showTagline, BrutalColors.Cyan, onShowTaglineChange)
-        SettingsSwitch("APP COUNT", "Show the number of apps on Home.", showAppCount, BrutalColors.Yellow, onShowAppCountChange)
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
         if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
 
