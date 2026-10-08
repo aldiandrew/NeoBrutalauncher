@@ -38,13 +38,15 @@ class AppRepository(private val context: Context) {
             .sortedBy { it.label.lowercase() }
     }
 
-    fun launch(app: AppInfo) {
+    fun launch(app: AppInfo): Boolean {
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
             setClassName(app.packageName, app.activityName)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
-        context.startActivity(intent)
+        return runCatching {
+            context.startActivity(intent)
+        }.isSuccess
     }
 }
