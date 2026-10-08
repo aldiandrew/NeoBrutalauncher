@@ -29,6 +29,19 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_THEME, value.name).apply()
     }
 
+    fun themeProfile(): NeoThemeProfile {
+        return runCatching {
+            NeoThemeProfile.valueOf(
+                prefs.getString(KEY_THEME_PROFILE, NeoThemeProfile.MONO.name)
+                    ?: NeoThemeProfile.MONO.name
+            )
+        }.getOrDefault(NeoThemeProfile.MONO)
+    }
+
+    fun setThemeProfile(value: NeoThemeProfile) {
+        prefs.edit().putString(KEY_THEME_PROFILE, value.name).apply()
+    }
+
     fun use24Hour(): Boolean {
         return prefs.getBoolean(KEY_24_HOUR, true)
     }
@@ -351,6 +364,7 @@ class LauncherPreferences(context: Context) {
         val root = JSONObject()
             .put("schemaVersion", 1)
             .put("theme", theme().name)
+            .put("themeProfile", themeProfile().name)
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
                         .put("homeAppCount", homeAppCount())
@@ -386,6 +400,7 @@ class LauncherPreferences(context: Context) {
             val root = JSONObject(raw)
             require(root.optInt("schemaVersion", -1) == 1)
             val theme = runCatching { ThemePreference.valueOf(root.optString("theme")) }.getOrDefault(ThemePreference.SYSTEM)
+            val themeProfile = runCatching { NeoThemeProfile.valueOf(root.optString("themeProfile")) }.getOrDefault(NeoThemeProfile.MONO)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
             val typography = runCatching { TypographyStyle.valueOf(root.optString("typographyStyle")) }.getOrDefault(TypographyStyle.POSTER)
             val animationStyle = runCatching { AnimationStyle.valueOf(root.optString("animationStyle")) }.getOrDefault(AnimationStyle.SMOOTH)
@@ -458,6 +473,7 @@ class LauncherPreferences(context: Context) {
 
             val editor = prefs.edit()
                 .putString(KEY_THEME, theme.name)
+                .putString(KEY_THEME_PROFILE, themeProfile.name)
                 .putBoolean(KEY_24_HOUR, root.optBoolean("use24Hour", true))
                 .putBoolean(KEY_SHOW_AM_PM, root.optBoolean("showAmPm", true))
                                 .putInt(KEY_HOME_APP_COUNT, count)
@@ -486,6 +502,7 @@ class LauncherPreferences(context: Context) {
     fun resetCustomizations() {
         prefs.edit().apply {
             remove(KEY_THEME)
+            remove(KEY_THEME_PROFILE)
             remove("show_date")
             remove("show_tagline")
             remove("show_app_count")
@@ -576,6 +593,7 @@ class LauncherPreferences(context: Context) {
 
     companion object {
         private const val KEY_THEME = "theme"
+        private const val KEY_THEME_PROFILE = "theme_profile"
         private const val KEY_24_HOUR = "use_24_hour"
         private const val KEY_SHOW_AM_PM = "show_am_pm"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
