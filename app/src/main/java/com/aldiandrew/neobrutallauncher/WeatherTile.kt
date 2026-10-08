@@ -308,7 +308,7 @@ private fun WeatherMetric(
             text = value,
             fontSize = 14.sp,
             fontWeight = FontWeight.Black,
-            color = tileText
+            color = textColor
         )
     }
 }
