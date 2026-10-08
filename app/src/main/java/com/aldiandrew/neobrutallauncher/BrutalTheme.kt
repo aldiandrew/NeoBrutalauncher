@@ -90,6 +90,7 @@ private val DefaultDarkScheme = darkColorScheme(
 )
 
 val LocalNeoThemePalette = staticCompositionLocalOf { NeoThemePalettes.forProfile(NeoThemeProfile.MONO) }
+val LocalNeoThemeIsDark = androidx.compose.runtime.staticCompositionLocalOf { false }
 
 @Composable
 fun NeoBrutalTheme(
@@ -151,7 +152,8 @@ fun NeoBrutalTheme(
     CompositionLocalProvider(
         LocalBrutalMetrics provides BrutalMetrics(),
         LocalBrutalTypographyStyle provides typographyStyle,
-        LocalNeoThemePalette provides palette
+        LocalNeoThemePalette provides palette,
+        LocalNeoThemeIsDark provides isDark
     ) {
         MaterialTheme(colorScheme = scheme) {
             CompositionLocalProvider(
