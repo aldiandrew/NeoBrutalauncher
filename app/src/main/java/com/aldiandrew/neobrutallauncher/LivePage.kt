@@ -144,8 +144,7 @@ fun LivePage(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
                 background = themePalette.accent(isDark),
-                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
-                decorated = true
+                textColor = themePalette.onAccent(isDark)
             )
         }
 
