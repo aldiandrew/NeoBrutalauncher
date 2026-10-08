@@ -189,6 +189,39 @@ class LauncherPreferences(context: Context) {
     fun iconPackPackage(): String? =
         prefs.getString(KEY_ICON_PACK_PACKAGE, null)?.takeIf { it.isNotBlank() }
 
+    fun animationStyle(): AnimationStyle {
+        return runCatching {
+            AnimationStyle.valueOf(
+                prefs.getString(KEY_ANIMATION_STYLE, AnimationStyle.SMOOTH.name)
+                    ?: AnimationStyle.SMOOTH.name
+            )
+        }.getOrDefault(AnimationStyle.SMOOTH)
+    }
+
+    fun setAnimationStyle(value: AnimationStyle) {
+        prefs.edit().putString(KEY_ANIMATION_STYLE, value.name).apply()
+    }
+
+    fun motionSmoothness(): MotionSmoothness {
+        return runCatching {
+            MotionSmoothness.valueOf(
+                prefs.getString(KEY_MOTION_SMOOTHNESS, MotionSmoothness.BALANCED.name)
+                    ?: MotionSmoothness.BALANCED.name
+            )
+        }.getOrDefault(MotionSmoothness.BALANCED)
+    }
+
+    fun setMotionSmoothness(value: MotionSmoothness) {
+        prefs.edit().putString(KEY_MOTION_SMOOTHNESS, value.name).apply()
+    }
+
+    fun reduceMotion(): Boolean =
+        prefs.getBoolean(KEY_REDUCE_MOTION, false)
+
+    fun setReduceMotion(value: Boolean) {
+        prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
+    }
+
     fun setIconPackPackage(value: String?) {
         prefs.edit().apply {
             if (value.isNullOrBlank()) remove(KEY_ICON_PACK_PACKAGE) else putString(KEY_ICON_PACK_PACKAGE, value)
@@ -341,6 +374,9 @@ class LauncherPreferences(context: Context) {
             .put("noteItems", itemsToJson(noteItems()))
             .put("taskItems", itemsToJson(taskItems()))
             .put("iconPackPackage", iconPackPackage())
+            .put("animationStyle", animationStyle().name)
+            .put("motionSmoothness", motionSmoothness().name)
+            .put("reduceMotion", reduceMotion())
         return root.toString()
     }
 
@@ -352,6 +388,9 @@ class LauncherPreferences(context: Context) {
             val theme = runCatching { ThemePreference.valueOf(root.optString("theme")) }.getOrDefault(ThemePreference.SYSTEM)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
             val typography = runCatching { TypographyStyle.valueOf(root.optString("typographyStyle")) }.getOrDefault(TypographyStyle.POSTER)
+            val animationStyle = runCatching { AnimationStyle.valueOf(root.optString("animationStyle")) }.getOrDefault(AnimationStyle.SMOOTH)
+            val motionSmoothness = runCatching { MotionSmoothness.valueOf(root.optString("motionSmoothness")) }.getOrDefault(MotionSmoothness.BALANCED)
+            val reduceMotion = root.optBoolean("reduceMotion", false)
             val count = normalizePinnedCount(root.optInt("homeAppCount", 5))
 
             fun safeArray(name: String, max: Int): JSONArray {
@@ -429,6 +468,9 @@ class LauncherPreferences(context: Context) {
                 .putStringSet(KEY_TILE_SIZES, restoredSizes)
                 .putString(KEY_APP_TILE_CONTENT_MODE, contentMode.name)
                 .putString(KEY_CLOCK_STYLE, typography.name)
+                .putString(KEY_ANIMATION_STYLE, animationStyle.name)
+                .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
+                .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
@@ -465,6 +507,9 @@ class LauncherPreferences(context: Context) {
             remove(KEY_EXCLUDED_HOME_APPS)
             remove(KEY_APP_SHORTCUT)
             remove(KEY_ICON_PACK_PACKAGE)
+            remove(KEY_ANIMATION_STYLE)
+            remove(KEY_MOTION_SMOOTHNESS)
+            remove(KEY_REDUCE_MOTION)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
         }
@@ -551,6 +596,9 @@ class LauncherPreferences(context: Context) {
         private const val KEY_APP_SHORTCUT = "app_shortcut"
         private const val KEY_TASK_TEXT = "task_text"
         private const val KEY_ICON_PACK_PACKAGE = "icon_pack_package"
+        private const val KEY_ANIMATION_STYLE = "animation_style"
+        private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
+        private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val MAX_BACKUP_ITEMS = 500
     }
