@@ -103,6 +103,7 @@ fun NeoBrutalLauncherApp() {
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var iconThemeStyle by remember { mutableStateOf(preferences.iconThemeStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
+    var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var animationStyle by remember { mutableStateOf(preferences.animationStyle()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
@@ -280,6 +281,7 @@ fun NeoBrutalLauncherApp() {
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
                     iconThemeStyle = iconThemeStyle,
+                    customQuotes = customQuotes,
                     animationStyle = animationStyle,
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
@@ -376,6 +378,11 @@ fun NeoBrutalLauncherApp() {
                         iconThemeStyle = it
                         preferences.setIconThemeStyle(it)
                     },
+                    customQuotes = customQuotes,
+                    onCustomQuotesChange = {
+                        customQuotes = it
+                        preferences.setCustomQuotes(it)
+                    },
                     onAnimationStyleChange = {
                         animationStyle = it
                         preferences.setAnimationStyle(it)
@@ -437,6 +444,7 @@ fun NeoBrutalLauncherApp() {
                             use24Hour = use24Hour,
                             showAmPm = showAmPm,
                             showWeather = showWeather,
+                            customQuotes = customQuotes,
                             appTileContentMode = appTileContentMode,
                             typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
@@ -480,6 +488,7 @@ fun NeoBrutalLauncherApp() {
                     } else {
                         LivePage(
                             apps = apps,
+                            customQuotes = customQuotes,
                             selectedChatPackages = selectedChatPackages,
                             onSelectChatPackage = { packageName ->
                                 val normalized = listOfNotNull(packageName).take(1)
@@ -611,6 +620,7 @@ private fun HomeScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     wallpaperUri: String?,
+    customQuotes: List<String>,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
@@ -1034,7 +1044,7 @@ private fun HomeScreen(
                         },
                         onLongClick = { showAppPicker = true }
                     )
-                    val quotePair = NeoQuotes.pairForRotation(quoteRotation)
+                    val quotePair = NeoQuotes.pairForRotation(quoteRotation, customQuotes)
                     NeoQuoteTilePlain(
                         quote = quotePair.first,
                         modifier = Modifier.weight(1f).aspectRatio(1f),
@@ -1630,6 +1640,7 @@ private fun SettingsScreen(
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
+    customQuotes: List<String>,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
