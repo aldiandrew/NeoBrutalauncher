@@ -99,22 +99,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_WEATHER, value).apply()
     }
 
-    fun showQuote(): Boolean {
-        return prefs.getBoolean(KEY_QUOTE, false)
-    }
-
-    fun setShowQuote(value: Boolean) {
-        prefs.edit().putBoolean(KEY_QUOTE, value).apply()
-    }
-
-    fun showBattery(): Boolean {
-        return prefs.getBoolean(KEY_BATTERY, false)
-    }
-
-    fun setShowBattery(value: Boolean) {
-        prefs.edit().putBoolean(KEY_BATTERY, value).apply()
-    }
-
     fun chatNotificationPackages(): List<String> =
         prefs.getStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, emptySet())
             ?.toList()
@@ -471,8 +455,6 @@ class LauncherPreferences(context: Context) {
                 .putBoolean(KEY_TAGLINE, root.optBoolean("showTagline", true))
                 .putBoolean(KEY_APP_COUNT, root.optBoolean("showAppCount", true))
                 .putBoolean(KEY_WEATHER, root.optBoolean("showWeather", false))
-                .putBoolean(KEY_QUOTE, root.optBoolean("showQuote", false))
-                .putBoolean(KEY_BATTERY, root.optBoolean("showBattery", false))
                 .putStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, restoredChat.toSet())
                 .putStringSet(KEY_FAVORITES, restoredFavorites)
                 .putStringSet(KEY_TILE_POSITIONS, restoredPositions)
@@ -501,8 +483,6 @@ class LauncherPreferences(context: Context) {
             remove(KEY_TAGLINE)
             remove(KEY_APP_COUNT)
             remove(KEY_WEATHER)
-            remove(KEY_QUOTE)
-            remove(KEY_BATTERY)
             remove(KEY_CHAT_NOTIFICATION_PACKAGES)
             remove(KEY_FAVORITES)
             remove(KEY_TILE_POSITIONS)
@@ -590,8 +570,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TAGLINE = "show_tagline"
         private const val KEY_APP_COUNT = "show_app_count"
         private const val KEY_WEATHER = "show_weather"
-        private const val KEY_QUOTE = "show_quote"
-        private const val KEY_BATTERY = "show_battery"
         private const val KEY_CHAT_NOTIFICATION_PACKAGES = "chat_notification_packages"
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_TILE_POSITIONS = "tile_positions"
