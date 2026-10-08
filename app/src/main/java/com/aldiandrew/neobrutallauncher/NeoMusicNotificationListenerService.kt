@@ -176,6 +176,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     private fun publish(controller: MediaController?) {
         if (controller == null) {
+            clearAlbumArtCache()
             NeoMusicSessionStore.update(null)
             return
         }
