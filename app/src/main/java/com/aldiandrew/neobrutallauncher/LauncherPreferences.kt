@@ -241,6 +241,19 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
+    fun iconThemeStyle(): IconThemeStyle {
+        return runCatching {
+            IconThemeStyle.valueOf(
+                prefs.getString(KEY_ICON_THEME_STYLE, IconThemeStyle.ORIGINAL.name)
+                    ?: IconThemeStyle.ORIGINAL.name
+            )
+        }.getOrDefault(IconThemeStyle.ORIGINAL)
+    }
+
+    fun setIconThemeStyle(value: IconThemeStyle) {
+        prefs.edit().putString(KEY_ICON_THEME_STYLE, value.name).apply()
+    }
+
     fun appTileContentMode(): TileContentMode {
         return runCatching {
             TileContentMode.valueOf(
@@ -388,6 +401,7 @@ class LauncherPreferences(context: Context) {
             .put("noteItems", itemsToJson(noteItems()))
             .put("taskItems", itemsToJson(taskItems()))
             .put("iconPackPackage", iconPackPackage())
+            .put("iconThemeStyle", iconThemeStyle().name)
             .put("animationStyle", animationStyle().name)
             .put("motionSmoothness", motionSmoothness().name)
             .put("reduceMotion", reduceMotion())
@@ -465,6 +479,7 @@ class LauncherPreferences(context: Context) {
                 if (id.length in 1..128 && tileSize != null) restoredSizes.add(id + "|" + tileSize.name)
             }
 
+            val iconThemeStyle = runCatching { IconThemeStyle.valueOf(root.optString("iconThemeStyle")) }.getOrDefault(IconThemeStyle.ORIGINAL)
             val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
             val shortcut = root.optString("appShortcut", "").takeIf { it.length in 1..256 }
             val iconPack = root.optString("iconPackPackage", "").takeIf {
@@ -492,6 +507,7 @@ class LauncherPreferences(context: Context) {
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
             if (shortcut == null) editor.remove(KEY_APP_SHORTCUT) else editor.putString(KEY_APP_SHORTCUT, shortcut)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
+            editor.putString(KEY_ICON_THEME_STYLE, iconThemeStyle.name)
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
             editor.putBoolean(KEY_HOME_APPS_INITIALIZED, true)
@@ -524,6 +540,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_EXCLUDED_HOME_APPS)
             remove(KEY_APP_SHORTCUT)
             remove(KEY_ICON_PACK_PACKAGE)
+            remove(KEY_ICON_THEME_STYLE)
             remove(KEY_ANIMATION_STYLE)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
@@ -614,6 +631,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_APP_SHORTCUT = "app_shortcut"
         private const val KEY_TASK_TEXT = "task_text"
         private const val KEY_ICON_PACK_PACKAGE = "icon_pack_package"
+        private const val KEY_ICON_THEME_STYLE = "icon_theme_style"
         private const val KEY_ANIMATION_STYLE = "animation_style"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
