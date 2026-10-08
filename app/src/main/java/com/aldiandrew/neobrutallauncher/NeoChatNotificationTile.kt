@@ -242,7 +242,7 @@ fun NeoChatNotificationTile(
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
-                    text = if (packageName == null) "NO CHAT APP SELECTED" else "NO NEW NOTIFICATIONS",
+                    text = "NO NEW NOTIFICATIONS",
                     fontFamily = BrutalTypography.Display,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Normal,
