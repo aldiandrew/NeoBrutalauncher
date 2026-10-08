@@ -832,8 +832,10 @@ private fun HomeScreen(
                             selectedTile = tile
                             tileEditMode = false
                         },
-                        onTileEdit = { tile ->
-                            selectedTile = tile
+                        onTileEdit = {
+                            // In MOVE mode, tapping a tile should not unexpectedly reopen its edit menu.
+                        },
+                        onTileMoveFinished = {
                             tileEditMode = false
                         },
                         editMode = tileEditMode,
