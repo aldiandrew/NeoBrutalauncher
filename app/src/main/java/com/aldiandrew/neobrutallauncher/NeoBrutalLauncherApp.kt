@@ -47,7 +47,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -106,9 +105,6 @@ fun NeoBrutalLauncherApp() {
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
-    var launchApp by remember { mutableStateOf<AppInfo?>(null) }
-    var homeReturnTrigger by remember { mutableIntStateOf(0) }
-    var launcherWasPaused by remember { mutableStateOf(false) }
     var locationPermissionGranted by remember {
         mutableStateOf(
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -220,14 +216,7 @@ fun NeoBrutalLauncherApp() {
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_PAUSE) {
-                launcherWasPaused = true
-            }
             if (event == Lifecycle.Event.ON_RESUME) {
-                if (launcherWasPaused) {
-                    homeReturnTrigger++
-                    launcherWasPaused = false
-                }
                 locationPermissionGranted =
                     context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED
@@ -401,7 +390,6 @@ fun NeoBrutalLauncherApp() {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     LauncherPageHost(
                         currentPage = currentPage,
-                        homeReturnTrigger = homeReturnTrigger,
                         motionConfig = motionConfig,
                         wallpaperUri = wallpaperUri,
                     onPageChange = {
@@ -474,17 +462,6 @@ fun NeoBrutalLauncherApp() {
                         )
                     }
                     }
-                    if (launchApp != null) {
-                        NeoLaunchTransition(
-                            app = launchApp!!,
-                            config = motionConfig,
-                            onFinished = {
-                                val app = launchApp
-                                launchApp = null
-                                if (app != null) repository.launch(app)
-                            }
-                        )
-                    }
                 }
             }
         }
@@ -494,7 +471,6 @@ fun NeoBrutalLauncherApp() {
 @Composable
 private fun LauncherPageHost(
     currentPage: Int,
-    homeReturnTrigger: Int,
     motionConfig: NeoMotionConfig,
     wallpaperUri: String?,
     onPageChange: (Int) -> Unit,
