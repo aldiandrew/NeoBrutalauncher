@@ -101,6 +101,7 @@ fun NeoBrutalLauncherApp(
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
     var showWeather by remember { mutableStateOf(preferences.showWeather()) }
     var favorites by remember { mutableStateOf(preferences.favorites()) }
+    var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var tilePositions by remember { mutableStateOf(preferences.tilePositions()) }
     var tileSizes by remember { mutableStateOf(preferences.tileSizes()) }
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
@@ -199,22 +200,21 @@ fun NeoBrutalLauncherApp(
     }
 
     fun applyPinnedApps(updated: Set<String>) {
-        val availableKeys = apps.map { it.packageName + "/" + it.activityName }.toSet()
-        val normalized = updated
-            .filter { it in availableKeys }
-            .let { valid ->
-                if (valid.size <= homeAppCount) {
-                    valid.toSet()
-                } else {
-                    availableKeys.filter { it in valid }.take(homeAppCount).toSet()
-                }
-            }
+        val limit = homeAppCount.coerceIn(1, 7)
+        val installedKeys = apps.map { it.packageName + "/" + it.activityName }
+        val normalized = buildList {
+            installedKeys.filter(updated::contains).forEach(::add)
+            updated.filterNot(installedKeys::contains).sorted().forEach(::add)
+        }.distinct().take(limit).toSet()
 
         favorites = normalized
         preferences.setFavorites(normalized)
 
-        val cleanedExcluded = preferences.excludedHomeApps() - normalized
-        preferences.setExcludedHomeApps(cleanedExcluded)
+        val cleanedExcluded = excludedHomeApps - normalized
+        if (cleanedExcluded != excludedHomeApps) {
+            excludedHomeApps = cleanedExcluded
+            preferences.setExcludedHomeApps(cleanedExcluded)
+        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -225,7 +225,22 @@ fun NeoBrutalLauncherApp(
             val loadedApps = repository.loadApps()
             withContext(Dispatchers.Main.immediate) {
                 apps = loadedApps
-                if (!preferences.homeAppsInitialized() && favorites.isEmpty()) {
+
+                val persistedFavorites = preferences.favorites()
+                if (persistedFavorites != favorites) {
+                    favorites = persistedFavorites
+                }
+
+                val persistedExcluded = preferences.excludedHomeApps()
+                val cleanedExcluded = persistedExcluded - persistedFavorites
+                if (cleanedExcluded != excludedHomeApps) {
+                    excludedHomeApps = cleanedExcluded
+                }
+                if (cleanedExcluded != persistedExcluded) {
+                    preferences.setExcludedHomeApps(cleanedExcluded)
+                }
+
+                if (!preferences.homeAppsInitialized() && persistedFavorites.isEmpty()) {
                     val initialFavorites = loadedApps
                         .filter { it.packageName != context.packageName }
                         .take(homeAppCount)
@@ -248,6 +263,7 @@ fun NeoBrutalLauncherApp(
                 notificationAccessGranted =
                     NotificationManagerCompat.getEnabledListenerPackages(context)
                         .contains(context.packageName)
+                refreshApps()
                 if (awaitingHomeReturn) {
                     awaitingHomeReturn = false
                     homeReturnTrigger += 1
@@ -481,6 +497,7 @@ fun NeoBrutalLauncherApp(
                         HomeScreen(
                             apps = apps,
                             favorites = favorites,
+                            excludedHomeApps = excludedHomeApps,
                             homeAppCount = homeAppCount,
                             use24Hour = use24Hour,
                             showAmPm = showAmPm,
@@ -500,6 +517,10 @@ fun NeoBrutalLauncherApp(
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
                                 preferences.setTilePositions(updated)
+                            },
+                            onExcludedHomeAppsChange = { updated ->
+                                excludedHomeApps = updated
+                                preferences.setExcludedHomeApps(updated)
                             },
                             tileSizes = tileSizes,
                             onTileSizeChange = { tileId, size ->
@@ -644,6 +665,7 @@ private fun LauncherPageHost(
 private fun HomeScreen(
     apps: List<AppInfo>,
     favorites: Set<String>,
+    excludedHomeApps: Set<String>,
     homeAppCount: Int,
     use24Hour: Boolean,
     showAmPm: Boolean,
@@ -684,7 +706,6 @@ private fun HomeScreen(
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
     var tileEditMode by remember { mutableStateOf(false) }
     var showAppPicker by remember { mutableStateOf(false) }
-    var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
     val timePattern = when {
@@ -717,37 +738,25 @@ private fun HomeScreen(
         preferences.setHomeAppOrder(stableHomeOrder)
     }
 
-    // A pinned app is a Home launchable app, so pinning also clears a prior removal.
-    LaunchedEffect(favorites, excludedHomeApps) {
-        val cleaned = excludedHomeApps - favorites
-        if (cleaned != excludedHomeApps) {
-            excludedHomeApps = cleaned
-            preferences.setExcludedHomeApps(cleaned)
-        }
-    }
-
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
-    val pinnedHomeApps = stableHomeOrder
-        .filter { favorites.contains(it) }
-        .filterNot { excludedHomeApps.contains(it) }
+    val orderedHomeApps = stableHomeOrder
         .mapNotNull { appsByKey[it] }
+        .distinctBy { it.packageName + "/" + it.activityName }
 
-    val remainingHomeApps = stableHomeOrder
-        .filterNot { excludedHomeApps.contains(it) || favorites.contains(it) }
-        .mapNotNull { appsByKey[it] }
+    val pinnedHomeApps = orderedHomeApps
+        .filter { favorites.contains(it.packageName + "/" + it.activityName) }
+        .filterNot { excludedHomeApps.contains(it.packageName + "/" + it.activityName) }
+
+    val remainingHomeApps = orderedHomeApps
+        .filterNot {
+            excludedHomeApps.contains(it.packageName + "/" + it.activityName) ||
+                favorites.contains(it.packageName + "/" + it.activityName)
+        }
 
     val launchableApps = (pinnedHomeApps + remainingHomeApps)
         .distinctBy { it.packageName + "/" + it.activityName }
-        .sortedWith(
-            compareBy<AppInfo> {
-                if (favorites.contains(it.packageName + "/" + it.activityName)) 0 else 1
-            }.thenBy {
-                tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
-                    ?: Int.MAX_VALUE
-            }
-        )
         .take(homeAppCount.coerceIn(1, 7))
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
@@ -1259,6 +1268,7 @@ private fun HomeScreen(
                                     val updatedExcluded = excludedHomeApps + key
                                     excludedHomeApps = updatedExcluded
                                     preferences.setExcludedHomeApps(updatedExcluded)
+                                    onExcludedHomeAppsChange(updatedExcluded)
                                 }
                                 selectedTile = null
                                 tileEditMode = false
