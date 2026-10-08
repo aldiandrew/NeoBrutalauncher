@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -107,7 +106,7 @@ fun NeoCalendarTile(
             ) {
                 BrutalLabel(
                     text = "CALENDAR",
-                    background = LocalNeoThemePalette.current.accent(LocalNeoThemeIsDark.current)
+                    background = BrutalColors.Yellow
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
@@ -180,19 +179,8 @@ fun NeoCalendarTile(
                                     .then(
                                         if (isToday) {
                                             Modifier
-                                                .background(
-                                                    LocalNeoThemePalette.current.accent(
-                                                        LocalNeoThemeIsDark.current
-                                                    )
-                                                )
-                                                .border(
-                                                    2.dp,
-                                                    if (LocalNeoThemeIsDark.current) {
-                                                        BrutalColors.DarkWhite
-                                                    } else {
-                                                        BrutalColors.Ink
-                                                    }
-                                                )
+                                                .background(BrutalColors.Orange)
+                                                .border(2.dp, BrutalColors.Ink)
                                         } else {
                                             Modifier
                                         }
@@ -240,13 +228,8 @@ private fun CalendarNavButton(
     Box(
         modifier = Modifier
             .size(28.dp)
-            .background(
-                LocalNeoThemePalette.current.surface(LocalNeoThemeIsDark.current)
-            )
-            .border(
-                2.dp,
-                if (LocalNeoThemeIsDark.current) BrutalColors.DarkWhite else BrutalColors.Ink
-            )
+            .background(BrutalColors.White)
+            .border(2.dp, BrutalColors.Ink)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -254,7 +237,7 @@ private fun CalendarNavButton(
             text = label,
             fontSize = 18.sp,
             fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onSurface
+            color = BrutalColors.Ink
         )
     }
 }
