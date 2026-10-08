@@ -12,6 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 enum class MotionSmoothness(val label: String) {
     SNAPPY("SNAPPY"),
@@ -64,14 +66,22 @@ fun NeoHomeReturnMotion(
         scale.snapTo(0.985f)
         alpha.snapTo(0.96f)
 
-        scale.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = config.returnDurationMillis())
-        )
-        alpha.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = (config.returnDurationMillis() - 20).coerceAtLeast(1))
-        )
+        coroutineScope {
+            launch {
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = config.returnDurationMillis())
+                )
+            }
+            launch {
+                alpha.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        durationMillis = (config.returnDurationMillis() - 20).coerceAtLeast(1)
+                    )
+                )
+            }
+        }
     }
 
     Box(
