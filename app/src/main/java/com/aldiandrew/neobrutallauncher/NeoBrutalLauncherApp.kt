@@ -1,5 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -444,7 +446,10 @@ private fun LauncherPageHost(
 
     LaunchedEffect(currentPage) {
         if (pagerState.currentPage != currentPage) {
-            pagerState.animateScrollToPage(currentPage)
+            pagerState.animateScrollToPage(
+                page = currentPage,
+                animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+            )
         }
     }
 
@@ -458,7 +463,7 @@ private fun LauncherPageHost(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 0,
+            beyondViewportPageCount = 1,
             userScrollEnabled = true,
             key = { it }
         ) { page ->
@@ -1501,25 +1506,6 @@ private fun AppTile(
                         }
                     }
                 }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(start = 4.dp, bottom = 3.dp)
-                        .width(34.dp)
-                        .height(2.dp)
-                        .background(BrutalColors.Ink)
-                )
-                Text(
-                    text = "///",
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 4.dp),
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BrutalColors.Ink
-                )
             }
         }
     }
@@ -1679,20 +1665,23 @@ private fun SettingsScreen(
         SettingsSectionTitle("WALLPAPER")
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Yellow, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (wallpaperUri == null) "DEVICE WALLPAPER" else "CUSTOM WALLPAPER SELECTED", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                Text(
+                    text = if (wallpaperUri == null) "NO WALLPAPER SELECTED" else "CUSTOM IMAGE SELECTED",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black
+                )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ThemeButton(
-                        "DEVICE",
-                        wallpaperUri == null,
-                        BrutalColors.Cyan,
-                        Modifier.weight(0.8f),
-                        onClearWallpaper
+                    BrutalActionButton(
+                        "CHOOSE IMAGE",
+                        BrutalColors.Pink,
+                        Modifier.weight(1f),
+                        onChooseWallpaper
                     )
                     BrutalActionButton(
-                        "CUSTOM IMAGE",
-                        BrutalColors.Pink,
-                        Modifier.weight(1.2f),
-                        onChooseWallpaper
+                        "CLEAR",
+                        BrutalColors.White,
+                        Modifier.weight(0.7f),
+                        onClearWallpaper
                     )
                 }
             }
