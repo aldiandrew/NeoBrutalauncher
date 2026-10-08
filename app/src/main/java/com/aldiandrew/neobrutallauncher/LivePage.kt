@@ -1,6 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,13 @@ fun LivePage(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
+    val quoteRotation = rememberLiveTileData(
+        tileId = "live-quotes",
+        refreshIntervalMillis = 30L * 60L * 1000L,
+        initialValue = (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
+    ) {
+        (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
+    }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val pageText = MaterialTheme.colorScheme.onBackground
     val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
@@ -68,6 +76,7 @@ fun LivePage(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp,
@@ -226,7 +235,7 @@ fun LivePage(
 
         item {
             NeoQuoteTile(
-                quote = NeoQuotes.pairForToday().second,
+                quote = NeoQuotes.pairForRotation(quoteRotation).second,
                 modifier = Modifier.fillMaxWidth().height(190.dp),
                 emphasized = true
             )
