@@ -30,9 +30,7 @@ import java.util.Locale
 
 @Composable
 fun LivePage(
-    apps: List<AppInfo>,
     selectedChatPackages: List<String>,
-    onLaunch: (AppInfo) -> Unit,
     onOpenHome: () -> Unit
 ) {
     BackHandler(onBack = onOpenHome)
