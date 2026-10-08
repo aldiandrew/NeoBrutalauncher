@@ -134,7 +134,7 @@ fun BatteryTile(
                         text = if (battery.charging) "CHG" else "BAT",
                         fontSize = 7.sp,
                         fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             } else {
@@ -146,7 +146,7 @@ fun BatteryTile(
                         text = "BATTERY",
                         fontSize = if (compact < 155.dp) 9.sp else 12.sp,
                         fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     Row(
@@ -157,14 +157,14 @@ fun BatteryTile(
                             fontSize = if (compact < 155.dp) 32.sp else 42.sp,
                             lineHeight = if (compact < 155.dp) 33.sp else 43.sp,
                             fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "%",
                             fontSize = if (compact < 155.dp) 15.sp else 20.sp,
                             fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
@@ -172,7 +172,7 @@ fun BatteryTile(
                         text = if (battery.charging) "CHARGING" else "ON BATTERY",
                         fontSize = if (compact < 155.dp) 8.sp else 11.sp,
                         fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1
                     )
                 }
