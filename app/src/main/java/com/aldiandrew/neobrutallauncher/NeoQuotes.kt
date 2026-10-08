@@ -52,23 +52,10 @@ object NeoQuotes {
         return quotes[offset] to quotes[(offset + 1) % quotes.size]
     }
 
-    private val palettes = listOf(
-        NeoQuotePalette(BrutalColors.Yellow, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Pink, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Cyan, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Lime, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Orange, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Purple, BrutalColors.White),
-        NeoQuotePalette(BrutalColors.Red, BrutalColors.White),
-        NeoQuotePalette(BrutalColors.Peach, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Lavender, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Sky, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.Mint, BrutalColors.Ink),
-        NeoQuotePalette(BrutalColors.White, BrutalColors.Ink)
-    )
-
     fun paletteForRotation(rotation: Int): NeoQuotePalette {
-        return palettes[Math.floorMod(rotation, palettes.size)]
+        val backgrounds = BrutalColors.appPalette(0)
+        val background = backgrounds[Math.floorMod(rotation, backgrounds.size)]
+        return NeoQuotePalette(background, BrutalColors.Ink)
     }
 
     fun pairForToday(): Pair<String, String> {
