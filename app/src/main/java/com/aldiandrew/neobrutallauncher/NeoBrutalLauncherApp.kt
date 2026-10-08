@@ -1669,6 +1669,7 @@ private fun SettingsScreen(
         apps.groupBy { it.packageName }
             .values
             .mapNotNull { it.firstOrNull() }
+            .filter { it.packageName != context.packageName }
             .sortedBy { it.label.lowercase() }
     }
 
