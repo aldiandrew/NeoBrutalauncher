@@ -64,9 +64,9 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
-    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val accentSurface = BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
+    val headerText = BrutalColors.Ink
     val liveClockTileHeight = 126.dp
 
     val dateText = SimpleDateFormat(
@@ -113,9 +113,9 @@ fun LivePage(
                         fontSize = NeoBrutalTokens.Type.Hero,
                         lineHeight = NeoBrutalTokens.Type.Hero,
                         fontWeight = FontWeight.Black,
-                        color = pageText
+                        color = headerText
                     )
-                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = pageText)
+                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = headerText)
                 }
             }
         }
