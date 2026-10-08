@@ -659,7 +659,6 @@ private fun HomeScreen(
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
-    val themePalette = LocalNeoThemePalette.current
     val timePattern = when {
         use24Hour -> "HH:mm"
         showAmPm -> "hh:mm a"
