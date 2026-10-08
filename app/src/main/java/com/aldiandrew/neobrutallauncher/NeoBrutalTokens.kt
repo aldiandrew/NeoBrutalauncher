@@ -16,8 +16,6 @@ object NeoBrutalTokens {
         val Micro: Dp = 4.dp
         val Small: Dp = 8.dp
         val Medium: Dp = 16.dp
-        val Large: Dp = 24.dp
-        val XLarge: Dp = 32.dp
     }
 
     object Border {
@@ -29,7 +27,6 @@ object NeoBrutalTokens {
     object Shadow {
         val Small: Dp = 4.dp
         val Medium: Dp = 6.dp
-        val Large: Dp = 8.dp
         val None: Dp = 0.dp
     }
 
