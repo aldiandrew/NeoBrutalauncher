@@ -90,8 +90,10 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth(),
                 background = accentSurface,
                 borderWidth = 4.dp,
+                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 shadowX = 7.dp,
-                shadowY = 7.dp
+                shadowY = 7.dp,
+                shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
@@ -116,7 +118,9 @@ fun LivePage(
         item {
             NeoMusicTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(126.dp)
+                modifier = Modifier.fillMaxWidth().height(126.dp),
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
 
