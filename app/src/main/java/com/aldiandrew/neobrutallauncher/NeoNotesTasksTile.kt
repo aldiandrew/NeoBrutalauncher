@@ -76,7 +76,7 @@ fun NeoNotesTasksTile(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 NotesTasksColumn(
-                title = "NOTES",
+                    title = "NOTES",
                 inputHint = "TYPE NOTE…",
                 items = notes,
                 draft = noteDraft,
