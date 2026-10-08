@@ -111,7 +111,7 @@ fun LivePage(
                         fontWeight = FontWeight.Black,
                         color = pageText
                     )
-                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = headerText)
+                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = pageText)
                 }
             }
         }
