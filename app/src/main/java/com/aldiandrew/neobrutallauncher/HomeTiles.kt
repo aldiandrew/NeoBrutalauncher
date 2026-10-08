@@ -137,6 +137,7 @@ fun NeoTileGrid(
     positions: Map<String, NeoTilePosition>,
     onPositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onTileLongPress: (NeoTileSpec) -> Unit = {},
+    onTileEdit: (NeoTileSpec) -> Unit = {},
     editMode: Boolean = false,
     modifier: Modifier = Modifier,
     gap: Dp = 8.dp
@@ -185,7 +186,13 @@ fun NeoTileGrid(
                         .width(placement.width)
                         .height(placement.height)
                         .combinedClickable(
-                            onClick = { placement.tile.onClick?.invoke() },
+                            onClick = {
+                                if (editMode) {
+                                    onTileEdit(placement.tile)
+                                } else {
+                                    placement.tile.onClick?.invoke()
+                                }
+                            },
                             onLongClick = { onTileLongPress(placement.tile) }
                         )
                 ) {
