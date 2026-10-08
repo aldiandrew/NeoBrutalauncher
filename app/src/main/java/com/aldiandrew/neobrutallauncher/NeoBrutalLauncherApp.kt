@@ -740,13 +740,15 @@ private fun HomeScreen(
 
     val launchableApps = (pinnedHomeApps + remainingHomeApps)
         .distinctBy { it.packageName + "/" + it.activityName }
-        .take(homeAppCount.coerceIn(1, 7))
         .sortedWith(
             compareBy<AppInfo> {
+                if (favorites.contains(it.packageName + "/" + it.activityName)) 0 else 1
+            }.thenBy {
                 tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
                     ?: Int.MAX_VALUE
             }
         )
+        .take(homeAppCount.coerceIn(1, 7))
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
     val palette = remember { BrutalColors.appPalette(0) }
