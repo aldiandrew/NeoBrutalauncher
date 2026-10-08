@@ -117,9 +117,16 @@ fun NeoMusicTile(
         ),
         background = background,
         borderWidth = 4.dp,
-        borderColor = BrutalColors.Ink,
+        borderColor = if (
+            background == BrutalColors.DarkTile ||
+            background == BrutalColors.DarkPaper
+        ) BrutalColors.DarkWhite else BrutalColors.Ink,
         shadowX = 6.dp,
-        shadowY = 6.dp
+        shadowY = 6.dp,
+        shadowColor = if (
+            background == BrutalColors.DarkTile ||
+            background == BrutalColors.DarkPaper
+        ) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.foundation.layout.Box(
