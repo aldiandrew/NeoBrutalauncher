@@ -21,8 +21,8 @@ fun BrutalBlock(
     modifier: Modifier = Modifier,
     background: Color,
     borderWidth: Dp = 4.dp,
-    shadowX: Dp = 6.dp,
-    shadowY: Dp = 6.dp,
+    shadowX: Dp = 7.dp,
+    shadowY: Dp = 7.dp,
     borderColor: Color? = null,
     shadowColor: Color? = null,
     content: @Composable ColumnScope.() -> Unit
