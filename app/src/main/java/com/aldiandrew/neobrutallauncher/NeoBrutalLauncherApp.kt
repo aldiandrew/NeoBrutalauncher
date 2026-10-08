@@ -660,8 +660,22 @@ private fun HomeScreen(
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                BrutalLabel(
+                                    text = if (use24Hour) "24H CLOCK" else "12H CLOCK",
+                                    background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                                )
+                                BrutalLabel(
+                                    text = clockStyle.label,
+                                    background = BrutalColors.White
+                                )
+                            }
                             Text(
                                 text = time.format(now),
                                 fontSize = when (clockStyle) {
