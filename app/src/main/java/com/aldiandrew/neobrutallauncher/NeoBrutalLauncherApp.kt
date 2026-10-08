@@ -200,14 +200,16 @@ fun NeoBrutalLauncherApp(
     }
 
     fun applyPinnedApps(updated: Set<String>) {
-        val valid = updated
-            .filter { appKey -> apps.any { it.packageName + "/" + it.activityName == appKey } }
-            .toSet()
-        val normalized = if (valid.size <= homeAppCount) {
-            valid
-        } else {
-            valid.take(homeAppCount).toSet()
-        }
+        val availableKeys = apps.map { it.packageName + "/" + it.activityName }.toSet()
+        val normalized = updated
+            .filter { it in availableKeys }
+            .let { valid ->
+                if (valid.size <= homeAppCount) {
+                    valid.toSet()
+                } else {
+                    availableKeys.filter { it in valid }.take(homeAppCount).toSet()
+                }
+            }
 
         favorites = normalized
         preferences.setFavorites(normalized)
@@ -738,9 +740,10 @@ private fun HomeScreen(
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
-    val pinnedHomeApps = favorites
+    val pinnedHomeApps = stableHomeOrder
+        .filter { favorites.contains(it) }
+        .filterNot { excludedHomeApps.contains(it) }
         .mapNotNull { appsByKey[it] }
-        .filterNot { excludedHomeApps.contains(it.packageName + "/" + it.activityName) }
 
     val remainingHomeApps = stableHomeOrder
         .filterNot { excludedHomeApps.contains(it) || favorites.contains(it) }
@@ -1265,7 +1268,6 @@ private fun HomeScreen(
                                     val updatedExcluded = excludedHomeApps + key
                                     excludedHomeApps = updatedExcluded
                                     preferences.setExcludedHomeApps(updatedExcluded)
-                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
                                 }
                                 selectedTile = null
                                 tileEditMode = false
