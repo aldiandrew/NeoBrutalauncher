@@ -760,7 +760,7 @@ private fun HomeScreen(
                                         Text(
                                             text = longDate.format(now).uppercase(Locale.ENGLISH),
                                             fontSize = sideSize,
-                                            lineHeight = sideSize + 1.sp,
+                                            lineHeight = sideSize,
                                             fontWeight = FontWeight.Bold,
                                             fontFamily = BrutalTypography.Display,
                                             color = homeClockText,
