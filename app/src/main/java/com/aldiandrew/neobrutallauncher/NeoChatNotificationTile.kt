@@ -52,7 +52,7 @@ object NeoChatNotificationStore {
     @Synchronized
     fun setSelectedPackages(packages: List<String>) {
         selectedPackages.clear()
-        selectedPackages.addAll(packages.filter { it.isNotBlank() }.distinct().take(2))
+        selectedPackages.addAll(packages.filter { it.isNotBlank() }.distinct().take(1))
         latestByPackage.keys.retainAll(selectedPackages)
         publish()
     }
