@@ -38,6 +38,7 @@ import java.util.Locale
 @Composable
 fun LivePage(
     apps: List<AppInfo>,
+    customQuotes: List<String>,
     selectedChatPackages: List<String>,
     onSelectChatPackage: (String) -> Unit,
     onOpenHome: () -> Unit
@@ -201,7 +202,7 @@ fun LivePage(
 
         item {
             NeoQuoteTile(
-                quote = NeoQuotes.pairForRotation(quoteRotation).second,
+                quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
                 modifier = Modifier.fillMaxWidth().height(190.dp),
                 emphasized = true,
                 paletteIndex = quoteRotation + 1
