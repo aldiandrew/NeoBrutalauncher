@@ -35,22 +35,16 @@ enum class NeoTileSize(
     val rows: Int,
     val label: String
 ) {
-    SMALL(1, 1, "SMALL"),
+    SMALL(1, 1, "1x1"),
     HORIZONTAL(2, 1, "2x1"),
-    MEDIUM(2, 2, "MEDIUM"),
     THREE_BY_ONE(3, 1, "3x1"),
-    FOUR_BY_ONE(4, 1, "4x1"),
-    WIDE(4, 2, "WIDE"),
-    LARGE(4, 4, "LARGE");
+    FOUR_BY_ONE(4, 1, "4x1");
 
     fun next(): NeoTileSize = when (this) {
         SMALL -> HORIZONTAL
-        HORIZONTAL -> MEDIUM
-        MEDIUM -> THREE_BY_ONE
+        HORIZONTAL -> THREE_BY_ONE
         THREE_BY_ONE -> FOUR_BY_ONE
-        FOUR_BY_ONE -> WIDE
-        WIDE -> LARGE
-        LARGE -> SMALL
+        FOUR_BY_ONE -> SMALL
     }
 }
 
@@ -170,6 +164,7 @@ fun NeoTileGrid(
 
         var draggedId by remember { mutableStateOf<String?>(null) }
         var dragDelta by remember { mutableStateOf(Offset.Zero) }
+        var editMode by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -191,16 +186,20 @@ fun NeoTileGrid(
                         .height(placement.height)
                         .combinedClickable(
                             onClick = { placement.tile.onClick?.invoke() },
-                            onLongClick = { onTileLongPress(placement.tile) }
+                            onLongClick = {
+                                editMode = true
+                                onTileLongPress(placement.tile)
+                            }
                         )
                 ) {
                     placement.tile.content()
 
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(5.dp)
-                            .size(if (placement.tile.size == NeoTileSize.SMALL) 20.dp else 30.dp)
+                    if (editMode) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(5.dp)
+                                .size(if (placement.tile.size == NeoTileSize.SMALL) 18.dp else 26.dp)
                             .background(Color.Transparent)
                             .border(
                                 width = 2.dp,
@@ -273,6 +272,7 @@ fun NeoTileGrid(
 
                                         draggedId = null
                                         dragDelta = Offset.Zero
+                                        editMode = false
                                     },
                                     onDragCancel = {
                                         draggedId = null
