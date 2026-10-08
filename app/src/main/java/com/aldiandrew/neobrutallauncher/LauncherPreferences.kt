@@ -212,12 +212,10 @@ class LauncherPreferences(context: Context) {
 
 
     fun typographyStyle(): TypographyStyle {
-        return runCatching {
-            TypographyStyle.valueOf(
-                prefs.getString(KEY_CLOCK_STYLE, TypographyStyle.POSTER.name)
-                    ?: TypographyStyle.POSTER.name
-            )
-        }.getOrDefault(TypographyStyle.POSTER)
+        return when (prefs.getString(KEY_CLOCK_STYLE, TypographyStyle.DEFAULT.name)) {
+            TypographyStyle.CONDENSED.name -> TypographyStyle.CONDENSED
+            else -> TypographyStyle.DEFAULT
+        }
     }
 
     fun setTypographyStyle(value: TypographyStyle) {
@@ -371,7 +369,10 @@ class LauncherPreferences(context: Context) {
             require(root.optInt("schemaVersion", -1) == 1)
             val theme = runCatching { ThemePreference.valueOf(root.optString("theme")) }.getOrDefault(ThemePreference.SYSTEM)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
-            val typography = runCatching { TypographyStyle.valueOf(root.optString("typographyStyle")) }.getOrDefault(TypographyStyle.POSTER)
+            val typography = when (root.optString("typographyStyle")) {
+                TypographyStyle.CONDENSED.name -> TypographyStyle.CONDENSED
+                else -> TypographyStyle.DEFAULT
+            }
             val count = normalizePinnedCount(root.optInt("homeAppCount", 5))
             val motionSmoothness = runCatching {
                 MotionSmoothness.valueOf(
