@@ -101,9 +101,9 @@ fun NeoWeatherTile(
     BrutalBlock(
         modifier = modifier,
         background = BrutalColors.Cyan,
-        borderWidth = 4.dp,
-        shadowX = 8.dp,
-        shadowY = 8.dp
+        borderWidth = 3.dp,
+        shadowX = 5.dp,
+        shadowY = 5.dp
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val compact = minOf(maxWidth, maxHeight)
