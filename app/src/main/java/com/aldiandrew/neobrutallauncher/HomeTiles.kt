@@ -138,6 +138,7 @@ fun NeoTileGrid(
     onPositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onTileLongPress: (NeoTileSpec) -> Unit = {},
     onTileEdit: (NeoTileSpec) -> Unit = {},
+    onTileMoveFinished: () -> Unit = {},
     editMode: Boolean = false,
     modifier: Modifier = Modifier,
     gap: Dp = 8.dp
@@ -276,10 +277,12 @@ fun NeoTileGrid(
 
                                         draggedId = null
                                         dragDelta = Offset.Zero
+                                        onTileMoveFinished()
                                     },
                                     onDragCancel = {
                                         draggedId = null
                                         dragDelta = Offset.Zero
+                                        onTileMoveFinished()
                                     }
                                 ) { _, amount ->
                                     dragDelta += amount
@@ -288,8 +291,8 @@ fun NeoTileGrid(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "↕",
-                            fontSize = if (placement.tile.size == NeoTileSize.SMALL) 9.sp else 11.sp,
+                            text = if (placement.tile.size == NeoTileSize.SMALL) "↕" else "DRAG",
+                            fontSize = if (placement.tile.size == NeoTileSize.SMALL) 9.sp else 6.sp,
                             lineHeight = 11.sp,
                             fontWeight = FontWeight.Black,
                             color = if (isDragging) {

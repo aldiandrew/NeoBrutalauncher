@@ -655,86 +655,76 @@ private fun HomeScreen(
                     shadowY = 7.dp
                 ) {
                     BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp),
-                        contentAlignment = Alignment.CenterStart
+                        modifier = Modifier.fillMaxSize().padding(9.dp)
                     ) {
+                        val compact = maxHeight < 175.dp
+                        val timeSize = when (clockStyle) {
+                            ClockStyle.HUGE -> if (compact) 54.sp else 68.sp
+                            ClockStyle.CONDENSED -> if (compact) 50.sp else 58.sp
+                            ClockStyle.MONO -> if (compact) 48.sp else 54.sp
+                            ClockStyle.POSTER -> if (compact) 52.sp else 62.sp
+                        }
+                        val timeLine = when (clockStyle) {
+                            ClockStyle.HUGE -> if (compact) 51.sp else 64.sp
+                            ClockStyle.CONDENSED -> if (compact) 48.sp else 56.sp
+                            ClockStyle.MONO -> if (compact) 46.sp else 52.sp
+                            ClockStyle.POSTER -> if (compact) 49.sp else 60.sp
+                        }
+
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                BrutalLabel(
-                                    text = if (use24Hour) "24H CLOCK" else "12H CLOCK",
-                                    background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
-                                )
-                                BrutalLabel(
-                                    text = clockStyle.label,
-                                    background = BrutalColors.White
-                                )
-                            }
+                            BrutalLabel(
+                                text = (if (use24Hour) "24H" else "12H") + " / " + clockStyle.label,
+                                background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                            )
+
                             Text(
                                 text = time.format(now),
-                                fontSize = when (clockStyle) {
-                                    ClockStyle.HUGE -> 72.sp
-                                    ClockStyle.CONDENSED -> 60.sp
-                                    ClockStyle.MONO -> 56.sp
-                                    ClockStyle.POSTER -> 64.sp
-                                },
-                                lineHeight = when (clockStyle) {
-                                    ClockStyle.HUGE -> 69.sp
-                                    ClockStyle.CONDENSED -> 58.sp
-                                    ClockStyle.MONO -> 54.sp
-                                    ClockStyle.POSTER -> 61.sp
-                                },
+                                fontSize = timeSize,
+                                lineHeight = timeLine,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = when (clockStyle) {
                                     ClockStyle.MONO -> BrutalTypography.Mono
-                                    ClockStyle.CONDENSED -> BrutalTypography.Poster
-                                    ClockStyle.HUGE -> BrutalTypography.Poster
+                                    ClockStyle.CONDENSED,
+                                    ClockStyle.HUGE,
                                     ClockStyle.POSTER -> BrutalTypography.Poster
                                 },
                                 color = homeClockText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Clip
                             )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = longDay.format(now),
-                                    fontSize = 15.sp,
-                                    lineHeight = 17.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = BrutalColors.Red,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
-                                Text(
-                                    text = "/",
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Black,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText
-                                )
-                                Text(
-                                    text = longDate.format(now),
-                                    modifier = Modifier.weight(1f),
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
+
+                            if (showDate) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = longDay.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.38f),
+                                        fontSize = if (compact) 9.sp else 12.sp,
+                                        lineHeight = if (compact) 10.sp else 13.sp,
+                                        fontWeight = FontWeight.Black,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = BrutalColors.Red,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = longDate.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.62f),
+                                        fontSize = if (compact) 9.sp else 12.sp,
+                                        lineHeight = if (compact) 10.sp else 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = homeClockText,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
@@ -839,10 +829,15 @@ private fun HomeScreen(
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { tile ->
-                            tileEditMode = true
                             selectedTile = tile
+                            tileEditMode = false
                         },
-                        onTileEdit = { selectedTile = it },
+                        onTileEdit = {
+                            // In MOVE mode, tapping a tile should not unexpectedly reopen its edit menu.
+                        },
+                        onTileMoveFinished = {
+                            tileEditMode = false
+                        },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
@@ -1034,47 +1029,84 @@ private fun HomeScreen(
                 selectedTile = null
                 tileEditMode = false
             },
-            title = { Text(text = tile.label + " / TILE", fontWeight = FontWeight.Black) },
+            title = {
+                Text(
+                    text = tile.label,
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    BrutalLabel(
+                        text = if (locked) "FIXED / 4x1" else "CURRENT / " + tile.size.label,
+                        background = if (locked) BrutalColors.Purple else BrutalColors.Yellow
+                    )
+
                     Text(
                         text = if (locked) {
-                            "BOTTOM APP IS FIXED TO 4x1"
+                            "This is the last Home app. It stays full-width at 4x1. You can move or remove it."
                         } else {
-                            "SIZE: " + tile.size.label
+                            "Choose a size, or move the tile to another position."
                         },
-                        fontWeight = FontWeight.Black
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
+
                     if (!locked) {
-                        listOf(
-                            NeoTileSize.SMALL,
-                            NeoTileSize.HORIZONTAL,
-                            NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE
-                        ).forEach { option ->
-                            androidx.compose.material3.TextButton(
-                                onClick = {
-                                    onTileSizeChange(tile.id, option)
-                                    selectedTile = null
-                                    tileEditMode = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = option.label,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Black
+                        Text(
+                            text = "CHANGE SIZE",
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.8.sp
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                NeoTileSize.SMALL,
+                                NeoTileSize.HORIZONTAL,
+                                NeoTileSize.THREE_BY_ONE,
+                                NeoTileSize.FOUR_BY_ONE
+                            ).forEach { option ->
+                                ThemeButton(
+                                    label = option.label,
+                                    selected = tile.size == option,
+                                    background = when (option) {
+                                        NeoTileSize.SMALL -> BrutalColors.Cyan
+                                        NeoTileSize.HORIZONTAL -> BrutalColors.Yellow
+                                        NeoTileSize.THREE_BY_ONE -> BrutalColors.Pink
+                                        NeoTileSize.FOUR_BY_ONE -> BrutalColors.Lime
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        onTileSizeChange(tile.id, option)
+                                        selectedTile = null
+                                        tileEditMode = false
+                                    }
                                 )
                             }
                         }
                     }
-                }
-            },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (!locked && homeAppCount > 2) {
-                        androidx.compose.material3.TextButton(
+
+                    BrutalActionButton(
+                        title = "MOVE TILE",
+                        background = BrutalColors.Cyan,
+                        onClick = {
+                            selectedTile = null
+                            tileEditMode = true
+                        }
+                    )
+
+                    if (homeAppCount > 2) {
+                        BrutalActionButton(
+                            title = "REMOVE FROM HOME",
+                            background = BrutalColors.Orange,
                             onClick = {
                                 val app = launchableApps.firstOrNull {
                                     "app_" + it.packageName + "_" + it.activityName == tile.id
@@ -1089,28 +1121,26 @@ private fun HomeScreen(
                                 selectedTile = null
                                 tileEditMode = false
                             }
-                        ) {
-                            Text(
-                                text = "REMOVE",
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Orange
-                            )
-                        }
+                        )
                     }
-
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            selectedTile = null
-                            tileEditMode = false
-                        }
-                    ) {
-                        Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        selectedTile = null
+                        tileEditMode = false
                     }
+                ) {
+                    Text(
+                        text = "DONE",
+                        fontFamily = BrutalTypography.Display,
+                        fontWeight = FontWeight.Normal
+                    )
                 }
             }
         )
     }
-}
 
 @Composable
 private fun FixedSmallTile(
