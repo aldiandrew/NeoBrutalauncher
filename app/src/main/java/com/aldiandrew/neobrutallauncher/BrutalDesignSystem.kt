@@ -39,6 +39,8 @@ val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.POST
 
 data class BrutalMetrics(val borderScale: Float = 1f, val shadowScale: Float = 1f)
 
+val LocalBrutalMetrics = staticCompositionLocalOf { BrutalMetrics() }
+
 object BrutalTypography {
     private val DisplayBase = FontFamily(
         Font(R.font.anton_regular, FontWeight.Normal)
