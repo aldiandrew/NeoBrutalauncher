@@ -462,7 +462,6 @@ fun NeoBrutalLauncherApp() {
                         LivePage(
                             apps = apps,
                             customQuotes = customQuotes,
-                            customQuotes = customQuotes,
                             selectedChatPackages = selectedChatPackages,
                             onSelectChatPackage = { packageName ->
                                 val normalized = listOfNotNull(packageName).take(1)
