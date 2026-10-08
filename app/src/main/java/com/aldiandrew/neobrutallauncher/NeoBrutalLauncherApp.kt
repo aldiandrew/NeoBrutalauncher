@@ -377,9 +377,7 @@ fun NeoBrutalLauncherApp() {
                         )
                     } else {
                         LivePage(
-                            apps = apps,
                             selectedChatPackages = selectedChatPackages,
-                            onLaunch = repository::launch,
                             onOpenHome = { currentPage = 0 }
                         )
                     }
