@@ -1,8 +1,12 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.activity.compose.BackHandler
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -35,6 +39,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +75,8 @@ fun AppsPage(
     }
     val listState = rememberLazyListState()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
+    var contextApp by remember { mutableStateOf<AppInfo?>(null) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     fun firstIndexForLetter(letter: Char): Int {
         if (sortedApps.isEmpty()) return 0
@@ -283,7 +291,7 @@ fun AppsPage(
                                 shadowX = 5.dp,
                                 shadowY = 5.dp,
                                 onClick = { onLaunch(app) },
-                                onLongClick = { onToggleFavorite(app) }
+                                onLongClick = { contextApp = app }
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -417,5 +425,44 @@ fun AppsPage(
                 }
             }
         }
+    }
+    contextApp?.let { app ->
+        val isPinned = favorites.contains(app.packageName + "/" + app.activityName)
+        AlertDialog(
+            onDismissRequest = { contextApp = null },
+            title = {
+                Text(text = app.label.uppercase(), fontFamily = BrutalTypography.Display, fontWeight = FontWeight.Normal)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    BrutalActionButton(
+                        title = if (isPinned) "REMOVE PIN" else "PIN TO HOME",
+                        background = BrutalColors.Yellow,
+                        onClick = { onToggleFavorite(app); contextApp = null }
+                    )
+                    BrutalActionButton(
+                        title = "OPEN APP", background = BrutalColors.Cyan,
+                        onClick = { onLaunch(app); contextApp = null }
+                    )
+                    BrutalActionButton(
+                        title = "APP INFO", background = BrutalColors.Lime,
+                        onClick = {
+                            runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = Uri.parse("package:" + app.packageName) }) }
+                            contextApp = null
+                        }
+                    )
+                    if (app.packageName != context.packageName) {
+                        BrutalActionButton(
+                            title = "UNINSTALL", background = BrutalColors.Pink,
+                            onClick = {
+                                runCatching { context.startActivity(Intent(Intent.ACTION_DELETE).apply { data = Uri.parse("package:" + app.packageName) }) }
+                                contextApp = null
+                            }
+                        )
+                    }
+                }
+            },
+            confirmButton = {}
+        )
     }
 }
