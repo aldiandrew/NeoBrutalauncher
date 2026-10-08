@@ -1,7 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.ui.graphics.Color
-import java.util.Calendar
 
 data class NeoQuotePalette(
     val background: Color,
@@ -58,10 +57,4 @@ object NeoQuotes {
         return NeoQuotePalette(background, BrutalColors.Ink)
     }
 
-    fun pairForToday(): Pair<String, String> {
-        val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-        return pairForRotation(day)
-    }
-
-    fun forToday(): String = pairForToday().first
 }
