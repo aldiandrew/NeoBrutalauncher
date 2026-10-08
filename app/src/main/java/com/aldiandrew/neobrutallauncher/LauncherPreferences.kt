@@ -349,8 +349,6 @@ class LauncherPreferences(context: Context) {
             .put("showTagline", showTagline())
             .put("showAppCount", showAppCount())
             .put("showWeather", showWeather())
-            .put("showQuote", showQuote())
-            .put("showBattery", showBattery())
             .put("chatNotificationPackages", JSONArray(chatNotificationPackages()))
             .put("favorites", JSONArray(favorites().toList()))
             .put("tilePositions", JSONObject().apply {
