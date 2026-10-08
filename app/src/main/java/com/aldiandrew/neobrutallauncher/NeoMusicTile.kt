@@ -1,5 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
@@ -136,7 +137,14 @@ fun NeoMusicTile(
             context.packageManager.getLaunchIntentForPackage(packageName)
         }.getOrNull() ?: return
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(launchIntent) }
+        runCatching {
+            val options = ActivityOptions.makeCustomAnimation(
+                context,
+                R.anim.nb_app_enter,
+                R.anim.nb_app_exit
+            )
+            context.startActivity(launchIntent, options.toBundle())
+        }
     }
     val fallbackApp = remember { resolveMusicApp(context) }
     val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
