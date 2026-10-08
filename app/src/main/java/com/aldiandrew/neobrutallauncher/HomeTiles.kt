@@ -277,6 +277,7 @@ fun NeoTileGrid(
                                     onDragCancel = {
                                         draggedId = null
                                         dragDelta = Offset.Zero
+                                        editMode = false
                                     }
                                 ) { _, amount ->
                                     dragDelta += amount
@@ -295,6 +296,8 @@ fun NeoTileGrid(
                                 BrutalColors.Ink
                             }
                         )
+                    }
+                        }
                     }
                 }
             }
