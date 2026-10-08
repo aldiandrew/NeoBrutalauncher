@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import androidx.compose.runtime.collectAsState
@@ -98,44 +99,6 @@ fun NeoMusicTile(
 
     val musicInfo by NeoMusicSessionStore.state.collectAsState()
 
-    var progressClock by remember { mutableStateOf(System.currentTimeMillis()) }
-
-    LaunchedEffect(
-        musicInfo?.packageName,
-        musicInfo?.title,
-        musicInfo?.positionUpdatedAtMs,
-        musicInfo?.isPlaying,
-        lifecycleOwner
-    ) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            if (musicInfo?.isPlaying == true) {
-                while (isActive) {
-                    progressClock = System.currentTimeMillis()
-                    delay(1000L)
-                }
-            } else {
-                progressClock = System.currentTimeMillis()
-            }
-        }
-    }
-
-    val displayPositionMs = musicInfo?.let { info ->
-        if (info.isPlaying) {
-            info.positionMs +
-                ((progressClock - info.positionUpdatedAtMs) * info.playbackSpeed).toLong()
-        } else {
-            info.positionMs
-        }
-    }?.coerceAtLeast(0L) ?: 0L
-
-    val musicProgress = musicInfo?.let { info ->
-        if (info.durationMs > 0L) {
-            (displayPositionMs.toFloat() / info.durationMs.toFloat()).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
-    } ?: 0f
-
     fun openCurrentMusicApp() {
         val packageName = musicInfo?.packageName ?: return
         val launchIntent = runCatching {
@@ -187,8 +150,7 @@ fun NeoMusicTile(
             iconBitmap = iconBitmap,
             textColor = textColor,
             context = context,
-            musicProgress = musicProgress
-        )
+                    )
     }
 }
 
@@ -199,8 +161,7 @@ private fun MusicTileContent(
     musicInfo: MusicInfo?,
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
-    context: Context,
-    musicProgress: Float
+    context: Context
 ) {
     Row(
         modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
@@ -263,14 +224,10 @@ private fun MusicTileContent(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            if ((musicInfo?.durationMs ?: 0L) > 0L) {
-                BrutalProgress(
-                    progress = musicProgress,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    fillColor = textColor,
-                    trackColor = textColor.copy(alpha = 0.18f)
+            musicInfo?.takeIf { it.durationMs > 0L }?.let { info ->
+                MusicProgressIndicator(
+                    musicInfo = info,
+                    textColor = textColor
                 )
             }
             if (!hasAccess) {
@@ -311,6 +268,58 @@ private fun MusicTileContent(
             )
         }
     }
+}
+
+@Composable
+private fun MusicProgressIndicator(
+    musicInfo: MusicInfo,
+    textColor: Color
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var progressClock by remember(
+        musicInfo.packageName,
+        musicInfo.positionUpdatedAtMs,
+        musicInfo.isPlaying
+    ) {
+        mutableLongStateOf(System.currentTimeMillis())
+    }
+
+    LaunchedEffect(
+        musicInfo.packageName,
+        musicInfo.positionUpdatedAtMs,
+        musicInfo.isPlaying,
+        lifecycleOwner
+    ) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            if (musicInfo.isPlaying) {
+                while (isActive) {
+                    progressClock = System.currentTimeMillis()
+                    delay(1000L)
+                }
+            } else {
+                progressClock = System.currentTimeMillis()
+            }
+        }
+    }
+
+    val displayPositionMs = if (musicInfo.isPlaying) {
+        musicInfo.positionMs +
+            ((progressClock - musicInfo.positionUpdatedAtMs) * musicInfo.playbackSpeed).toLong()
+    } else {
+        musicInfo.positionMs
+    }.coerceAtLeast(0L)
+
+    val progress = (displayPositionMs.toFloat() / musicInfo.durationMs.toFloat())
+        .coerceIn(0f, 1f)
+
+    BrutalProgress(
+        progress = progress,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        fillColor = textColor,
+        trackColor = textColor.copy(alpha = 0.18f)
+    )
 }
 
 @Composable
