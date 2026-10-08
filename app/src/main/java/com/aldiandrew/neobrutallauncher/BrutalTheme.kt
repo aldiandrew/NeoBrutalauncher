@@ -1,5 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -71,7 +72,8 @@ fun NeoBrutalTheme(
     val view = LocalView.current
 
     SideEffect {
-        val controller = WindowCompat.getInsetsController(view, view)
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        val controller = WindowCompat.getInsetsController(window, view)
         controller.isAppearanceLightStatusBars = !isDark
         controller.isAppearanceLightNavigationBars = !isDark
     }
