@@ -1584,6 +1584,7 @@ private fun SettingsScreen(
     showAmPm: Boolean,
     homeAppCount: Int,
     showWeather: Boolean,
+    customQuotes: List<String>,
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
