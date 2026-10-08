@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -109,7 +108,7 @@ fun BatteryTile(
                         fontSize = 18.sp,
                         lineHeight = 19.sp,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = BrutalColors.Ink,
                         maxLines = 1
                     )
                     Text(

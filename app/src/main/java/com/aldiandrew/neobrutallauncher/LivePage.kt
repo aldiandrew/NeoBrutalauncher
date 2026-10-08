@@ -4,17 +4,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
@@ -26,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -64,9 +60,9 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
-    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
+    val accentSurface = BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
+    val headerText = BrutalColors.Ink
     val liveClockTileHeight = 126.dp
 
     val dateText = SimpleDateFormat(
@@ -94,10 +90,10 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
                 background = accentSurface,
                 borderWidth = 4.dp,
-                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                borderColor = BrutalColors.Ink,
                 shadowX = 7.dp,
                 shadowY = 7.dp,
-                shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                shadowColor = BrutalColors.Ink
             ) {
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -106,16 +102,16 @@ fun LivePage(
                         fontFamily = BrutalTypography.Display,
                         fontSize = NeoBrutalTokens.Type.Title,
                         fontWeight = FontWeight.Normal,
-                        color = if (isDark) BrutalColors.Red else pageText
+                        color = BrutalColors.Red
                     )
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
                         fontSize = NeoBrutalTokens.Type.Hero,
                         lineHeight = NeoBrutalTokens.Type.Hero,
                         fontWeight = FontWeight.Black,
-                        color = pageText
+                        color = headerText
                     )
-                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = pageText)
+                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = headerText)
                 }
             }
         }
@@ -124,8 +120,8 @@ fun LivePage(
             NeoCalendarTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = if (isDark) BrutalColors.Pink else BrutalColors.Cyan,
-                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                background = BrutalColors.Cyan,
+                textColor = BrutalColors.Ink
             )
         }
 
@@ -134,7 +130,7 @@ fun LivePage(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
+                background = BrutalColors.Yellow,
                 textColor = BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
             )
@@ -144,8 +140,8 @@ fun LivePage(
             NeoMusicTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
-                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                background = BrutalColors.Cyan,
+                textColor = BrutalColors.Ink,
             )
         }
 

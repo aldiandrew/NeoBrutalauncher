@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -256,82 +255,96 @@ fun AppsPage(
                                 app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
-                            val lightCardPalette = BrutalColors.appPalette(0)
-                            val darkCardPalette = listOf(
-                                BrutalColors.DarkTile
-                            )
-                            val cardBackground = if (isDark) {
-                                darkCardPalette[index % darkCardPalette.size]
-                            } else {
-                                lightCardPalette[index % lightCardPalette.size]
-                            }
-                            val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
-                                BrutalColors.DarkWhite
-                            } else {
-                                BrutalColors.Ink
-                            }
+                            val palette = remember { BrutalColors.appPalette(0) }
+                            val cardBackground = palette[index % palette.size]
+                            val currentLetter = app.label.firstOrNull()?.uppercaseChar() ?: '#'
+                            val previousLetter = sortedApps
+                                .getOrNull(index - 1)
+                                ?.label
+                                ?.firstOrNull()
+                                ?.uppercaseChar()
+                                ?: '#'
+                            val isFirstInLetterGroup =
+                                index == 0 || currentLetter != previousLetter
 
-                            BrutalPressableBlock(
-                                modifier = Modifier.fillMaxWidth(),
-                                background = cardBackground,
-                                borderWidth = 3.dp,
-                                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
-                                shadowX = 5.dp,
-                                shadowY = 5.dp,
-                                onClick = { onLaunch(app) },
-                                onLongClick = { contextApp = app }
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(NeoBrutalTokens.Spacing.Small),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier
-                                            .width(50.dp)
-                                            .height(50.dp)
-                                    )
-                                    Spacer(Modifier.width(12.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        val firstLetter =
-                                            app.label.firstOrNull()?.uppercase() ?: "#"
-
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                if (isFirstInLetterGroup) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(
-                                            text = firstLetter,
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Yellow
+                                            text = currentLetter.toString(),
+                                            fontFamily = BrutalTypography.Display,
+                                            fontSize = 20.sp,
+                                            lineHeight = 21.sp,
+                                            fontWeight = FontWeight.Normal,
+                                            color = uiOnSurface
                                         )
+                                        Spacer(Modifier.width(8.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(2.dp)
+                                                .background(uiOnSurface)
+                                        )
+                                    }
+                                }
+
+                                BrutalPressableBlock(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    background = cardBackground,
+                                    borderWidth = 3.dp,
+                                    borderColor = BrutalColors.Ink,
+                                    shadowX = 5.dp,
+                                    shadowY = 5.dp,
+                                    onClick = { onLaunch(app) },
+                                    onLongClick = { contextApp = app }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(NeoBrutalTokens.Spacing.Small),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Image(
+                                            bitmap = iconBitmap,
+                                            contentDescription = app.label,
+                                            modifier = Modifier
+                                                .width(50.dp)
+                                                .height(50.dp)
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+
                                         Text(
                                             text = app.label.uppercase(),
+                                            modifier = Modifier.weight(1f),
                                             fontSize = 16.sp,
                                             lineHeight = 18.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = cardTextColor,
+                                            color = BrutalColors.Ink,
                                             maxLines = 2
                                         )
-                                    }
 
-                                    if (favorites.contains(app.packageName + "/" + app.activityName)) {
-                                        BrutalBlock(
-                                            modifier = Modifier
-                                                .width(12.dp)
-                                                .height(12.dp),
-                                            background = BrutalColors.Yellow,
-                                            borderWidth = 2.dp,
-                                            shadowX = 0.dp,
-                                            shadowY = 0.dp
-                                        ) {}
+                                        if (favorites.contains(
+                                                app.packageName + "/" + app.activityName
+                                            )
+                                        ) {
+                                            BrutalBlock(
+                                                modifier = Modifier
+                                                    .width(12.dp)
+                                                    .height(12.dp),
+                                                background = BrutalColors.Yellow,
+                                                borderWidth = 2.dp,
+                                                shadowX = 0.dp,
+                                                shadowY = 0.dp
+                                            ) {}
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-
+                        }
                     BrutalBlock(
                         modifier = Modifier
                             .width(28.dp)

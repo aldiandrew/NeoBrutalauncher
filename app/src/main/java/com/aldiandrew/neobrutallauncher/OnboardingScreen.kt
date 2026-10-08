@@ -40,6 +40,10 @@ fun NeoOnboardingScreen(
     apps: List<AppInfo>,
     initialFavorites: Set<String>,
     favoriteLimit: Int,
+    locationPermissionGranted: Boolean,
+    notificationAccessGranted: Boolean,
+    onRequestLocationPermission: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
     onFavoritesChange: (Set<String>) -> Unit,
     onFinish: () -> Unit
 ) {
@@ -49,7 +53,7 @@ fun NeoOnboardingScreen(
     }
 
     val normalizedLimit = favoriteLimit.coerceIn(1, 7)
-    val steps = 3
+    val steps = 4
 
     fun updateFavorites(app: AppInfo) {
         val key = app.packageName + "/" + app.activityName
@@ -92,8 +96,9 @@ fun NeoOnboardingScreen(
                     Text(
                         text = when (step) {
                             0 -> "01 / WELCOME"
-                            1 -> "02 / FAVORITES"
-                            else -> "03 / READY"
+                            1 -> "02 / PERMISSIONS"
+                            2 -> "03 / FAVORITES"
+                            else -> "04 / READY"
                         },
                         fontFamily = BrutalTypography.Display,
                         fontSize = 14.sp,
@@ -147,7 +152,13 @@ fun NeoOnboardingScreen(
             Box(modifier = Modifier.weight(1f)) {
                 when (step) {
                     0 -> WelcomeStep()
-                    1 -> FavoriteAppsStep(
+                    1 -> PermissionsStep(
+                        locationPermissionGranted = locationPermissionGranted,
+                        notificationAccessGranted = notificationAccessGranted,
+                        onRequestLocationPermission = onRequestLocationPermission,
+                        onOpenNotificationAccess = onOpenNotificationAccess
+                    )
+                    2 -> FavoriteAppsStep(
                         apps = apps,
                         favorites = favorites,
                         favoriteLimit = normalizedLimit,
@@ -215,6 +226,107 @@ private fun WelcomeStep() {
                     lineHeight = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = BrutalColors.Ink
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionsStep(
+    locationPermissionGranted: Boolean,
+    notificationAccessGranted: Boolean,
+    onRequestLocationPermission: () -> Unit,
+    onOpenNotificationAccess: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "PERMISSIONS",
+            fontFamily = BrutalTypography.Display,
+            fontSize = 28.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = "A FEW OPTIONAL PERMISSIONS POWER THE LIVE FEATURES.",
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        BrutalBlock(
+            modifier = Modifier.fillMaxWidth(),
+            background = if (locationPermissionGranted) BrutalColors.Yellow else BrutalColors.Cyan,
+            borderWidth = 3.dp,
+            shadowX = 4.dp,
+            shadowY = 4.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "LOCATION",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = BrutalColors.Ink
+                )
+                Text(
+                    text = if (locationPermissionGranted) {
+                        "GRANTED — WEATHER CAN USE YOUR DEVICE LOCATION."
+                    } else {
+                        "USED ONLY TO SHOW LOCAL WEATHER ON HOME."
+                    },
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrutalColors.Ink
+                )
+                if (!locationPermissionGranted) {
+                    BrutalActionButton(
+                        title = "ALLOW LOCATION",
+                        background = BrutalColors.Yellow,
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onRequestLocationPermission
+                    )
+                }
+            }
+        }
+
+        BrutalBlock(
+            modifier = Modifier.fillMaxWidth(),
+            background = if (notificationAccessGranted) BrutalColors.Yellow else BrutalColors.Pink,
+            borderWidth = 3.dp,
+            shadowX = 4.dp,
+            shadowY = 4.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "NOTIFICATION ACCESS",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = BrutalColors.Ink
+                )
+                Text(
+                    text = if (notificationAccessGranted) {
+                        "GRANTED — MUSIC AND LIVE CHAT CAN READ THEIR NOTIFICATION DATA."
+                    } else {
+                        "USED BY THE MUSIC AND LIVE CHAT TILES."
+                    },
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrutalColors.Ink
+                )
+                BrutalActionButton(
+                    title = if (notificationAccessGranted) "MANAGE ACCESS" else "OPEN NOTIFICATION ACCESS",
+                    background = BrutalColors.Yellow,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onOpenNotificationAccess
                 )
             }
         }
