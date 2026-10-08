@@ -61,24 +61,27 @@ object BrutalTypography {
         Font(R.font.space_grotesk_bold, FontWeight.Bold)
     )
 
+    @get:Composable
     val Display: FontFamily
-        @Composable get() = when (LocalBrutalTypographyStyle.current) {
+        get() = when (LocalBrutalTypographyStyle.current) {
             TypographyStyle.POSTER -> DisplayBase
             TypographyStyle.MONO -> FontFamily.Monospace
             TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.HUGE -> DisplayBase
         }
 
+    @get:Composable
     val Body: FontFamily
-        @Composable get() = when (LocalBrutalTypographyStyle.current) {
+        get() = when (LocalBrutalTypographyStyle.current) {
             TypographyStyle.POSTER -> BodyBase
             TypographyStyle.MONO -> FontFamily.Monospace
             TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.HUGE -> BodyBase
         }
 
+    @get:Composable
     val Bricolage: FontFamily
-        @Composable get() = Body
+        get() = Body
 
     val Poster: FontFamily
         @Composable get() = DisplayBase
