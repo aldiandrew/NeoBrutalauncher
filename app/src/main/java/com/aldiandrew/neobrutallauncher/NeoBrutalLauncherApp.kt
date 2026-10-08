@@ -662,33 +662,23 @@ private fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                BrutalLabel(
-                                    text = if (use24Hour) "24H CLOCK" else "12H CLOCK",
-                                    background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
-                                )
-                                BrutalLabel(
-                                    text = clockStyle.label,
-                                    background = BrutalColors.White
-                                )
-                            }
+                            BrutalLabel(
+                                text = (if (use24Hour) "24H" else "12H") + " / " + clockStyle.label,
+                                background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                            )
                             Text(
                                 text = time.format(now),
                                 fontSize = when (clockStyle) {
-                                    ClockStyle.HUGE -> 72.sp
-                                    ClockStyle.CONDENSED -> 60.sp
-                                    ClockStyle.MONO -> 56.sp
-                                    ClockStyle.POSTER -> 64.sp
+                                    ClockStyle.HUGE -> 58.sp
+                                    ClockStyle.CONDENSED -> 52.sp
+                                    ClockStyle.MONO -> 50.sp
+                                    ClockStyle.POSTER -> 54.sp
                                 },
                                 lineHeight = when (clockStyle) {
-                                    ClockStyle.HUGE -> 69.sp
-                                    ClockStyle.CONDENSED -> 58.sp
-                                    ClockStyle.MONO -> 54.sp
-                                    ClockStyle.POSTER -> 61.sp
+                                    ClockStyle.HUGE -> 56.sp
+                                    ClockStyle.CONDENSED -> 50.sp
+                                    ClockStyle.MONO -> 48.sp
+                                    ClockStyle.POSTER -> 52.sp
                                 },
                                 fontWeight = FontWeight.Black,
                                 fontFamily = when (clockStyle) {
@@ -701,40 +691,35 @@ private fun HomeScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Clip
                             )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = longDay.format(now),
-                                    fontSize = 15.sp,
-                                    lineHeight = 17.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = BrutalColors.Red,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
-                                Text(
-                                    text = "/",
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Black,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText
-                                )
-                                Text(
-                                    text = longDate.format(now),
-                                    modifier = Modifier.weight(1f),
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
+                            if (showDate) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = longDay.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.40f),
+                                        fontSize = 10.sp,
+                                        lineHeight = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = BrutalColors.Red,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = longDate.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.60f),
+                                        fontSize = 10.sp,
+                                        lineHeight = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = homeClockText,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
@@ -839,10 +824,10 @@ private fun HomeScreen(
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { tile ->
-                            tileEditMode = true
                             selectedTile = tile
                         },
                         onTileEdit = { selectedTile = it },
+                        onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
@@ -1034,14 +1019,21 @@ private fun HomeScreen(
                 selectedTile = null
                 tileEditMode = false
             },
-            title = { Text(text = tile.label + " / TILE", fontWeight = FontWeight.Black) },
+            title = {
+                Text(
+                    text = "EDIT TILE",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = if (locked) {
-                            "BOTTOM APP IS FIXED TO 4x1"
+                            "FIXED 4x1 / LAST HOME APP"
                         } else {
-                            "SIZE: " + tile.size.label
+                            "CURRENT SIZE: " + tile.size.label
                         },
                         fontWeight = FontWeight.Black
                     )
@@ -1061,7 +1053,7 @@ private fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = option.label,
+                                    text = "SET " + option.label,
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Start,
                                     fontWeight = FontWeight.Black
@@ -1091,7 +1083,7 @@ private fun HomeScreen(
                             }
                         ) {
                             Text(
-                                text = "REMOVE",
+                                text = "REMOVE FROM HOME",
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Orange
                             )
@@ -1101,10 +1093,22 @@ private fun HomeScreen(
                     androidx.compose.material3.TextButton(
                         onClick = {
                             selectedTile = null
+                            tileEditMode = true
+                        }
+                    ) {
+                        Text(
+                            text = "MOVE TILE",
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            selectedTile = null
                             tileEditMode = false
                         }
                     ) {
-                        Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                        Text(text = "DONE", fontWeight = FontWeight.Black)
                     }
                 }
             }
