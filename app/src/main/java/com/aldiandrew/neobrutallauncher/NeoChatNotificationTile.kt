@@ -164,9 +164,17 @@ fun NeoChatNotificationTile(
             } ?: onChooseApp()
         },
         background = background,
-        borderWidth = 3.dp,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        borderWidth = 4.dp,
+        borderColor = if (
+            background == BrutalColors.DarkTile ||
+            background == BrutalColors.DarkPaper
+        ) BrutalColors.DarkWhite else BrutalColors.Ink,
+        shadowX = 6.dp,
+        shadowY = 6.dp,
+        shadowColor = if (
+            background == BrutalColors.DarkTile ||
+            background == BrutalColors.DarkPaper
+        ) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         NeoTileDecoration(
             label = "CHAT",
