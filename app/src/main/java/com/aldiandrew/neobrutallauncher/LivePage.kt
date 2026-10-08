@@ -143,9 +143,7 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth().height(126.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
-                decorated = true,
-                labelAlignment = Alignment.BottomStart,
-                showBottomLine = false
+                decorated = true
             )
         }
 
