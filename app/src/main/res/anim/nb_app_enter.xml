@@ -2,15 +2,15 @@
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:interpolator="@android:interpolator/decelerate_cubic">
     <scale
-        android:duration="150"
-        android:fromXScale="0.97"
-        android:fromYScale="0.97"
+        android:duration="180"
+        android:fromXScale="0.96"
+        android:fromYScale="0.96"
         android:pivotX="50%"
         android:pivotY="50%"
         android:toXScale="1.0"
         android:toYScale="1.0" />
     <alpha
-        android:duration="120"
+        android:duration="150"
         android:fromAlpha="0.0"
         android:toAlpha="1.0" />
 </set>
