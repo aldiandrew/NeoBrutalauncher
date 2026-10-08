@@ -178,7 +178,7 @@ fun NeoChatNotificationTile(
     ) {
         NeoTileDecoration(
             label = "CHAT",
-            accent = BrutalColors.Yellow,
+            accent = LocalNeoThemePalette.current.accent(LocalNeoThemeIsDark.current),
             textColor = textColor,
             modifier = Modifier.fillMaxSize()
         ) {
