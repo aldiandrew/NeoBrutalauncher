@@ -1,7 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clip
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +12,8 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
 import androidx.core.graphics.drawable.toBitmap
 
 fun IconThemeStyle.showsIcon(): Boolean = this != IconThemeStyle.TEXT_ONLY
