@@ -631,7 +631,7 @@ private fun HomeScreen(
                         shadowY = 4.dp
                     ) {
                         Text(
-                            text = "// HOME",
+                            text = "// Home",
                             fontFamily = BrutalTypography.Display,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Black,
