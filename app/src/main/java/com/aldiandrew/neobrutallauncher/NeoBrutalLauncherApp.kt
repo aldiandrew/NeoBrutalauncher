@@ -1934,7 +1934,7 @@ private fun SettingsScreen(
                         )
                     }
                     Text(
-                        text = "Choose up to 2 apps. Their latest active notification appears on LIVE; tap a tile to open the app.",
+                        text = "Choose one app. Its latest active notification appears on LIVE; tap the tile to open the app.",
                         fontSize = 10.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -1988,7 +1988,7 @@ private fun SettingsScreen(
                             }
                         }
                     }
-                    if (chatNotificationPackages.size >= 2) {
+                    if (chatNotificationPackages.size >= 1) {
                         Text(
                             text = "1/1 SELECTED — TAP IT AGAIN TO REMOVE.",
                             fontSize = 8.sp,
