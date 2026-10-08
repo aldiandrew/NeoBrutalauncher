@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
@@ -96,12 +95,10 @@ fun AppsPage(
         }
     }
 
-    val isDark = LocalNeoThemeIsDark.current
-    val themePalette = LocalNeoThemePalette.current
-    val uiBackground = MaterialTheme.colorScheme.background
-    val uiSurface = MaterialTheme.colorScheme.surface
-    val uiOnSurface = MaterialTheme.colorScheme.onBackground
-    val cardPalette = themePalette.tilePalette(isDark)
+    val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val uiBackground = if (isDark) BrutalColors.Ink else BrutalColors.Paper
+    val uiSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.White
+    val uiOnSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
 
     Box(
         modifier = Modifier
@@ -116,7 +113,7 @@ fun AppsPage(
         Column(modifier = Modifier.fillMaxSize()) {
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = themePalette.accent(isDark),
+                background = BrutalColors.Cyan,
                 borderWidth = 4.dp,
                 shadowX = 7.dp,
                 shadowY = 7.dp
@@ -254,9 +251,28 @@ fun AppsPage(
                             items = sortedApps,
                             key = { _, app -> app.packageName + "/" + app.activityName }
                         ) { index, app ->
-                            val iconThemeStyle = LocalIconThemeStyle.current
-                            val cardBackground = cardPalette[index % cardPalette.size]
-                            val cardTextColor = if (isDark) {
+                            val iconBitmap = remember(app.packageName, app.icon) {
+                                app.icon.toBitmap(64, 64).asImageBitmap()
+                            }
+
+                            val lightCardPalette = listOf(
+                                BrutalColors.White,
+                                BrutalColors.Yellow,
+                                BrutalColors.Pink,
+                                BrutalColors.Cyan,
+                                BrutalColors.Peach,
+                                BrutalColors.Mint,
+                                BrutalColors.Lavender
+                            )
+                            val darkCardPalette = listOf(
+                                BrutalColors.DarkTile
+                            )
+                            val cardBackground = if (isDark) {
+                                darkCardPalette[index % darkCardPalette.size]
+                            } else {
+                                lightCardPalette[index % lightCardPalette.size]
+                            }
+                            val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
                                 BrutalColors.DarkWhite
                             } else {
                                 BrutalColors.Ink
@@ -278,14 +294,14 @@ fun AppsPage(
                                         .padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    if (iconThemeStyle.showsIcon()) {
-                                        NeoAppIcon(
-                                            app = app,
-                                            size = 50.dp,
-                                            style = iconThemeStyle
-                                        )
-                                        Spacer(Modifier.width(12.dp))
-                                    }
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier
+                                            .width(50.dp)
+                                            .height(50.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         val firstLetter =
@@ -295,7 +311,7 @@ fun AppsPage(
                                             text = firstLetter,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = themePalette.accent(isDark)
+                                            color = BrutalColors.Orange
                                         )
                                         Text(
                                             text = app.label.uppercase(),
@@ -354,7 +370,7 @@ fun AppsPage(
                                     ]
                                 }
                             },
-                        background = themePalette.accent(isDark),
+                        background = BrutalColors.Yellow,
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
                         shadowY = 4.dp
