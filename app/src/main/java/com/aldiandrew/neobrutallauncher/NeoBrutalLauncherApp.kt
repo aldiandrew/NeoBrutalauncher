@@ -626,6 +626,7 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = LocalNeoThemeIsDark.current
+    val themePalette = LocalNeoThemePalette.current
     val homeClockBackground = themePalette.accent(isDarkTheme)
     val homeClockText = themePalette.onAccent(isDarkTheme)
     val homeMusicBackground = themePalette.secondary(isDarkTheme)
