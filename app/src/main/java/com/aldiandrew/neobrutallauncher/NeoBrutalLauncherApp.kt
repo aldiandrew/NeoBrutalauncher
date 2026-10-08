@@ -380,7 +380,6 @@ fun NeoBrutalLauncherApp() {
                         iconThemeStyle = it
                         preferences.setIconThemeStyle(it)
                     },
-                    customQuotes = customQuotes,
                     onCustomQuotesChange = {
                         customQuotes = it
                         preferences.setCustomQuotes(it)
