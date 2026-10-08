@@ -45,11 +45,19 @@ class LauncherPreferences(context: Context) {
     }
 
     fun homeAppCount(): Int {
-        return prefs.getInt(KEY_HOME_APP_COUNT, 6).coerceIn(2, 8)
+        return normalizePinnedCount(prefs.getInt(KEY_HOME_APP_COUNT, 5))
     }
 
     fun setHomeAppCount(value: Int) {
-        prefs.edit().putInt(KEY_HOME_APP_COUNT, value.coerceIn(2, 8)).apply()
+        prefs.edit().putInt(KEY_HOME_APP_COUNT, normalizePinnedCount(value)).apply()
+    }
+
+    private fun normalizePinnedCount(value: Int): Int {
+        return when (value) {
+            in Int.MIN_VALUE..3 -> 3
+            in 4..6 -> 5
+            else -> 7
+        }
     }
 
     fun showTagline(): Boolean {
@@ -97,11 +105,11 @@ class LauncherPreferences(context: Context) {
             ?.toList()
             .orEmpty()
             .filter { it.isNotBlank() }
-            .take(2)
+            .take(1)
 
     fun setChatNotificationPackages(values: List<String>) {
         prefs.edit()
-            .putStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, values.filter { it.isNotBlank() }.distinct().take(2).toSet())
+            .putStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, values.filter { it.isNotBlank() }.distinct().take(1).toSet())
             .apply()
     }
 
