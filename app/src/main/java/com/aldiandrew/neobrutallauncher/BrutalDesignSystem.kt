@@ -35,12 +35,14 @@ enum class BrutalityLevel(
     CHAOS("CHAOS", 1.65f, 2f)
 }
 
-enum class ClockStyle(val label: String) {
+enum class TypographyStyle(val label: String) {
     POSTER("POSTER"),
     MONO("MONO"),
     CONDENSED("CONDENSED"),
     HUGE("HUGE")
 }
+
+val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.POSTER }
 
 data class BrutalMetrics(
     val borderScale: Float = 1f,
@@ -50,19 +52,37 @@ data class BrutalMetrics(
 val LocalBrutalMetrics = staticCompositionLocalOf { BrutalMetrics() }
 
 object BrutalTypography {
-    // Display: condensed, heavy headlines for tile headers and labels.
-    val Display = FontFamily(
+    private val DisplayBase = FontFamily(
         Font(R.font.anton_regular, FontWeight.Normal)
     )
 
-    // Body: geometric, highly readable text for descriptions and editable content.
-    val Body = FontFamily(
+    private val BodyBase = FontFamily(
         Font(R.font.space_grotesk_regular, FontWeight.Normal),
         Font(R.font.space_grotesk_bold, FontWeight.Bold)
     )
 
-    val Bricolage = Body
-    val Poster = Display
+    val Display: FontFamily
+        @Composable get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.POSTER -> DisplayBase
+            TypographyStyle.MONO -> FontFamily.Monospace
+            TypographyStyle.CONDENSED -> DisplayBase
+            TypographyStyle.HUGE -> DisplayBase
+        }
+
+    val Body: FontFamily
+        @Composable get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.POSTER -> BodyBase
+            TypographyStyle.MONO -> FontFamily.Monospace
+            TypographyStyle.CONDENSED -> DisplayBase
+            TypographyStyle.HUGE -> BodyBase
+        }
+
+    val Bricolage: FontFamily
+        @Composable get() = Body
+
+    val Poster: FontFamily
+        @Composable get() = DisplayBase
+
     val Mono = FontFamily.Monospace
     val Black = FontWeight.ExtraBold
     val ExtraBold = FontWeight.ExtraBold
