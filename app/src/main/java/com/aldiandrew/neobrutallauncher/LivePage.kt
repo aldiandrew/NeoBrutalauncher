@@ -108,25 +108,13 @@ fun LivePage(
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                NeoChatNotificationTile(
-                    context = context,
-                    packageName = selectedChatPackages.getOrNull(0),
-                    modifier = Modifier.weight(1f).height(150.dp),
-                    background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
-                    textColor = BrutalColors.Ink
-                )
-                NeoChatNotificationTile(
-                    context = context,
-                    packageName = selectedChatPackages.getOrNull(1),
-                    modifier = Modifier.weight(1f).height(150.dp),
-                    background = if (isDark) BrutalColors.Cyan else BrutalColors.Peach,
-                    textColor = BrutalColors.Ink
-                )
-            }
+            NeoChatNotificationTile(
+                context = context,
+                packageName = selectedChatPackages.firstOrNull(),
+                modifier = Modifier.fillMaxWidth().height(126.dp),
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
+                textColor = BrutalColors.Ink
+            )
         }
 
         item {
