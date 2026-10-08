@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 
 private data class MusicApp(
     val label: String,
@@ -102,15 +104,18 @@ fun NeoMusicTile(
         musicInfo?.packageName,
         musicInfo?.title,
         musicInfo?.positionUpdatedAtMs,
-        musicInfo?.isPlaying
+        musicInfo?.isPlaying,
+        lifecycleOwner
     ) {
-        if (musicInfo?.isPlaying == true) {
-            while (true) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            if (musicInfo?.isPlaying == true) {
+                while (isActive) {
+                    progressClock = System.currentTimeMillis()
+                    delay(1000L)
+                }
+            } else {
                 progressClock = System.currentTimeMillis()
-                delay(1000L)
             }
-        } else {
-            progressClock = System.currentTimeMillis()
         }
     }
 
