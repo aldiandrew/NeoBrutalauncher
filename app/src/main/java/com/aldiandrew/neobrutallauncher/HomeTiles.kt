@@ -137,6 +137,7 @@ fun NeoTileGrid(
     positions: Map<String, NeoTilePosition>,
     onPositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     onTileLongPress: (NeoTileSpec) -> Unit = {},
+    editMode: Boolean = false,
     modifier: Modifier = Modifier,
     gap: Dp = 8.dp
 ) {
@@ -164,7 +165,6 @@ fun NeoTileGrid(
 
         var draggedId by remember { mutableStateOf<String?>(null) }
         var dragDelta by remember { mutableStateOf(Offset.Zero) }
-        var editMode by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -186,10 +186,7 @@ fun NeoTileGrid(
                         .height(placement.height)
                         .combinedClickable(
                             onClick = { placement.tile.onClick?.invoke() },
-                            onLongClick = {
-                                editMode = true
-                                onTileLongPress(placement.tile)
-                            }
+                            onLongClick = { onTileLongPress(placement.tile) }
                         )
                 ) {
                     placement.tile.content()
@@ -272,12 +269,10 @@ fun NeoTileGrid(
 
                                         draggedId = null
                                         dragDelta = Offset.Zero
-                                        editMode = false
                                     },
                                     onDragCancel = {
                                         draggedId = null
                                         dragDelta = Offset.Zero
-                                        editMode = false
                                     }
                                 ) { _, amount ->
                                     dragDelta += amount
