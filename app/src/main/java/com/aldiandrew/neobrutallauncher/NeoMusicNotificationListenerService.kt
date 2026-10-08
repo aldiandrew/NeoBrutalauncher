@@ -30,7 +30,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     private val sessionListener =
         MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
-            selectController(controllers)
+            selectController(controllers ?: emptyList())
         }
 
     private val controllerCallback = object : MediaController.Callback() {
