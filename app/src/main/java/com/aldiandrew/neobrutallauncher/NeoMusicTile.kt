@@ -136,12 +136,9 @@ fun NeoMusicTile(
             Spacer(Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
+                BrutalLabel(
                     text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1
+                    background = if (hasAccess) BrutalColors.Yellow else BrutalColors.Orange
                 )
                 Text(
                     text = musicLabel.uppercase(),
