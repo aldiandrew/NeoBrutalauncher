@@ -26,15 +26,15 @@
 
     <application
         android:allowBackup="true"
-        android:label="Neo Brutal Launcher"
-        android:icon="@drawable/ic_launcher"
+        android:label="NB Launcher"
+        android:icon="@mipmap/ic_launcher"\n        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.NeoBrutLauncher"
         android:enableOnBackInvokedCallback="false">
 
         <service
             android:name=".NeoMusicNotificationListenerService"
-            android:label="Neo Music Access"
+            android:label="NB Music Access"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
