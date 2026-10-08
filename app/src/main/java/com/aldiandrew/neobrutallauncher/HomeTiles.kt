@@ -1,4 +1,6 @@
 package com.aldiandrew.neobrutallauncher
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -177,15 +179,22 @@ fun NeoTileGrid(
                 val deltaX = if (isDragging) with(density) { dragDelta.x.toDp() } else 0.dp
                 val deltaY = if (isDragging) with(density) { dragDelta.y.toDp() } else 0.dp
 
+                val tileInteractionSource = remember(placement.tile.id) { MutableInteractionSource() }
+                val tilePressed by tileInteractionSource.collectIsPressedAsState()
+
                 Box(
                     modifier = Modifier
                         .offset(
-                            x = cellWidth * placement.column + gap * placement.column + deltaX,
-                            y = cellHeight * placement.row + gap * placement.row + deltaY
+                            x = cellWidth * placement.column + gap * placement.column + deltaX +
+                                if (tilePressed) 2.dp else 0.dp,
+                            y = cellHeight * placement.row + gap * placement.row + deltaY +
+                                if (tilePressed) 2.dp else 0.dp
                         )
                         .width(placement.width)
                         .height(placement.height)
                         .combinedClickable(
+                            interactionSource = tileInteractionSource,
+                            indication = null,
                             onClick = {
                                 if (editMode) {
                                     onTileEdit(placement.tile)
