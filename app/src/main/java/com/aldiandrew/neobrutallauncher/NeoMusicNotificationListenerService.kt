@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
+import android.graphics.Bitmap
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,8 @@ data class MusicInfo(
     val packageName: String,
     val appLabel: String,
     val title: String?,
-    val artist: String?
+    val artist: String?,
+    val albumArt: Bitmap?
 )
 
 object NeoMusicSessionStore {
@@ -119,12 +121,18 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
         val label = packageManager.getApplicationLabel(appInfo).toString()
         val metadata = controller.metadata
+        val albumArt = runCatching {
+            metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+                ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+        }.getOrNull()
+
         NeoMusicSessionStore.update(
             MusicInfo(
                 packageName = controller.packageName,
                 appLabel = label,
                 title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
-                artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
+                albumArt = albumArt
             )
         )
     }
