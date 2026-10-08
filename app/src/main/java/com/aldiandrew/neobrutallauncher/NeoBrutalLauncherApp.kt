@@ -462,6 +462,7 @@ fun NeoBrutalLauncherApp() {
                         LivePage(
                             apps = apps,
                             customQuotes = customQuotes,
+                            customQuotes = customQuotes,
                             selectedChatPackages = selectedChatPackages,
                             onSelectChatPackage = { packageName ->
                                 val normalized = listOfNotNull(packageName).take(1)
@@ -1621,6 +1622,7 @@ private fun SettingsScreen(
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
+    val isDark = uiBackground == BrutalColors.DarkPaper
     val darkTileBackground = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Ink
     val iconPacks = remember { IconPackManager(context).installedIconPacks() }
     val chatCandidates = remember(apps) {
