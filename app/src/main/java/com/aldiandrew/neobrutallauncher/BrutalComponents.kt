@@ -1,4 +1,10 @@
 package com.aldiandrew.neobrutallauncher
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +21,40 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+@Composable
+fun BrutalPressableBlock(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    background: Color,
+    borderWidth: Dp = 3.dp,
+    shadowX: Dp = 5.dp,
+    shadowY: Dp = 5.dp,
+    borderColor: Color? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+
+    BrutalBlock(
+        modifier = modifier
+            .offset(
+                x = if (pressed) 2.dp else 0.dp,
+                y = if (pressed) 2.dp else 0.dp
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        background = background,
+        borderWidth = borderWidth,
+        shadowX = shadowX,
+        shadowY = shadowY,
+        borderColor = borderColor,
+        content = content
+    )
+}
 
 @Composable
 fun BrutalBlock(
@@ -38,7 +78,10 @@ fun BrutalBlock(
     } else {
         Color.Transparent
     }
-    val resolvedBorderColor = borderColor ?: BrutalColors.Ink
+    val resolvedBorderColor = borderColor ?: when (background) {
+        BrutalColors.DarkPaper, BrutalColors.DarkTile -> BrutalColors.DarkWhite
+        else -> BrutalColors.Ink
+    }
 
     Layout(
         modifier = modifier,
