@@ -105,6 +105,7 @@ fun NeoBrutalLauncherApp() {
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
+    var hideStatusBar by remember { mutableStateOf(preferences.hideStatusBar()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -192,6 +193,23 @@ fun NeoBrutalLauncherApp() {
         }
     }
 
+    fun applyPinnedApps(updated: Set<String>) {
+        val valid = updated
+            .filter { appKey -> apps.any { it.packageName + "/" + it.activityName == appKey } }
+            .toSet()
+        val normalized = if (valid.size <= homeAppCount) {
+            valid
+        } else {
+            valid.take(homeAppCount).toSet()
+        }
+
+        favorites = normalized
+        preferences.setFavorites(normalized)
+
+        val cleanedExcluded = preferences.excludedHomeApps() - normalized
+        preferences.setExcludedHomeApps(cleanedExcluded)
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     val refreshScope = rememberCoroutineScope()
 
@@ -203,7 +221,7 @@ fun NeoBrutalLauncherApp() {
                 if (!preferences.homeAppsInitialized() && favorites.isEmpty()) {
                     val initialFavorites = loadedApps
                         .filter { it.packageName != context.packageName }
-                        .take(5)
+                        .take(homeAppCount)
                         .map { it.packageName + "/" + it.activityName }
                         .toSet()
                     favorites = initialFavorites
@@ -264,7 +282,8 @@ fun NeoBrutalLauncherApp() {
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
-                    favoritesCount = favorites.size,
+                    hideStatusBar = hideStatusBar,
+                    favorites = favorites,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
                     chatNotificationPackages = selectedChatPackages,
@@ -298,8 +317,7 @@ fun NeoBrutalLauncherApp() {
                                 .filter { favorites.contains(it) }
                                 .take(normalized)
                                 .toSet()
-                            favorites = trimmed
-                            preferences.setFavorites(trimmed)
+                            applyPinnedApps(trimmed)
                         }
                     },
                     onShowWeatherChange = { enabled ->
@@ -360,6 +378,10 @@ fun NeoBrutalLauncherApp() {
                         reduceMotion = it
                         preferences.setReduceMotion(it)
                     },
+                    onHideStatusBarChange = {
+                        hideStatusBar = it
+                        preferences.setHideStatusBar(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -373,9 +395,18 @@ fun NeoBrutalLauncherApp() {
                         wallpaperUri = null
                         preferences.setWallpaperUri(null)
                     },
+                    onToggleFavorite = { app ->
+                        val key = app.packageName + "/" + app.activityName
+                        val updated = favorites.toMutableSet()
+                        if (updated.contains(key)) {
+                            updated.remove(key)
+                        } else if (updated.size < homeAppCount) {
+                            updated.add(key)
+                        }
+                        applyPinnedApps(updated)
+                    },
                     onClearFavorites = {
-                        favorites = emptySet()
-                        preferences.clearFavorites()
+                        applyPinnedApps(emptySet())
                     }
                     )
                 }
@@ -440,8 +471,7 @@ fun NeoBrutalLauncherApp() {
                                 } else if (updated.size < homeAppCount) {
                                     updated.add(key)
                                 }
-                                favorites = updated
-                                preferences.setFavorites(updated)
+                                applyPinnedApps(updated)
                             },
                             onLaunch = ::requestLaunch,
                             onOpenHome = { currentPage = 0 }
@@ -1562,7 +1592,8 @@ private fun SettingsScreen(
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
-    favoritesCount: Int,
+    hideStatusBar: Boolean,
+    favorites: Set<String>,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
     onChatNotificationPackagesChange: (List<String>) -> Unit,
@@ -1580,6 +1611,8 @@ private fun SettingsScreen(
     onCustomQuotesChange: (List<String>) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
+    onHideStatusBarChange: (Boolean) -> Unit,
+    onToggleFavorite: (AppInfo) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1600,6 +1633,7 @@ private fun SettingsScreen(
             .filter { it.packageName != context.packageName }.sortedBy { it.label.lowercase() }
     }
     var showChatAppPicker by remember { mutableStateOf(false) }
+    var showPinnedAppPicker by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
     val selectedChatApp = chatCandidates.firstOrNull { it.packageName == chatNotificationPackages.firstOrNull() }
 
@@ -1685,6 +1719,15 @@ private fun SettingsScreen(
             reduceMotion,
             BrutalColors.Cyan,
             onReduceMotionChange
+        )
+
+        SettingsSectionTitle("LAUNCHER DISPLAY")
+        SettingsSwitch(
+            "HIDE STATUS BAR",
+            "Hide Android's built-in status bar on the launcher. Swipe from the top edge to reveal it temporarily.",
+            hideStatusBar,
+            BrutalColors.Pink,
+            onHideStatusBarChange
         )
 
         SettingsSectionTitle("QUOTES")
@@ -1830,10 +1873,22 @@ private fun SettingsScreen(
         SettingsSectionTitle("PINNED APPS")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                Text("$favoritesCount PINNED APPS", fontFamily = BrutalTypography.Display, fontSize = 18.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Choose how many Home app tiles are available.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Text("${favorites.size} PINNED / ${homeAppCount} SLOTS", fontFamily = BrutalTypography.Display, fontSize = 18.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                Text("Choose which apps appear on Home. Pinned apps are always prioritized.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                BrutalActionButton(
+                    "CHOOSE PINNED APPS",
+                    BrutalColors.Cyan,
+                    onClick = { showPinnedAppPicker = true }
+                )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(3,5,7).forEach { count -> ThemeButton(count.toString(), homeAppCount == count, if(count==3) BrutalColors.Cyan else if(count==5) BrutalColors.Yellow else BrutalColors.Pink, Modifier.weight(1f)) { onHomeAppCountChange(count) } }
+                    listOf(3, 5, 7).forEach { count ->
+                        ThemeButton(
+                            count.toString(),
+                            homeAppCount == count,
+                            if (count == 3) BrutalColors.Cyan else if (count == 5) BrutalColors.Yellow else BrutalColors.Pink,
+                            Modifier.weight(1f)
+                        ) { onHomeAppCountChange(count) }
+                    }
                 }
                 BrutalActionButton("CLEAR ALL PINNED APPS", BrutalColors.Yellow, onClick = onClearFavorites)
             }
@@ -1907,6 +1962,85 @@ private fun SettingsScreen(
                 }
             }
         }, confirmButton = {})
+    }
+
+    if (showPinnedAppPicker) {
+        val sortedPinnedApps = apps.sortedBy { it.label.lowercase() }
+        AlertDialog(
+            onDismissRequest = { showPinnedAppPicker = false },
+            title = {
+                Text(
+                    "PINNED APPS",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "${favorites.size} / ${homeAppCount} SLOTS USED",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = uiOnSurface
+                    )
+                    LazyColumn(
+                        modifier = Modifier.height(420.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(
+                            sortedPinnedApps,
+                            key = { it.packageName + "/" + it.activityName }
+                        ) { app ->
+                            val key = app.packageName + "/" + app.activityName
+                            val selected = favorites.contains(key)
+                            val canSelect = selected || favorites.size < homeAppCount
+                            BrutalBlock(
+                                modifier = Modifier.fillMaxWidth(),
+                                background = if (selected) BrutalColors.Yellow else uiSurface,
+                                borderWidth = 3.dp,
+                                shadowX = if (selected) 0.dp else 3.dp,
+                                shadowY = if (selected) 0.dp else 3.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(enabled = canSelect) {
+                                            onToggleFavorite(app)
+                                        },
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    BrutalCheckbox(
+                                        checked = selected,
+                                        onCheckedChange = { checked ->
+                                            if (checked != selected && (checked || favorites.size < homeAppCount)) {
+                                                onToggleFavorite(app)
+                                            }
+                                        },
+                                        size = 22.dp,
+                                        accent = BrutalColors.Yellow
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        app.label.uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(1f),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (selected) BrutalColors.Ink else uiOnSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                BrutalActionButton("DONE", BrutalColors.Cyan) {
+                    showPinnedAppPicker = false
+                }
+            }
+        )
     }
 
     if (showResetConfirm) {
