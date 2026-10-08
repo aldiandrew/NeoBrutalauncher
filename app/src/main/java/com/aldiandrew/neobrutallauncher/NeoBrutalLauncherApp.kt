@@ -1284,9 +1284,7 @@ private fun NeoAddAppTile(
     onLongClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
-    val iconBitmap = remember(app?.packageName, app?.activityName) {
-        app?.icon?.toBitmap(96, 96)?.asImageBitmap()
-    }
+    val iconThemeStyle = LocalIconThemeStyle.current
 
     Box(
         modifier = modifier.combinedClickable(
@@ -1302,7 +1300,7 @@ private fun NeoAddAppTile(
             shadowX = 5.dp,
             shadowY = 5.dp
         ) {
-            if (app == null || iconBitmap == null) {
+            if (app == null) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -1330,12 +1328,14 @@ private fun NeoAddAppTile(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        bitmap = iconBitmap,
-                        contentDescription = app.label,
-                        modifier = Modifier.size(48.dp)
+                    NeoAppIcon(
+                        app = app,
+                        size = 48.dp,
+                        style = iconThemeStyle
                     )
-                    Spacer(Modifier.height(6.dp))
+                    if (iconThemeStyle.showsIcon()) {
+                        Spacer(Modifier.height(6.dp))
+                    }
                     Text(
                         text = app.label.uppercase(),
                         modifier = Modifier.fillMaxWidth(),
