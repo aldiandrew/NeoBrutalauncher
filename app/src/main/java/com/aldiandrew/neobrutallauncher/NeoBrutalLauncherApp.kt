@@ -1480,9 +1480,9 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val iconBitmap = remember(app.packageName, app.icon) {
-            app.icon.toBitmap(64, 64).asImageBitmap()
-        }
+        val iconThemeStyle = LocalIconThemeStyle.current
+        val effectiveContentMode =
+            if (iconThemeStyle == IconThemeStyle.TEXT_ONLY) TileContentMode.TEXT else contentMode
 
         val iconSize = when (tileSize) {
             NeoTileSize.SMALL -> 28.dp
@@ -1506,29 +1506,38 @@ private fun AppTile(
             shadowY = 5.dp
         ) {
             Box(Modifier.fillMaxSize()) {
-                when (contentMode) {
+                when (effectiveContentMode) {
                     TileContentMode.ICON -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Image(
-                                bitmap = iconBitmap,
-                                contentDescription = app.label,
-                                modifier = Modifier.size(iconSize)
+                            NeoAppIcon(
+                                app = app,
+                                size = iconSize,
+                                style = iconThemeStyle
                             )
                         }
                     }
 
                     TileContentMode.TEXT -> {
                         val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE
+                        val isSmall = tileSize == NeoTileSize.SMALL
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
-                            contentAlignment = if (isFourByOne) Alignment.CenterEnd else Alignment.CenterStart
+                            contentAlignment = when {
+                                isFourByOne -> Alignment.CenterEnd
+                                isSmall -> Alignment.Center
+                                else -> Alignment.CenterStart
+                            }
                         ) {
                             Text(
                                 text = app.label.uppercase(),
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
+                                textAlign = when {
+                                    isFourByOne -> TextAlign.End
+                                    isSmall -> TextAlign.Center
+                                    else -> TextAlign.Start
+                                },
                                 fontFamily = BrutalTypography.Display,
                                 fontSize = maxTextSize,
                                 lineHeight = (maxTextSize.value * 1.02f).sp,
@@ -1549,10 +1558,10 @@ private fun AppTile(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Image(
-                                    bitmap = iconBitmap,
-                                    contentDescription = app.label,
-                                    modifier = Modifier.size(iconSize)
+                                NeoAppIcon(
+                                    app = app,
+                                    size = iconSize,
+                                    style = iconThemeStyle
                                 )
                                 Spacer(Modifier.height(3.dp))
                                 Text(
@@ -1576,10 +1585,10 @@ private fun AppTile(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Image(
-                                    bitmap = iconBitmap,
-                                    contentDescription = app.label,
-                                    modifier = Modifier.size(iconSize)
+                                NeoAppIcon(
+                                    app = app,
+                                    size = iconSize,
+                                    style = iconThemeStyle
                                 )
                                 Text(
                                     text = app.label.uppercase(),
