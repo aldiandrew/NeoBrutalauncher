@@ -561,7 +561,7 @@ private fun LauncherPageHost(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 1,
+            beyondViewportPageCount = 0,
             userScrollEnabled = true,
             key = { it }
         ) { page ->
@@ -789,7 +789,7 @@ private fun HomeScreen(
                                     textAlign = TextAlign.Center,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = BrutalColors.Ink
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface
                                 )
                             }
                         }
@@ -1555,7 +1555,7 @@ private fun AppTile(
                                     fontSize = maxTextSize,
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
