@@ -20,7 +20,9 @@ Repository: https://github.com/Unal-Inanli/brut-ui
 
 License: MIT.
 
-Use here: visual/component reference only. No source files are copied.
+Use here: the NeoBrutal motion/press foundation adapts the repository's neo-brutalist component patterns, including token-driven motion, hard offset shadows, translate-on-press feedback, and reduced-motion behavior. The implementation is Compose-native; BRUT UI's web source files are not copied verbatim.
+
+MIT license and copyright attribution: Copyright (c) 2024-2026 Unal Inanli.
 
 ### UmainLauncher
 
