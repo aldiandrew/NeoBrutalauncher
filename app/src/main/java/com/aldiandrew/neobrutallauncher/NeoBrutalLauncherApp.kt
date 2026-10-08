@@ -1258,22 +1258,29 @@ private fun NeoQuoteTilePlain(
         shadowX = 5.dp,
         shadowY = 5.dp
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(9.dp),
-            contentAlignment = Alignment.CenterStart
+        NeoTileDecoration(
+            label = "QUOTE",
+            accent = BrutalColors.Yellow,
+            textColor = palette.text,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = "“" + quote + "”",
-                fontFamily = BrutalTypography.Body,
-                fontSize = 13.sp,
-                lineHeight = 15.sp,
-                fontWeight = FontWeight.Black,
-                color = palette.text,
-                maxLines = 5,
-                overflow = TextOverflow.Ellipsis
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 9.dp, top = 25.dp, end = 9.dp, bottom = 10.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = "“" + quote + "”",
+                    fontFamily = BrutalTypography.Body,
+                    fontSize = 13.sp,
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.Black,
+                    color = palette.text,
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -1295,75 +1302,84 @@ fun NeoQuoteTile(
         shadowX = 6.dp,
         shadowY = 6.dp
     ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().padding(9.dp)
+        NeoTileDecoration(
+            label = "QUOTE",
+            accent = BrutalColors.Yellow,
+            textColor = palette.text,
+            modifier = Modifier.fillMaxSize()
         ) {
-            val compact = minOf(maxWidth, maxHeight)
-            val headerSize = if (emphasized) 12.sp else {
-                when {
-                    compact < 78.dp -> 7.sp
-                    compact < 155.dp -> 10.sp
-                    else -> 11.sp
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 9.dp, top = 25.dp, end = 9.dp, bottom = 10.dp)
+            ) {
+                val compact = minOf(maxWidth, maxHeight)
+                val headerSize = if (emphasized) 12.sp else {
+                    when {
+                        compact < 78.dp -> 7.sp
+                        compact < 155.dp -> 10.sp
+                        else -> 11.sp
+                    }
                 }
-            }
 
-            val availableHeight = (maxHeight.value - if (emphasized) 43f else 30f)
-                .coerceAtLeast(18f)
-            var quoteSize = if (emphasized) {
-                minOf(34f, maxWidth.value * 0.11f, availableHeight * 0.34f)
-            } else {
-                when {
-                    compact < 78.dp -> 7f
-                    compact < 155.dp -> 12f
-                    else -> 17f
+                val availableHeight = (maxHeight.value - if (emphasized) 43f else 30f)
+                    .coerceAtLeast(18f)
+                var quoteSize = if (emphasized) {
+                    minOf(34f, maxWidth.value * 0.11f, availableHeight * 0.34f)
+                } else {
+                    when {
+                        compact < 78.dp -> 7f
+                        compact < 155.dp -> 12f
+                        else -> 17f
+                    }
+                }.coerceAtLeast(7f)
+
+                while (quoteSize > 9f) {
+                    val estimatedCharsPerLine =
+                        (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
+                    val estimatedLines =
+                        ((quote.length + estimatedCharsPerLine - 1) / estimatedCharsPerLine)
+                            .coerceAtLeast(1)
+                    val neededHeight = estimatedLines * quoteSize * 1.08f
+                    if (neededHeight <= availableHeight) break
+                    quoteSize -= 1f
                 }
-            }.coerceAtLeast(7f)
 
-            while (quoteSize > 9f) {
-                val estimatedCharsPerLine =
+                val charsPerLine =
                     (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
                 val estimatedLines =
-                    ((quote.length + estimatedCharsPerLine - 1) / estimatedCharsPerLine)
+                    ((quote.length + charsPerLine - 1) / charsPerLine)
                         .coerceAtLeast(1)
-                val neededHeight = estimatedLines * quoteSize * 1.08f
-                if (neededHeight <= availableHeight) break
-                quoteSize -= 1f
-            }
+                        .coerceAtMost(6)
 
-            val charsPerLine =
-                (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
-            val estimatedLines =
-                ((quote.length + charsPerLine - 1) / charsPerLine)
-                    .coerceAtLeast(1)
-                    .coerceAtMost(if (emphasized) 6 else 6)
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(if (emphasized) 6.dp else 5.dp)
+                ) {
+                    Text(
+                        text = "NEO QUOTE",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = headerSize,
+                        lineHeight = headerSize,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = if (emphasized) 0.5.sp else 1.sp,
+                        color = palette.text,
+                        maxLines = 1
+                    )
 
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(if (emphasized) 6.dp else 5.dp)
-            ) {
-                Text(
-                    text = "NEO QUOTE",
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = headerSize,
-                    lineHeight = headerSize,
-                    fontWeight = FontWeight.Normal,
-                    letterSpacing = if (emphasized) 0.5.sp else 1.sp,
-                    color = palette.text,
-                    maxLines = 1
-                )
-
-                Text(
-                    text = "“$quote”",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontFamily = BrutalTypography.Body,
-                    fontSize = quoteSize.sp,
-                    lineHeight = (quoteSize * 1.08f).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = palette.text,
-                    maxLines = estimatedLines,
-                    softWrap = true,
-                    overflow = TextOverflow.Clip
-                )
+                    Text(
+                        text = "“$quote”",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontFamily = BrutalTypography.Body,
+                        fontSize = quoteSize.sp,
+                        lineHeight = (quoteSize * 1.08f).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = palette.text,
+                        maxLines = estimatedLines,
+                        softWrap = true,
+                        overflow = TextOverflow.Clip
+                    )
+                }
             }
         }
     }
