@@ -1,7 +1,5 @@
 package com.aldiandrew.neobrutallauncher
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -51,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -102,6 +101,12 @@ fun NeoBrutalLauncherApp() {
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
+    var animationStyle by remember { mutableStateOf(preferences.animationStyle()) }
+    var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
+    var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
+    var launchApp by remember { mutableStateOf<AppInfo?>(null) }
+    var homeReturnTrigger by remember { mutableIntStateOf(0) }
+    var launcherWasPaused by remember { mutableStateOf(false) }
     var locationPermissionGranted by remember {
         mutableStateOf(
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -213,7 +218,14 @@ fun NeoBrutalLauncherApp() {
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                launcherWasPaused = true
+            }
             if (event == Lifecycle.Event.ON_RESUME) {
+                if (launcherWasPaused) {
+                    homeReturnTrigger++
+                    launcherWasPaused = false
+                }
                 locationPermissionGranted =
                     context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED
@@ -228,6 +240,18 @@ fun NeoBrutalLauncherApp() {
         }
     }
 
+    val motionConfig = NeoMotionConfig(
+        animationStyle = animationStyle,
+        smoothness = motionSmoothness,
+        reduceMotion = reduceMotion
+    )
+
+    fun requestLaunch(app: AppInfo) {
+        if (launchApp == null) {
+            launchApp = app
+        }
+    }
+
     LaunchedEffect(Unit) {
         refreshApps()
     }
@@ -238,7 +262,8 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 typographyStyle = typographyStyle,
             ) {
-                SettingsScreen(
+                CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
+                    SettingsScreen(
                     themePreference = themePreference,
                     use24Hour = use24Hour,
                     showAmPm = showAmPm,
@@ -247,6 +272,9 @@ fun NeoBrutalLauncherApp() {
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
+                    animationStyle = animationStyle,
+                    motionSmoothness = motionSmoothness,
+                    reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -332,6 +360,18 @@ fun NeoBrutalLauncherApp() {
                         preferences.setIconPackPackage(it)
                         refreshApps()
                     },
+                    onAnimationStyleChange = {
+                        animationStyle = it
+                        preferences.setAnimationStyle(it)
+                    },
+                    onMotionSmoothnessChange = {
+                        motionSmoothness = it
+                        preferences.setMotionSmoothness(it)
+                    },
+                    onReduceMotionChange = {
+                        reduceMotion = it
+                        preferences.setReduceMotion(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -349,7 +389,8 @@ fun NeoBrutalLauncherApp() {
                         favorites = emptySet()
                         preferences.clearFavorites()
                     }
-                )
+                    )
+                }
             }
         }
 
@@ -358,8 +399,11 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 typographyStyle = typographyStyle,
             ) {
-                LauncherPageHost(
-                    currentPage = currentPage,
+                CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
+                    LauncherPageHost(
+                        currentPage = currentPage,
+                        homeReturnTrigger = homeReturnTrigger,
+                        motionConfig = motionConfig,
                     onPageChange = {
                         currentPage = it.coerceIn(0, 2)
                         if (currentPage == 1) refreshApps()
@@ -378,7 +422,7 @@ fun NeoBrutalLauncherApp() {
                             wallpaperUri = wallpaperUri,
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
-                            onLaunch = repository::launch,
+                            onLaunch = ::requestLaunch,
                             onHomeAppCountChange = { updated ->
                                 homeAppCount = updated
                                 preferences.setHomeAppCount(updated)
@@ -410,7 +454,7 @@ fun NeoBrutalLauncherApp() {
                                 favorites = updated
                                 preferences.setFavorites(updated)
                             },
-                            onLaunch = repository::launch,
+                            onLaunch = ::requestLaunch,
                             onOpenHome = { currentPage = 0 }
                         )
                     } else {
@@ -427,6 +471,18 @@ fun NeoBrutalLauncherApp() {
                             onOpenHome = { currentPage = 0 }
                         )
                     }
+                    }
+                    if (launchApp != null) {
+                        NeoLaunchTransition(
+                            app = launchApp!!,
+                            config = motionConfig,
+                            onFinished = {
+                                val app = launchApp
+                                launchApp = null
+                                if (app != null) repository.launch(app)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -436,6 +492,8 @@ fun NeoBrutalLauncherApp() {
 @Composable
 private fun LauncherPageHost(
     currentPage: Int,
+    homeReturnTrigger: Int,
+    motionConfig: NeoMotionConfig,
     onPageChange: (Int) -> Unit,
     content: @Composable (Int) -> Unit
 ) {
@@ -448,7 +506,11 @@ private fun LauncherPageHost(
         if (pagerState.currentPage != currentPage) {
             pagerState.animateScrollToPage(
                 page = currentPage,
-                animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                animationSpec = if (motionConfig.reduceMotion) {
+                    androidx.compose.animation.core.tween(durationMillis = 1)
+                } else {
+                    motionConfig.springSpec()
+                }
             )
         }
     }
@@ -467,8 +529,14 @@ private fun LauncherPageHost(
             userScrollEnabled = true,
             key = { it }
         ) { page ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                content(page)
+            NeoHomeReturnMotion(
+                trigger = homeReturnTrigger,
+                config = motionConfig,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    content(page)
+                }
             }
         }
 
@@ -1523,6 +1591,9 @@ private fun SettingsScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
+    animationStyle: AnimationStyle,
+    motionSmoothness: MotionSmoothness,
+    reduceMotion: Boolean,
     wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
@@ -1539,6 +1610,9 @@ private fun SettingsScreen(
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
+    onAnimationStyleChange: (AnimationStyle) -> Unit,
+    onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
+    onReduceMotionChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1599,6 +1673,59 @@ private fun SettingsScreen(
                 }
             }
         }
+
+        SettingsSectionTitle("MOTION")
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = BrutalColors.Yellow,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("ANIMATION STYLE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
+                Text(
+                    "Controls page motion and app launch motion. Smooth is the restrained default.",
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    AnimationStyle.values().forEach { style ->
+                        ThemeButton(
+                            label = style.label,
+                            selected = animationStyle == style,
+                            background = when (style) {
+                                AnimationStyle.SMOOTH -> BrutalColors.Cyan
+                                AnimationStyle.TAP_FLIP -> BrutalColors.Pink
+                                AnimationStyle.CUBE_3D -> BrutalColors.Purple
+                            },
+                            modifier = Modifier.weight(1f),
+                            onClick = { onAnimationStyleChange(style) }
+                        )
+                    }
+                }
+                Text("SMOOTHNESS", fontFamily = BrutalTypography.Display, fontSize = 15.sp, fontWeight = FontWeight.Normal)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MotionSmoothness.values().forEach { smoothness ->
+                        ThemeButton(
+                            label = smoothness.label,
+                            selected = motionSmoothness == smoothness,
+                            background = BrutalColors.Lime,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onMotionSmoothnessChange(smoothness) }
+                        )
+                    }
+                }
+            }
+        }
+        SettingsSwitch(
+            "REDUCE MOTION",
+            "Disable decorative launch and return movement while keeping normal launcher behavior.",
+            reduceMotion,
+            BrutalColors.Cyan,
+            onReduceMotionChange
+        )
 
         SettingsSectionTitle("HOME CONTENT")
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
