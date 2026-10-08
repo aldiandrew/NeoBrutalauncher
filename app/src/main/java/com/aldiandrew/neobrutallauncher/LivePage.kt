@@ -232,6 +232,7 @@ fun LivePage(
                                     if (it.checked) "✓ " + it.text else "□ " + it.text,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
+                                color = pageText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
