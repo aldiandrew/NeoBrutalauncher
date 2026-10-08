@@ -100,6 +100,22 @@ class LauncherPreferences(context: Context) {
         prefs.edit().remove(KEY_FAVORITES).apply()
     }
 
+    fun hideStatusBar(): Boolean {
+        return prefs.getBoolean(KEY_HIDE_STATUS_BAR, false)
+    }
+
+    fun setHideStatusBar(value: Boolean) {
+        prefs.edit().putBoolean(KEY_HIDE_STATUS_BAR, value).apply()
+    }
+
+    fun onboardingCompleted(): Boolean {
+        return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+    }
+
+    fun setOnboardingCompleted(value: Boolean) {
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, value).apply()
+    }
+
     fun tilePositions(): Map<String, NeoTilePosition> {
         return prefs.getStringSet(KEY_TILE_POSITIONS, emptySet())
             ?.mapNotNull { entry ->
@@ -464,6 +480,7 @@ class LauncherPreferences(context: Context) {
                 .putStringSet(KEY_TILE_SIZES, restoredSizes)
                 .putString(KEY_APP_TILE_CONTENT_MODE, contentMode.name)
                 .putString(KEY_CLOCK_STYLE, typography.name)
+                .putBoolean(KEY_HIDE_STATUS_BAR, root.optBoolean("hideStatusBar", false))
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
@@ -496,6 +513,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_APP_TILE_CONTENT_MODE)
             remove(KEY_CLOCK_STYLE)
             remove(KEY_WALLPAPER_URI)
+            remove(KEY_HIDE_STATUS_BAR)
             remove(KEY_NOTE_TEXT)
             remove(KEY_NOTE_ITEMS)
             remove(KEY_TASK_ITEMS)
@@ -583,6 +601,8 @@ class LauncherPreferences(context: Context) {
         private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
+        private const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_NOTE_TEXT = "note_text"
         private const val KEY_NOTE_ITEMS = "note_items"
         private const val KEY_TASK_ITEMS = "task_items"
