@@ -373,6 +373,33 @@ class LauncherPreferences(context: Context) {
         writeItems(KEY_TASK_ITEMS, values)
     }
 
+    fun customQuotes(): List<String> {
+        val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
+        if (raw.isNullOrBlank()) return emptyList()
+
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val quote = array.optString(index).trim()
+                    if (quote.isNotEmpty() && quote.length <= MAX_QUOTE_LENGTH) {
+                        add(quote)
+                    }
+                }
+            }.distinct().take(MAX_CUSTOM_QUOTES)
+        }.getOrDefault(emptyList())
+    }
+
+    fun setCustomQuotes(values: List<String>) {
+        val array = JSONArray()
+        values.map { it.trim().take(MAX_QUOTE_LENGTH) }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .take(MAX_CUSTOM_QUOTES)
+            .forEach(array::put)
+        prefs.edit().putString(KEY_CUSTOM_QUOTES, array.toString()).apply()
+    }
+
     fun exportBackupJson(): String {
         val root = JSONObject()
             .put("schemaVersion", 1)
@@ -405,6 +432,7 @@ class LauncherPreferences(context: Context) {
             .put("animationStyle", animationStyle().name)
             .put("motionSmoothness", motionSmoothness().name)
             .put("reduceMotion", reduceMotion())
+            .put("customQuotes", JSONArray(customQuotes()))
         return root.toString()
     }
 
@@ -480,6 +508,14 @@ class LauncherPreferences(context: Context) {
             }
 
             val iconThemeStyle = runCatching { IconThemeStyle.valueOf(root.optString("iconThemeStyle")) }.getOrDefault(IconThemeStyle.ORIGINAL)
+            val restoredQuotes = root.optJSONArray("customQuotes")?.let { array ->
+                buildList {
+                    for (i in 0 until array.length()) {
+                        val value = array.optString(i).trim()
+                        if (value.isNotEmpty() && value.length <= MAX_QUOTE_LENGTH) add(value)
+                    }
+                }.distinct().take(MAX_CUSTOM_QUOTES)
+            }.orEmpty()
             val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
             val shortcut = root.optString("appShortcut", "").takeIf { it.length in 1..256 }
             val iconPack = root.optString("iconPackPackage", "").takeIf {
@@ -508,6 +544,7 @@ class LauncherPreferences(context: Context) {
             if (shortcut == null) editor.remove(KEY_APP_SHORTCUT) else editor.putString(KEY_APP_SHORTCUT, shortcut)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
             editor.putString(KEY_ICON_THEME_STYLE, iconThemeStyle.name)
+            editor.putString(KEY_CUSTOM_QUOTES, JSONArray(restoredQuotes).toString())
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
             editor.putBoolean(KEY_HOME_APPS_INITIALIZED, true)
@@ -541,6 +578,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_APP_SHORTCUT)
             remove(KEY_ICON_PACK_PACKAGE)
             remove(KEY_ICON_THEME_STYLE)
+            remove(KEY_CUSTOM_QUOTES)
             remove(KEY_ANIMATION_STYLE)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
@@ -632,10 +670,13 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TASK_TEXT = "task_text"
         private const val KEY_ICON_PACK_PACKAGE = "icon_pack_package"
         private const val KEY_ICON_THEME_STYLE = "icon_theme_style"
+        private const val KEY_CUSTOM_QUOTES = "custom_quotes"
         private const val KEY_ANIMATION_STYLE = "animation_style"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val MAX_BACKUP_ITEMS = 500
+        private const val MAX_CUSTOM_QUOTES = 100
+        private const val MAX_QUOTE_LENGTH = 300
     }
 }
