@@ -107,7 +107,7 @@ fun NeoMusicTile(
         if (musicInfo?.isPlaying == true) {
             while (true) {
                 progressClock = System.currentTimeMillis()
-                delay(500L)
+                delay(1000L)
             }
         } else {
             progressClock = System.currentTimeMillis()
