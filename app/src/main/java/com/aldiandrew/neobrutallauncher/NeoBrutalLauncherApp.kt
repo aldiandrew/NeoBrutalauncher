@@ -89,6 +89,7 @@ fun NeoBrutalLauncherApp() {
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
     var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
+    var onboardingCompleted by remember { mutableStateOf(preferences.onboardingCompleted()) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
@@ -200,7 +201,10 @@ fun NeoBrutalLauncherApp() {
             val loadedApps = repository.loadApps()
             withContext(Dispatchers.Main.immediate) {
                 apps = loadedApps
-                if (!preferences.homeAppsInitialized() && favorites.isEmpty()) {
+                if (preferences.onboardingCompleted() &&
+                    !preferences.homeAppsInitialized() &&
+                    favorites.isEmpty()
+                ) {
                     val initialFavorites = loadedApps
                         .filter { it.packageName != context.packageName }
                         .take(5)
@@ -245,6 +249,38 @@ fun NeoBrutalLauncherApp() {
     }
 
     when {
+        !onboardingCompleted -> {
+            NeoBrutalTheme(
+                themePreference = themePreference,
+                typographyStyle = typographyStyle
+            ) {
+                NeoOnboardingScreen(
+                    apps = apps,
+                    initialFavorites = favorites,
+                    favoriteLimit = homeAppCount,
+                    onFavoritesChange = { updated ->
+                        favorites = updated
+                        preferences.setFavorites(updated)
+                    },
+                    onFinish = {
+                        var selected = preferences.favorites()
+                        if (selected.isEmpty()) {
+                            selected = apps
+                                .filter { it.packageName != context.packageName }
+                                .take(homeAppCount)
+                                .map { it.packageName + "/" + it.activityName }
+                                .toSet()
+                            favorites = selected
+                            preferences.setFavorites(selected)
+                        }
+                        preferences.setHomeAppsInitialized(true)
+                        preferences.setOnboardingCompleted(true)
+                        onboardingCompleted = true
+                    }
+                )
+            }
+        }
+
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
