@@ -2320,7 +2320,7 @@ private fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsSectionTitleprivate fun SettingsSectionTitle(title: String) {
+private fun SettingsSectionTitle(title: String) {
     Text(
         text = title,
         modifier = Modifier.padding(horizontal = 2.dp),
