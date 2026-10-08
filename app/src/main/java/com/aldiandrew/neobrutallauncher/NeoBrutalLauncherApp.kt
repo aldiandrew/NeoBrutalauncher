@@ -1657,6 +1657,7 @@ private fun SettingsScreen(
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
+    onShowAmPmChange: (Boolean) -> Unit,
     onShowDateChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
     onShowTaglineChange: (Boolean) -> Unit,
