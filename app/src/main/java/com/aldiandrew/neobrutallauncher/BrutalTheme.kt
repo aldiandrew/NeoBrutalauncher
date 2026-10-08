@@ -5,8 +5,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.material3.LocalTextStyle
 
 object BrutalColors {
@@ -22,6 +25,7 @@ object BrutalColors {
     val DarkPaper = Color(0xFF171717)
     val DarkTile = Color(0xFF292929)
     val DarkWhite = Color(0xFFF7F7F7)
+    val Red = Color(0xFFE00000)
 
     fun appPalette(seed: Int = 0): List<Color> {
         val base = listOf(Pink, Cyan, Lime, Orange, Purple, White, Yellow, Pink)
@@ -62,6 +66,14 @@ fun NeoBrutalTheme(
         ThemePreference.SYSTEM -> isSystemInDarkTheme()
         ThemePreference.LIGHT -> false
         ThemePreference.DARK -> true
+    }
+
+    val view = LocalView.current
+
+    SideEffect {
+        val controller = WindowCompat.getInsetsController(view, view)
+        controller.isAppearanceLightStatusBars = !isDark
+        controller.isAppearanceLightNavigationBars = !isDark
     }
 
     CompositionLocalProvider(
