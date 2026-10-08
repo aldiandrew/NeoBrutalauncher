@@ -39,7 +39,7 @@ class AppRepository(private val context: Context) {
             .sortedBy { it.label.lowercase() }
     }
 
-    fun launch(app: AppInfo): Boolean {
+    fun launch(app: AppInfo, animate: Boolean = true): Boolean {
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
             setClassName(app.packageName, app.activityName)
@@ -47,12 +47,16 @@ class AppRepository(private val context: Context) {
         }
 
         return runCatching {
-            val options = ActivityOptions.makeCustomAnimation(
-                context,
-                R.anim.nb_app_enter,
-                R.anim.nb_app_exit
-            )
-            context.startActivity(intent, options.toBundle())
+            if (animate) {
+                val options = ActivityOptions.makeCustomAnimation(
+                    context,
+                    R.anim.nb_app_enter,
+                    R.anim.nb_app_exit
+                )
+                context.startActivity(intent, options.toBundle())
+            } else {
+                context.startActivity(intent)
+            }
         }.isSuccess
     }
 }
