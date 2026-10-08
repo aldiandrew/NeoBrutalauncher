@@ -66,7 +66,7 @@ fun LivePage(
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
-    val accentSurface = if (isDark) BrutalColors.Purple else BrutalColors.Orange
+    val accentSurface = if (isDark) BrutalColors.Pink else BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
 
     val dateText = SimpleDateFormat(
@@ -123,7 +123,7 @@ fun LivePage(
             NeoCalendarTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = if (isDark) BrutalColors.Purple else BrutalColors.Cyan,
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
