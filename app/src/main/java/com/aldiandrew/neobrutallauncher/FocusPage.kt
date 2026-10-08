@@ -105,11 +105,18 @@ fun FocusPage(
                 shadowY = 5.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = "FOCUS", fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        text = "FOCUS",
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 1.sp
+                    )
                     Text(
                         text = "DISCIPLINE CREATES FREEDOM.",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.8.sp
                     )
                     Text(text = dateText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -209,8 +216,10 @@ fun FocusPage(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "QUICK NOTE",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 0.8.sp
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -261,8 +270,10 @@ fun FocusPage(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "FOCUS APPS",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
+                        fontFamily = BrutalTypography.Display,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 0.8.sp,
                         color = BrutalColors.White
                     )
                     focusApps.forEachIndexed { index, app ->
