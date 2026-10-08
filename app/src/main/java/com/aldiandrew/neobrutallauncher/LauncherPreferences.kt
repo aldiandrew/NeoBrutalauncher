@@ -251,19 +251,6 @@ class LauncherPreferences(context: Context) {
     }
 
 
-    fun brutalityLevel(): BrutalityLevel {
-        return runCatching {
-            BrutalityLevel.valueOf(
-                prefs.getString(KEY_BRUTALITY_LEVEL, BrutalityLevel.BRUTAL.name)
-                    ?: BrutalityLevel.BRUTAL.name
-            )
-        }.getOrDefault(BrutalityLevel.BRUTAL)
-    }
-
-    fun setBrutalityLevel(value: BrutalityLevel) {
-        prefs.edit().putString(KEY_BRUTALITY_LEVEL, value.name).apply()
-    }
-
     fun typographyStyle(): TypographyStyle {
         return runCatching {
             TypographyStyle.valueOf(
@@ -610,7 +597,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TILE_POSITIONS = "tile_positions"
         private const val KEY_TILE_SIZES = "tile_sizes"
         private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
-        private const val KEY_BRUTALITY_LEVEL = "brutality_level"
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
         private const val KEY_NOTE_TEXT = "note_text"
