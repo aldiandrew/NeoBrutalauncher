@@ -328,6 +328,13 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
     }
 
+    fun hideStatusBar(): Boolean = prefs.getBoolean(KEY_HIDE_STATUS_BAR, false)
+
+    fun setHideStatusBar(value: Boolean) {
+        prefs.edit().putBoolean(KEY_HIDE_STATUS_BAR, value).apply()
+    }
+
+
     fun customQuotes(): List<String> {
         val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
         if (raw.isNullOrBlank()) return emptyList()
@@ -489,6 +496,7 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_CLOCK_STYLE, typography.name)
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
+                .putBoolean(KEY_HIDE_STATUS_BAR, root.optBoolean("hideStatusBar", false))
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
@@ -529,6 +537,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_CUSTOM_QUOTES)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
+            remove(KEY_HIDE_STATUS_BAR)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
         }
@@ -617,6 +626,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_CUSTOM_QUOTES = "custom_quotes"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
+        private const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_LAST_MUSIC_PACKAGE = "last_music_package"
