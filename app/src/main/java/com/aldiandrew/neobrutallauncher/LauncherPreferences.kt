@@ -29,7 +29,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_THEME, value.name).apply()
     }
 
-
     fun use24Hour(): Boolean {
         return prefs.getBoolean(KEY_24_HOUR, true)
     }
@@ -190,33 +189,11 @@ class LauncherPreferences(context: Context) {
     fun iconPackPackage(): String? =
         prefs.getString(KEY_ICON_PACK_PACKAGE, null)?.takeIf { it.isNotBlank() }
 
-
-    fun motionSmoothness(): MotionSmoothness {
-        return runCatching {
-            MotionSmoothness.valueOf(
-                prefs.getString(KEY_MOTION_SMOOTHNESS, MotionSmoothness.BALANCED.name)
-                    ?: MotionSmoothness.BALANCED.name
-            )
-        }.getOrDefault(MotionSmoothness.BALANCED)
-    }
-
-    fun setMotionSmoothness(value: MotionSmoothness) {
-        prefs.edit().putString(KEY_MOTION_SMOOTHNESS, value.name).apply()
-    }
-
-    fun reduceMotion(): Boolean =
-        prefs.getBoolean(KEY_REDUCE_MOTION, false)
-
-    fun setReduceMotion(value: Boolean) {
-        prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
-    }
-
     fun setIconPackPackage(value: String?) {
         prefs.edit().apply {
             if (value.isNullOrBlank()) remove(KEY_ICON_PACK_PACKAGE) else putString(KEY_ICON_PACK_PACKAGE, value)
         }.apply()
     }
-
 
     fun appTileContentMode(): TileContentMode {
         return runCatching {
@@ -300,31 +277,6 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
-    fun appLaunchCounts(): Map<String, Int> {
-        return prefs.getStringSet(KEY_APP_LAUNCH_COUNTS, emptySet())
-            ?.mapNotNull { entry ->
-                val index = entry.lastIndexOf("|")
-                if (index <= 0) return@mapNotNull null
-                val key = entry.substring(0, index)
-                val count = entry.substring(index + 1).toIntOrNull()
-                if (key.isBlank() || count == null || count < 1) null else key to count
-            }
-            ?.toMap()
-            .orEmpty()
-    }
-
-    fun recordAppLaunch(key: String) {
-        if (key.isBlank()) return
-        val updated = appLaunchCounts().toMutableMap()
-        updated[key] = (updated[key] ?: 0) + 1
-        prefs.edit()
-            .putStringSet(
-                KEY_APP_LAUNCH_COUNTS,
-                updated.map { (id, count) -> "$id|$count" }.toSet()
-            )
-            .apply()
-    }
-
     fun noteItems(): List<NeoListItem> = readItems(KEY_NOTE_ITEMS, KEY_NOTE_TEXT)
 
     fun setNoteItems(values: List<NeoListItem>) {
@@ -337,18 +289,33 @@ class LauncherPreferences(context: Context) {
         writeItems(KEY_TASK_ITEMS, values)
     }
 
+    fun motionSmoothness(): MotionSmoothness =
+        runCatching {
+            MotionSmoothness.valueOf(
+                prefs.getString(KEY_MOTION_SMOOTHNESS, MotionSmoothness.BALANCED.name)
+                    ?: MotionSmoothness.BALANCED.name
+            )
+        }.getOrDefault(MotionSmoothness.BALANCED)
+
+    fun setMotionSmoothness(value: MotionSmoothness) {
+        prefs.edit().putString(KEY_MOTION_SMOOTHNESS, value.name).apply()
+    }
+
+    fun reduceMotion(): Boolean = prefs.getBoolean(KEY_REDUCE_MOTION, false)
+
+    fun setReduceMotion(value: Boolean) {
+        prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
+    }
+
     fun customQuotes(): List<String> {
         val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
         if (raw.isNullOrBlank()) return emptyList()
-
         return runCatching {
             val array = JSONArray(raw)
             buildList {
                 for (index in 0 until array.length()) {
                     val quote = array.optString(index).trim()
-                    if (quote.isNotEmpty() && quote.length <= MAX_QUOTE_LENGTH) {
-                        add(quote)
-                    }
+                    if (quote.isNotEmpty() && quote.length <= MAX_QUOTE_LENGTH) add(quote)
                 }
             }.distinct().take(MAX_CUSTOM_QUOTES)
         }.getOrDefault(emptyList())
@@ -403,9 +370,21 @@ class LauncherPreferences(context: Context) {
             val root = JSONObject(raw)
             require(root.optInt("schemaVersion", -1) == 1)
             val theme = runCatching { ThemePreference.valueOf(root.optString("theme")) }.getOrDefault(ThemePreference.SYSTEM)
-            val themeProfile = runCatching { NeoThemeProfile.valueOf(root.optString("themeProfile")) }.getOrDefault(NeoThemeProfile.MONO)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
             val typography = runCatching { TypographyStyle.valueOf(root.optString("typographyStyle")) }.getOrDefault(TypographyStyle.POSTER)
+            val count = normalizePinnedCount(root.optInt("homeAppCount", 5))
+            val motionSmoothness = runCatching {
+                MotionSmoothness.valueOf(
+                    root.optString("motionSmoothness", MotionSmoothness.BALANCED.name)
+                )
+            }.getOrDefault(MotionSmoothness.BALANCED)
+            val reduceMotion = root.optBoolean("reduceMotion", false)
+
+            fun safeArray(name: String, max: Int): JSONArray {
+                val array = root.optJSONArray(name) ?: JSONArray()
+                require(array.length() <= max)
+                return array
+            }
 
             val favoritesArray = safeArray("favorites", MAX_BACKUP_ITEMS)
             val restoredFavorites = buildSet {
@@ -436,6 +415,14 @@ class LauncherPreferences(context: Context) {
                 }
             }
 
+            val quotesArray = safeArray("customQuotes", MAX_BACKUP_ITEMS)
+            val restoredQuotes = buildList {
+                for (i in 0 until quotesArray.length()) {
+                    val value = quotesArray.optString(i).trim()
+                    if (value.length in 1..MAX_QUOTE_LENGTH) add(value)
+                }
+            }.distinct().take(MAX_CUSTOM_QUOTES)
+
             val positionsObject = root.optJSONObject("tilePositions") ?: JSONObject()
             val restoredPositions = mutableSetOf<String>()
             val positionKeys = positionsObject.keys().asSequence().toList()
@@ -458,10 +445,14 @@ class LauncherPreferences(context: Context) {
                 if (id.length in 1..128 && tileSize != null) restoredSizes.add(id + "|" + tileSize.name)
             }
 
+            val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
+            val shortcut = root.optString("appShortcut", "").takeIf { it.length in 1..256 }
+            val iconPack = root.optString("iconPackPackage", "").takeIf {
+                it.matches(Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+"))
+            }
 
             val editor = prefs.edit()
                 .putString(KEY_THEME, theme.name)
-                .putString(KEY_THEME_PROFILE, themeProfile.name)
                 .putBoolean(KEY_24_HOUR, root.optBoolean("use24Hour", true))
                 .putBoolean(KEY_SHOW_AM_PM, root.optBoolean("showAmPm", true))
                                 .putInt(KEY_HOME_APP_COUNT, count)
@@ -472,7 +463,6 @@ class LauncherPreferences(context: Context) {
                 .putStringSet(KEY_TILE_SIZES, restoredSizes)
                 .putString(KEY_APP_TILE_CONTENT_MODE, contentMode.name)
                 .putString(KEY_CLOCK_STYLE, typography.name)
-                .putString(KEY_ANIMATION_STYLE, animationStyle.name)
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
@@ -480,9 +470,9 @@ class LauncherPreferences(context: Context) {
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
             if (shortcut == null) editor.remove(KEY_APP_SHORTCUT) else editor.putString(KEY_APP_SHORTCUT, shortcut)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
-            editor.putString(KEY_CUSTOM_QUOTES, JSONArray(restoredQuotes).toString())
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
+            editor.putString(KEY_CUSTOM_QUOTES, JSONArray(restoredQuotes).toString())
             editor.putBoolean(KEY_HOME_APPS_INITIALIZED, true)
             editor.commit()
         }.getOrDefault(false)
