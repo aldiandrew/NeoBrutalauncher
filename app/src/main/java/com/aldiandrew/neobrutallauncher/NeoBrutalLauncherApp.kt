@@ -460,6 +460,13 @@ private fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
+    val quoteRotation = rememberLiveTileData(
+        tileId = "home-quotes",
+        refreshIntervalMillis = 30L * 60L * 1000L,
+        initialValue = (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
+    ) {
+        (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
+    }.value ?: 0
 
     var weatherRefreshToken by remember { mutableIntStateOf(0) }
     var noteItems by remember { mutableStateOf(preferences.noteItems()) }
@@ -666,7 +673,7 @@ private fun HomeScreen(
                                     lineHeight = 17.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontFamily = BrutalTypography.Bricolage,
-                                    color = MaterialTheme.colorScheme.onBackground,
+                                    color = BrutalColors.Red,
                                     maxLines = 1,
                                     overflow = TextOverflow.Clip
                                 )
@@ -752,7 +759,7 @@ private fun HomeScreen(
                                 val id = "app_" + app.packageName + "_" + app.activityName
                                 val defaultSize = when {
                                     index == launchableApps.lastIndex -> NeoTileSize.FOUR_BY_ONE
-                                    index < 2 -> NeoTileSize.MEDIUM
+                                    index < 2 -> NeoTileSize.HORIZONTAL
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = if (index == launchableApps.lastIndex) {
@@ -843,14 +850,15 @@ private fun HomeScreen(
                         },
                         onLongClick = { showAppPicker = true }
                     )
-                    val quotePair = NeoQuotes.pairForToday()
+                    val quotePair = NeoQuotes.pairForRotation(quoteRotation)
                     NeoQuoteTilePlain(
                         quote = quotePair.first,
                         modifier = Modifier.weight(1f).aspectRatio(1f)
                     )
                     NeoQuoteTilePlain(
                         quote = quotePair.second,
-                        modifier = Modifier.weight(2f).aspectRatio(2f)
+                        modifier = Modifier.weight(2f).aspectRatio(2f),
+                        textColor = BrutalColors.Red
                     )
                 }
             }
@@ -983,10 +991,8 @@ private fun HomeScreen(
                         listOf(
                             NeoTileSize.SMALL,
                             NeoTileSize.HORIZONTAL,
-                            NeoTileSize.MEDIUM,
                             NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE,
-                            NeoTileSize.WIDE
+                            NeoTileSize.FOUR_BY_ONE
                         ).forEach { option ->
                             androidx.compose.material3.TextButton(
                                 onClick = {
@@ -1142,9 +1148,9 @@ private fun NeoAddAppTile(
 @Composable
 private fun NeoQuoteTilePlain(
     quote: String,
-    modifier: Modifier
+    modifier: Modifier,
+    textColor: Color = MaterialTheme.colorScheme.onBackground
 ) {
-    val textColor = MaterialTheme.colorScheme.onBackground
     Box(
         modifier = modifier.padding(8.dp),
         contentAlignment = Alignment.CenterStart
@@ -1471,20 +1477,18 @@ private fun AppTile(
         val isSmall = tileSize == NeoTileSize.SMALL
         val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE
         val isHorizontal = tileSize == NeoTileSize.HORIZONTAL
-        val isWide = tileSize == NeoTileSize.WIDE || tileSize == NeoTileSize.LARGE
-
+ 
         val iconSize = when {
-            isSmall -> 46.dp
+            isSmall -> 32.dp
             isFourByOne || isHorizontal -> 58.dp
-            isWide -> 64.dp
             else -> 60.dp
         }
 
         val textSize = when {
             isSmall -> when {
-                app.label.length > 18 -> 8.sp
-                app.label.length > 11 -> 9.sp
-                else -> 11.sp
+                app.label.length > 18 -> 7.sp
+                app.label.length > 11 -> 8.sp
+                else -> 9.sp
             }
             isFourByOne -> when {
                 app.label.length > 18 -> 11.sp
@@ -1575,7 +1579,7 @@ private fun AppTile(
                                 contentDescription = app.label,
                                 modifier = Modifier.size(iconSize)
                             )
-                            Spacer(Modifier.height(7.dp))
+                            Spacer(Modifier.height(4.dp))
                             Text(
                                 text = app.label.uppercase(),
                                 modifier = Modifier.fillMaxWidth(),
