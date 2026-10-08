@@ -63,10 +63,9 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
-    val isDark = LocalNeoThemeIsDark.current
-    val themePalette = LocalNeoThemePalette.current
-    val tilePalette = themePalette.tilePalette(isDark)
-    val accentSurface = themePalette.accent(isDark)
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val neutralSurface = if (isDark) BrutalColors.DarkTile else MaterialTheme.colorScheme.background
+    val accentSurface = if (isDark) BrutalColors.Purple else BrutalColors.Orange
     val pageText = MaterialTheme.colorScheme.onBackground
 
     val dateText = SimpleDateFormat(
@@ -123,7 +122,7 @@ fun LivePage(
             NeoCalendarTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = themePalette.secondary(isDark),
+                background = if (isDark) BrutalColors.Purple else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
@@ -133,7 +132,7 @@ fun LivePage(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = tilePalette.getOrElse(1) { themePalette.surface(isDark) },
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
                 textColor = BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
             )
@@ -143,8 +142,9 @@ fun LivePage(
             NeoMusicTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = themePalette.accent(isDark),
-                textColor = themePalette.onAccent(isDark)
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                decorated = true
             )
         }
 
