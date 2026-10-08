@@ -967,7 +967,7 @@ private fun HomeScreen(
                     context = context,
                     modifier = Modifier.fillMaxWidth().aspectRatio(4f),
                     background = homeMusicBackground,
-                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
+                    textColor = BrutalColors.Ink
                 )
             }
 
@@ -1027,7 +1027,7 @@ private fun HomeScreen(
                     tasks = taskItems,
                     modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f),
                     background = homeTasksBackground,
-                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
+                    textColor = BrutalColors.Ink,
                     onAddTask = { text ->
                         val updated = taskItems + NeoListItem(text = text)
                         taskItems = updated
