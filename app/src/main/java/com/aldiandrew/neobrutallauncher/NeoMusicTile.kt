@@ -71,7 +71,12 @@ private fun hasMusicAccess(context: Context): Boolean =
     NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
 
 @Composable
-fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
+fun NeoMusicTile(
+    context: Context,
+    modifier: Modifier = Modifier,
+    background: Color = MaterialTheme.colorScheme.surface,
+    textColor: Color = MaterialTheme.colorScheme.onSurface
+) {
     var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -89,7 +94,6 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
     val fallbackApp = remember { resolveMusicApp(context) }
     val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
     val musicLabel = musicInfo?.appLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
-    val textColor = MaterialTheme.colorScheme.onBackground
     val iconBitmap = remember(musicPackage) {
         runCatching {
             musicPackage?.let {
@@ -111,11 +115,11 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
                 Modifier
             }
         ),
-        background = MaterialTheme.colorScheme.surface,
-        borderWidth = 3.dp,
-        borderColor = textColor,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        background = background,
+        borderWidth = 4.dp,
+        borderColor = BrutalColors.Ink,
+        shadowX = 6.dp,
+        shadowY = 6.dp
     ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.foundation.layout.Box(

@@ -41,23 +41,24 @@ fun NeoNotesTasksTile(
     notes: List<NeoListItem>,
     tasks: List<NeoListItem>,
     modifier: Modifier = Modifier,
+    background: Color = MaterialTheme.colorScheme.surface,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
     onAddNote: (String) -> Unit,
     onEditNote: (Int, String) -> Unit,
     onAddTask: (String) -> Unit,
     onEditTask: (Int, String) -> Unit,
     onToggleTask: (Int) -> Unit
 ) {
-    val textColor = MaterialTheme.colorScheme.onBackground
     var noteDraft by remember { mutableStateOf("") }
     var taskDraft by remember { mutableStateOf("") }
 
     BrutalBlock(
         modifier = modifier,
-        background = MaterialTheme.colorScheme.surface,
-        borderWidth = 3.dp,
-        borderColor = textColor,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        background = background,
+        borderWidth = 4.dp,
+        borderColor = BrutalColors.Ink,
+        shadowX = 6.dp,
+        shadowY = 6.dp
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),

@@ -478,6 +478,11 @@ private fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
+    val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
+    val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
+    val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
+    val homeNotesBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -643,11 +648,11 @@ private fun HomeScreen(
             item(key = "clock") {
                 BrutalBlock(
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                    background = MaterialTheme.colorScheme.surface,
-                    borderWidth = 3.dp,
-                    borderColor = MaterialTheme.colorScheme.onBackground,
-                    shadowX = 5.dp,
-                    shadowY = 5.dp
+                    background = homeClockBackground,
+                    borderWidth = 4.dp,
+                    borderColor = BrutalColors.Ink,
+                    shadowX = 7.dp,
+                    shadowY = 7.dp
                 ) {
                     BoxWithConstraints(
                         modifier = Modifier.fillMaxSize().padding(13.dp),
@@ -678,7 +683,7 @@ private fun HomeScreen(
                                     ClockStyle.HUGE -> BrutalTypography.Poster
                                     ClockStyle.POSTER -> BrutalTypography.Poster
                                 },
-                                color = MaterialTheme.colorScheme.onBackground,
+                                color = homeClockText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Clip
                             )
@@ -703,7 +708,7 @@ private fun HomeScreen(
                                     lineHeight = 16.sp,
                                     fontWeight = FontWeight.Black,
                                     fontFamily = BrutalTypography.Bricolage,
-                                    color = MaterialTheme.colorScheme.onBackground
+                                    color = homeClockText
                                 )
                                 Text(
                                     text = longDate.format(now),
@@ -712,7 +717,7 @@ private fun HomeScreen(
                                     lineHeight = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = BrutalTypography.Bricolage,
-                                    color = MaterialTheme.colorScheme.onBackground,
+                                    color = homeClockText,
                                     maxLines = 1,
                                     overflow = TextOverflow.Clip
                                 )
@@ -767,7 +772,9 @@ private fun HomeScreen(
             item(key = "music") {
                 NeoMusicTile(
                     context = context,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f)
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
+                    background = homeMusicBackground,
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
                 )
             }
 
@@ -827,6 +834,8 @@ private fun HomeScreen(
                     notes = noteItems,
                     tasks = taskItems,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
+                    background = homeNotesBackground,
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
                     onAddNote = { text ->
                         val updated = noteItems + NeoListItem(text = text)
                         noteItems = updated

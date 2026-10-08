@@ -49,6 +49,10 @@ object NeoQuotes {
         NeoQuotePalette(BrutalColors.Orange, BrutalColors.Ink),
         NeoQuotePalette(BrutalColors.Purple, BrutalColors.White),
         NeoQuotePalette(BrutalColors.Red, BrutalColors.White),
+        NeoQuotePalette(BrutalColors.Peach, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Lavender, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Sky, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Mint, BrutalColors.Ink),
         NeoQuotePalette(BrutalColors.White, BrutalColors.Ink)
     )
 

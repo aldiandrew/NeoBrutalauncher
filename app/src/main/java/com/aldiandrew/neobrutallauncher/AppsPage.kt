@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -150,12 +151,27 @@ fun AppsPage(
                             .padding(end = 34.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(
+                        itemsIndexed(
                             items = sortedApps,
-                            key = { it.packageName + "/" + it.activityName }
-                        ) { app ->
+                            key = { _, app -> app.packageName + "/" + app.activityName }
+                        ) { index, app ->
                             val iconBitmap = remember(app.packageName) {
                                 app.icon.toBitmap(96, 96).asImageBitmap()
+                            }
+
+                            val lightCardPalette = listOf(
+                                BrutalColors.White,
+                                BrutalColors.Yellow,
+                                BrutalColors.Pink,
+                                BrutalColors.Cyan,
+                                BrutalColors.Peach,
+                                BrutalColors.Mint,
+                                BrutalColors.Lavender
+                            )
+                            val cardBackground = if (isDark) {
+                                uiSurface
+                            } else {
+                                lightCardPalette[index % lightCardPalette.size]
                             }
 
                             BrutalBlock(
@@ -165,10 +181,10 @@ fun AppsPage(
                                         onClick = { onLaunch(app) },
                                         onLongClick = { onToggleFavorite(app) }
                                     ),
-                                background = uiSurface,
+                                background = cardBackground,
                                 borderWidth = 3.dp,
-                                shadowX = 4.dp,
-                                shadowY = 4.dp
+                                shadowX = 5.dp,
+                                shadowY = 5.dp
                             ) {
                                 Row(
                                     modifier = Modifier
