@@ -1027,47 +1027,84 @@ private fun HomeScreen(
                 selectedTile = null
                 tileEditMode = false
             },
-            title = { Text(text = tile.label + " / TILE", fontWeight = FontWeight.Black) },
+            title = {
+                Text(
+                    text = tile.label,
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    BrutalLabel(
+                        text = if (locked) "FIXED / 4x1" else "CURRENT / " + tile.size.label,
+                        background = if (locked) BrutalColors.Purple else BrutalColors.Yellow
+                    )
+
                     Text(
                         text = if (locked) {
-                            "BOTTOM APP IS FIXED TO 4x1"
+                            "This is the last Home app. It stays full-width at 4x1. You can move or remove it."
                         } else {
-                            "SIZE: " + tile.size.label
+                            "Choose a size, or move the tile to another position."
                         },
-                        fontWeight = FontWeight.Black
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
+
                     if (!locked) {
-                        listOf(
-                            NeoTileSize.SMALL,
-                            NeoTileSize.HORIZONTAL,
-                            NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE
-                        ).forEach { option ->
-                            androidx.compose.material3.TextButton(
-                                onClick = {
-                                    onTileSizeChange(tile.id, option)
-                                    selectedTile = null
-                                    tileEditMode = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = option.label,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Black
+                        Text(
+                            text = "CHANGE SIZE",
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.8.sp
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                NeoTileSize.SMALL,
+                                NeoTileSize.HORIZONTAL,
+                                NeoTileSize.THREE_BY_ONE,
+                                NeoTileSize.FOUR_BY_ONE
+                            ).forEach { option ->
+                                ThemeButton(
+                                    label = option.label,
+                                    selected = tile.size == option,
+                                    background = when (option) {
+                                        NeoTileSize.SMALL -> BrutalColors.Cyan
+                                        NeoTileSize.HORIZONTAL -> BrutalColors.Yellow
+                                        NeoTileSize.THREE_BY_ONE -> BrutalColors.Pink
+                                        NeoTileSize.FOUR_BY_ONE -> BrutalColors.Lime
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        onTileSizeChange(tile.id, option)
+                                        selectedTile = null
+                                        tileEditMode = false
+                                    }
                                 )
                             }
                         }
                     }
-                }
-            },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (!locked && homeAppCount > 2) {
-                        androidx.compose.material3.TextButton(
+
+                    BrutalActionButton(
+                        title = "MOVE TILE",
+                        background = BrutalColors.Cyan,
+                        onClick = {
+                            selectedTile = null
+                            tileEditMode = true
+                        }
+                    )
+
+                    if (homeAppCount > 2) {
+                        BrutalActionButton(
+                            title = "REMOVE FROM HOME",
+                            background = BrutalColors.Orange,
                             onClick = {
                                 val app = launchableApps.firstOrNull {
                                     "app_" + it.packageName + "_" + it.activityName == tile.id
@@ -1082,28 +1119,26 @@ private fun HomeScreen(
                                 selectedTile = null
                                 tileEditMode = false
                             }
-                        ) {
-                            Text(
-                                text = "REMOVE",
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Orange
-                            )
-                        }
+                        )
                     }
-
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            selectedTile = null
-                            tileEditMode = false
-                        }
-                    ) {
-                        Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        selectedTile = null
+                        tileEditMode = false
                     }
+                ) {
+                    Text(
+                        text = "DONE",
+                        fontFamily = BrutalTypography.Display,
+                        fontWeight = FontWeight.Normal
+                    )
                 }
             }
         )
     }
-}
 
 @Composable
 private fun FixedSmallTile(
