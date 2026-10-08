@@ -83,31 +83,7 @@ fun NeoHomeReturnMotion(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    if (trigger == 0 || config.reduceMotion) {
-        Box(modifier = modifier) { content() }
-        return
-    }
-
-    val alpha = remember { Animatable(1f) }
-    val scale = remember { Animatable(1f) }
-
-    LaunchedEffect(trigger) {
-        alpha.snapTo(0f)
-        scale.snapTo(0.965f)
-
-        kotlinx.coroutines.coroutineScope {
-            launch { alpha.animateTo(1f, config.fadeSpec()) }
-            launch { scale.animateTo(1f, config.springSpec()) }
-        }
-    }
-
-    Box(
-        modifier = modifier.graphicsLayer {
-            this.alpha = alpha.value
-            scaleX = scale.value
-            scaleY = scale.value
-        }
-    ) {
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
         content()
     }
 }
@@ -118,72 +94,8 @@ fun NeoLaunchTransition(
     config: NeoMotionConfig,
     onFinished: () -> Unit
 ) {
-    val iconBitmap = remember(app.packageName, app.activityName, app.icon) {
-        app.icon.toBitmap(128, 128).asImageBitmap()
-    }
-    val scale = remember { Animatable(1f) }
-    val alpha = remember { Animatable(1f) }
-
-    LaunchedEffect(app.packageName, app.activityName, config) {
-        if (config.reduceMotion) {
-            delay(1)
-        } else {
-            kotlinx.coroutines.coroutineScope {
-                launch { scale.animateTo(config.launchScaleTarget(), config.springSpec()) }
-                launch { alpha.animateTo(0f, config.fadeSpec()) }
-            }
-        }
+    LaunchedEffect(app.packageName, app.activityName) {
         onFinished()
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Transparent),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(160.dp)
-                .graphicsLayer {
-                    scaleX = scale.value
-                    scaleY = scale.value
-                    this.alpha = alpha.value
-                }
-        ) {
-            BrutalBlock(
-                modifier = Modifier.fillMaxSize(),
-                background = BrutalColors.Cyan,
-                borderWidth = 4.dp,
-                shadowX = 7.dp,
-                shadowY = 7.dp
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        bitmap = iconBitmap,
-                        contentDescription = app.label,
-                        modifier = Modifier.size(76.dp)
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = app.label.uppercase(),
-                        modifier = Modifier.fillMaxSize(),
-                        textAlign = TextAlign.Center,
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 15.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
     }
 }
 
