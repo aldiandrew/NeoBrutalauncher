@@ -6,9 +6,7 @@ import android.media.AudioManager
 import android.provider.Settings
 import android.view.KeyEvent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
@@ -77,7 +75,6 @@ fun NeoMusicTile(
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
-    decorated: Boolean = false
 ) {
     var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -117,49 +114,14 @@ fun NeoMusicTile(
         shadowX = 6.dp,
         shadowY = 6.dp,
         shadowColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink
-    ) {
-        if (decorated) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                MusicTileContent(
-                    hasAccess,
-                    musicLabel,
-                    musicInfo,
-                    iconBitmap,
-                    textColor,
-                    context
-                )
-
-                Text(
-                    text = "///",
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 2.dp),
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor
-                )
-
-                androidx.compose.foundation.layout.Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    repeat(3) {
-                        androidx.compose.foundation.layout.Box(
-                            modifier = Modifier
-                                .size(7.dp)
-                                .border(1.5.dp, textColor)
-                        )
-                    }
-                }
-            }
-        } else {
-            MusicTileContent(hasAccess, musicLabel, musicInfo, iconBitmap, textColor, context)
-        }
+    ) {\n        MusicTileContent(
+            hasAccess,
+            musicLabel,
+            musicInfo,
+            iconBitmap,
+            textColor,
+            context
+        )
     }
 }
 
