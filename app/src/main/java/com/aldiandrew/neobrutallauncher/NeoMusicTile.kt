@@ -99,7 +99,18 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
     }
 
     BrutalBlock(
-        modifier = modifier,
+        modifier = modifier.then(
+            if (!hasAccess) {
+                Modifier.clickable {
+                    context.startActivity(
+                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+            } else {
+                Modifier
+            }
+        ),
         background = MaterialTheme.colorScheme.surface,
         borderWidth = 3.dp,
         borderColor = textColor,
@@ -169,18 +180,7 @@ fun NeoMusicTile(context: Context, modifier: Modifier = Modifier) {
         }
     }
 
-    if (!hasAccess) {
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable {
-                    context.startActivity(
-                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    )
-                }
-        )
-    }
+
 }
 
 @Composable
