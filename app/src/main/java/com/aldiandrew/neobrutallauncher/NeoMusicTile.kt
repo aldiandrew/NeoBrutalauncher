@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -124,71 +125,77 @@ fun NeoMusicTile(
         shadowX = 6.dp,
         shadowY = 6.dp
     ) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.size(58.dp),
-                contentAlignment = Alignment.Center
+        NeoTileDecoration(
+            label = "MUSIC",
+            accent = BrutalColors.Yellow,
+            textColor = textColor,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (iconBitmap != null) {
-                    Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
-                } else {
-                    Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.size(58.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (iconBitmap != null) {
+                        Image(bitmap = iconBitmap, contentDescription = musicLabel, modifier = Modifier.size(52.dp))
+                    } else {
+                        Icon(Icons.Default.MusicNote, "Music", tint = textColor, modifier = Modifier.size(36.dp))
+                    }
                 }
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1
-                )
-                Text(
-                    text = musicLabel.uppercase(),
-                    fontSize = 12.sp,
-                    lineHeight = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
-                    val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
+                 Spacer(Modifier.width(8.dp))
+                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
                     Text(
-                        text = if (artist != null) "$title — $artist" else title,
+                        text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
                         fontSize = 8.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if (!hasAccess) {
-                    Text(
-                        text = "TAP TILE TO ALLOW MUSIC ACCESS",
-                        fontSize = 6.sp,
-                        lineHeight = 7.sp,
                         fontWeight = FontWeight.Black,
                         color = textColor,
                         maxLines = 1
                     )
+                    Text(
+                        text = musicLabel.uppercase(),
+                        fontSize = 12.sp,
+                        lineHeight = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
+                        val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
+                        Text(
+                            text = if (artist != null) "$title — $artist" else title,
+                            fontSize = 8.sp,
+                            lineHeight = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    if (!hasAccess) {
+                        Text(
+                            text = "TAP TILE TO ALLOW MUSIC ACCESS",
+                            fontSize = 6.sp,
+                            lineHeight = 7.sp,
+                            fontWeight = FontWeight.Black,
+                            color = textColor,
+                            maxLines = 1
+                        )
+                    }
                 }
-            }
+                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
+                    MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
+                    MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
+                }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                MusicControlButton(Icons.Default.SkipPrevious, "Previous", textColor, context)
-                MusicControlButton(Icons.Default.PlayArrow, "Play or pause", textColor, context)
-                MusicControlButton(Icons.Default.SkipNext, "Next", textColor, context)
             }
         }
-    }
-
-
-}
 
 @Composable
 private fun MusicControlButton(
