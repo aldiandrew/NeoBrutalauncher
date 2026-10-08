@@ -47,7 +47,8 @@ fun NeoNotesTasksTile(
 ) {
     var noteDraft by remember { mutableStateOf("") }
 
-
+    BrutalBlock(
+        modifier = modifier,
         background = background,
         borderWidth = 4.dp,
         borderColor = if (
