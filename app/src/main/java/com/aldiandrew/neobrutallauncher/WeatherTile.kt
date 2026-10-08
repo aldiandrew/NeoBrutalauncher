@@ -140,7 +140,7 @@ fun NeoWeatherTile(
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
-                        textAlign = Alignment.CenterHorizontally.let { TextAlign.Center }
+                        textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(if (compact < 100.dp) 4.dp else 6.dp))
                     Row(
