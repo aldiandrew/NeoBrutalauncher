@@ -132,7 +132,7 @@ fun AppsPage(
                             color = BrutalColors.Ink
                         )
                         Text(
-                            text = "LONG-PRESS TO PIN",
+                            text = "ALL YOUR APPS",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 0.9.sp,
@@ -251,8 +251,8 @@ fun AppsPage(
                             items = sortedApps,
                             key = { _, app -> app.packageName + "/" + app.activityName }
                         ) { index, app ->
-                            val iconBitmap = remember(app.packageName) {
-                                app.icon.toBitmap(96, 96).asImageBitmap()
+                            val iconBitmap = remember(app.packageName, app.icon) {
+                                app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
                             val lightCardPalette = listOf(
