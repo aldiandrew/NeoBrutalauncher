@@ -129,6 +129,15 @@ fun NeoMusicTile(
             0f
         }
     } ?: 0f
+
+    fun openCurrentMusicApp() {
+        val packageName = musicInfo?.packageName ?: return
+        val launchIntent = runCatching {
+            context.packageManager.getLaunchIntentForPackage(packageName)
+        }.getOrNull() ?: return
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(launchIntent) }
+    }
     val fallbackApp = remember { resolveMusicApp(context) }
     val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
     val musicLabel = musicInfo?.appLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
@@ -141,14 +150,16 @@ fun NeoMusicTile(
     }
 
     BrutalBlock(
-        modifier = modifier.then(
-            if (!hasAccess) Modifier.clickable {
+        modifier = modifier.clickable {
+            if (hasAccess && musicInfo != null) {
+                openCurrentMusicApp()
+            } else {
                 context.startActivity(
                     Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
-            } else Modifier
-        ),
+            }
+        },
         background = background,
         borderWidth = 4.dp,
         borderColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
