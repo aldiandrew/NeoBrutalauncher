@@ -11,6 +11,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.material3.LocalTextStyle
 
 object BrutalColors {
@@ -70,6 +72,7 @@ private val DarkScheme = darkColorScheme(
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     typographyStyle: TypographyStyle = TypographyStyle.DEFAULT,
+    hideStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
@@ -82,9 +85,14 @@ fun NeoBrutalTheme(
 
     SideEffect {
         val window = (view.context as? Activity)?.window ?: return@SideEffect
-        val controller = WindowCompat.getInsetsController(window, view)
+        val controller = WindowInsetsControllerCompat(window, view)
         controller.isAppearanceLightStatusBars = !isDark
         controller.isAppearanceLightNavigationBars = !isDark
+        if (hideStatusBar) {
+            controller.hide(WindowInsetsCompat.Type.statusBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
     CompositionLocalProvider(
