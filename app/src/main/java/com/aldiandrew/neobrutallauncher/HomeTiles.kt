@@ -145,22 +145,23 @@ fun NeoTileGrid(
     gap: Dp = 8.dp
 ) {
     val density = LocalDensity.current
-    val ordered = orderedTiles(tiles, positions)
+    val ordered = remember(tiles, positions) { orderedTiles(tiles, positions) }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val cellWidth =
             ((maxWidth - gap * (TILE_COLUMNS - 1)) / TILE_COLUMNS).coerceAtLeast(1.dp)
         val cellHeight = cellWidth
 
-        val packed = packDense(ordered)
-        val placements = packed.map { (tile, cell) ->
-            GridPlacement(
-                tile = tile,
-                column = cell.first,
-                row = cell.second,
-                width = cellWidth * tile.size.columns + gap * (tile.size.columns - 1),
-                height = cellHeight * tile.size.rows + gap * (tile.size.rows - 1)
-            )
+        val placements = remember(ordered, cellWidth, gap) {
+            packDense(ordered).map { (tile, cell) ->
+                GridPlacement(
+                    tile = tile,
+                    column = cell.first,
+                    row = cell.second,
+                    width = cellWidth * tile.size.columns + gap * (tile.size.columns - 1),
+                    height = cellHeight * tile.size.rows + gap * (tile.size.rows - 1)
+                )
+            }
         }
         val latestPlacements = rememberUpdatedState(placements)
 
