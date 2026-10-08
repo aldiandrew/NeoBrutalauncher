@@ -119,13 +119,49 @@ fun NeoMusicTile(
         shadowColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         if (decorated) {
-            NeoTileDecoration(
-                label = "MUSIC",
-                accent = BrutalColors.Yellow,
-                textColor = textColor,
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                MusicTileContent(hasAccess, musicLabel, musicInfo, iconBitmap, textColor, context)
+                MusicTileContent(
+                    hasAccess,
+                    musicLabel,
+                    musicInfo,
+                    iconBitmap,
+                    textColor,
+                    context
+                )
+
+                BrutalLabel(
+                    text = "MUSIC",
+                    modifier = Modifier.align(Alignment.BottomStart),
+                    background = BrutalColors.Yellow
+                )
+
+                Text(
+                    text = "///",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 2.dp),
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Black,
+                    color = textColor
+                )
+
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 2.dp, end = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    repeat(3) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .border(1.5.dp, textColor)
+                        )
+                    }
+                }
             }
         } else {
             MusicTileContent(hasAccess, musicLabel, musicInfo, iconBitmap, textColor, context)
