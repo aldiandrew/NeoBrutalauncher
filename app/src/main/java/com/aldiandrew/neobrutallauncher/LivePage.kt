@@ -62,7 +62,7 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
-    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val isDark = LocalNeoThemeIsDark.current
     val themePalette = LocalNeoThemePalette.current
     val tilePalette = themePalette.tilePalette(isDark)
     val accentSurface = themePalette.accent(isDark)
