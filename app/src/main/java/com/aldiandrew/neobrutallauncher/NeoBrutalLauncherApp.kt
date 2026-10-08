@@ -612,7 +612,7 @@ private fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
-    val isDarkTheme = LocalNeoThemeIsDark.current
+    val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
     val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
     val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
@@ -1634,7 +1634,7 @@ private fun SettingsScreen(
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
     val uiOnSurface = MaterialTheme.colorScheme.onSurface
-    val isDark = LocalNeoThemeIsDark.current
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val darkTileBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Ink
     var editedQuotes by remember(customQuotes) { mutableStateOf(customQuotes) }
     val iconPacks = remember { IconPackManager(context).installedIconPacks() }
