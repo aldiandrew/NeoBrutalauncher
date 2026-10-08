@@ -742,8 +742,8 @@ private fun HomeScreen(
                                 Text(
                                     text = time.format(now),
                                     modifier = Modifier.weight(1f),
-                                    fontSize = timeSize,
-                                    lineHeight = timeSize,
+                                    fontSize = if (use24Hour) timeSize + 3.sp else timeSize,
+                                    lineHeight = if (use24Hour) timeSize + 3.sp else timeSize,
                                     fontWeight = FontWeight.Black,
                                     fontFamily = when (typographyStyle) {
                                         TypographyStyle.MONO -> BrutalTypography.Mono
@@ -1677,10 +1677,10 @@ private fun SettingsScreen(
         SettingsSectionTitle("WALLPAPER")
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Yellow, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (wallpaperUri == null) "SYSTEM / PAPER BACKGROUND" else "CUSTOM WALLPAPER SELECTED", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                Text(if (wallpaperUri == null) "DEVICE WALLPAPER" else "CUSTOM WALLPAPER SELECTED", fontSize = 11.sp, fontWeight = FontWeight.Black)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ThemeButton(
-                        "SYSTEM",
+                        "DEVICE",
                         wallpaperUri == null,
                         BrutalColors.Cyan,
                         Modifier.weight(0.8f),
