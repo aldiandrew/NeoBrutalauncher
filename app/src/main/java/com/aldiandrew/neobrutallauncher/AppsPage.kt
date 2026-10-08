@@ -96,9 +96,11 @@ fun AppsPage(
     }
 
     val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val uiBackground = if (isDark) BrutalColors.Ink else BrutalColors.Paper
-    val uiSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.White
-    val uiOnSurface = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+    val themePalette = LocalNeoThemePalette.current
+    val uiBackground = MaterialTheme.colorScheme.background
+    val uiSurface = MaterialTheme.colorScheme.surface
+    val uiOnSurface = MaterialTheme.colorScheme.onBackground
+    val cardPalette = themePalette.tilePalette(isDark)
 
     Box(
         modifier = Modifier
@@ -113,7 +115,7 @@ fun AppsPage(
         Column(modifier = Modifier.fillMaxSize()) {
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Cyan,
+                background = themePalette.accent(isDark),
                 borderWidth = 4.dp,
                 shadowX = 7.dp,
                 shadowY = 7.dp
@@ -255,23 +257,7 @@ fun AppsPage(
                                 app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
-                            val lightCardPalette = listOf(
-                                BrutalColors.White,
-                                BrutalColors.Yellow,
-                                BrutalColors.Pink,
-                                BrutalColors.Cyan,
-                                BrutalColors.Peach,
-                                BrutalColors.Mint,
-                                BrutalColors.Lavender
-                            )
-                            val darkCardPalette = listOf(
-                                BrutalColors.DarkTile
-                            )
-                            val cardBackground = if (isDark) {
-                                darkCardPalette[index % darkCardPalette.size]
-                            } else {
-                                lightCardPalette[index % lightCardPalette.size]
-                            }
+                            val cardBackground = cardPalette[index % cardPalette.size]
                             val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
                                 BrutalColors.DarkWhite
                             } else {
@@ -370,7 +356,7 @@ fun AppsPage(
                                     ]
                                 }
                             },
-                        background = BrutalColors.Yellow,
+                        background = themePalette.accent(isDark),
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
                         shadowY = 4.dp
