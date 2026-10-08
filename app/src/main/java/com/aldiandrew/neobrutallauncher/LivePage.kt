@@ -94,13 +94,23 @@ fun LivePage(
                 shadowY = 7.dp
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "LIVE",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = if (isDark) BrutalColors.Red else pageText
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "LIVE",
+                            modifier = Modifier.weight(1f),
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = if (isDark) BrutalColors.Red else pageText
+                        )
+                        BrutalLabel(
+                            text = "LIVE / FEED",
+                            background = if (isDark) BrutalColors.Yellow else BrutalColors.Cyan
+                        )
+                    }
                     Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
