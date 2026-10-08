@@ -824,7 +824,6 @@ private fun HomeScreen(
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { tile ->
-                            tileEditMode = true
                             selectedTile = tile
                         },
                         onTileEdit = { selectedTile = it },
@@ -1019,14 +1018,21 @@ private fun HomeScreen(
                 selectedTile = null
                 tileEditMode = false
             },
-            title = { Text(text = tile.label + " / TILE", fontWeight = FontWeight.Black) },
+            title = {
+                Text(
+                    text = "EDIT TILE",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = if (locked) {
-                            "BOTTOM APP IS FIXED TO 4x1"
+                            "FIXED 4x1 / LAST HOME APP"
                         } else {
-                            "SIZE: " + tile.size.label
+                            "CURRENT SIZE: " + tile.size.label
                         },
                         fontWeight = FontWeight.Black
                     )
@@ -1046,7 +1052,7 @@ private fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = option.label,
+                                    text = "SET " + option.label,
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Start,
                                     fontWeight = FontWeight.Black
@@ -1076,7 +1082,7 @@ private fun HomeScreen(
                             }
                         ) {
                             Text(
-                                text = "REMOVE",
+                                text = "REMOVE FROM HOME",
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Orange
                             )
@@ -1086,10 +1092,22 @@ private fun HomeScreen(
                     androidx.compose.material3.TextButton(
                         onClick = {
                             selectedTile = null
+                            tileEditMode = true
+                        }
+                    ) {
+                        Text(
+                            text = "MOVE TILE",
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            selectedTile = null
                             tileEditMode = false
                         }
                     ) {
-                        Text(text = "CLOSE", fontWeight = FontWeight.Black)
+                        Text(text = "DONE", fontWeight = FontWeight.Black)
                     }
                 }
             }
