@@ -1267,7 +1267,6 @@ private fun NeoAddAppTile(
     onLongClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
-    val iconThemeStyle = LocalIconThemeStyle.current
 
     Box(
         modifier = modifier.combinedClickable(
