@@ -1,5 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
@@ -46,7 +47,12 @@ class AppRepository(private val context: Context) {
         }
 
         return runCatching {
-            context.startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                context,
+                R.anim.nb_app_enter,
+                R.anim.nb_app_exit
+            )
+            context.startActivity(intent, options.toBundle())
         }.isSuccess
     }
 }
