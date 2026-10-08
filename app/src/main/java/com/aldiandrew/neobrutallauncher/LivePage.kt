@@ -105,7 +105,6 @@ fun LivePage(
                         fontWeight = FontWeight.Normal,
                         color = if (isDark) BrutalColors.Red else pageText
                     )
-                    Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
                         fontSize = 42.sp,
@@ -113,6 +112,7 @@ fun LivePage(
                         fontWeight = FontWeight.Black,
                         color = pageText
                     )
+                    Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
                 }
             }
         }
