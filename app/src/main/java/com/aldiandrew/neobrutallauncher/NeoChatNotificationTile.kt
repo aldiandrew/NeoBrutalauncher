@@ -185,6 +185,18 @@ fun NeoChatNotificationTile(
             textColor = textColor,
             modifier = Modifier.fillMaxSize()
         ) {
+            Text(
+                text = appLabel.uppercase(),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 58.dp, top = 4.dp, end = 44.dp),
+                fontFamily = BrutalTypography.Display,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Normal,
+                color = textColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             Row(
                 modifier = Modifier
                     .fillMaxSize()
