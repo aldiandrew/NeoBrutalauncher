@@ -86,6 +86,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         NeoChatNotificationStore.onRemoved(sbn)
+        refreshChatNotifications()
     }
 
     fun refreshChatNotifications() {
