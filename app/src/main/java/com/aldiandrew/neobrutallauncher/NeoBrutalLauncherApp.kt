@@ -612,7 +612,7 @@ private fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
-    val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val isDarkTheme = LocalNeoThemeIsDark.current
     val homeClockBackground = themePalette.accent(isDarkTheme)
     val homeClockText = themePalette.onAccent(isDarkTheme)
     val homeMusicBackground = themePalette.secondary(isDarkTheme)
