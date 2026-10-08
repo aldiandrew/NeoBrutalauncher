@@ -4,9 +4,9 @@ NeoBrutalauncher is an Android home launcher built around a Neo-Brutalist design
 
 ## Current stable baseline
 
-The current stable baseline is the latest successful feature build represented by the current `main` branch state.
+The current stable baseline is the successful build represented by commit `5b4100e90f2cf30bc86a19b4ccadf47d753c2d70` (GitHub Actions Run #303).
 
-This baseline should be preserved for future development unless a change is explicitly requested.
+The rollback branch `stable-base-reset-weather-music-20261008` points to this stable checkpoint. This baseline should be preserved for future development unless a change is explicitly requested.
 
 ## Current features
 
@@ -21,12 +21,15 @@ This baseline should be preserved for future development unless a change is expl
 - Per-tile position and size controls.
 - Neo-Brutalist visual design with borders, offset shadows, bold typography, and saturated colors.
 - Smooth animated transitions between Home, Apps, and Live pages.
+- Configurable motion smoothness: SNAPPY, BALANCED, or FLUID.
+- Optional Reduce Motion mode.
+- App tile order is preserved and is not rearranged from app launch frequency.
 
 ### Home
 - Large clock with 12-hour or 24-hour mode.
 - Optional AM/PM display for 12-hour mode.
 - Selectable typography styles.
-- Optional local weather display.
+- Optional local weather display with provider fallbacks for available device location providers.
 - Custom image wallpaper with **Choose Image** and **Clear** controls.
 - Home app tiles without the removed decorative line/marker.
 
@@ -35,15 +38,19 @@ This baseline should be preserved for future development unless a change is expl
 - Calendar tile.
 - Live chat notification tile with selectable app.
 - Music tile using Android notification/media information.
+- Music controls are disabled until the launcher has Notification Access.
+- Album art is read from media metadata bitmap or URI when available.
 - Recent local notes/tasks section.
 - Rotating quote tile.
+- Custom quote editor with up to 5 user-defined quotes; built-in quotes remain available.
 - Notification access controls for Music and Live Chat features.
 
 ### Appearance and settings
 - System, Light, and Dark theme modes.
+- The launcher uses the base stable color system; no additional multi-theme or app icon-style system is enabled.
 - Typography style selection.
 - App tile content selection.
-- Third-party icon pack support where compatible.
+- Third-party icon pack support where compatible; launcher icon presentation uses the selected pack/original icon without a separate icon-style setting.
 - Wallpaper selection from an image and wallpaper clearing.
 - Backup and restore of launcher settings.
 - Pinned app management.
