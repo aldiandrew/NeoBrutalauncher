@@ -537,11 +537,11 @@ private fun LauncherPageHost(
                         .width(10.dp)
                         .height(10.dp)
                         .background(
-                            if (pagerState.currentPage == index) BrutalColors.Orange else Color.Transparent
+                            if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
                         )
                         .border(
                             width = 2.dp,
-                            color = BrutalColors.Orange
+                            color = BrutalColors.Yellow
                         )
                 )
             }
@@ -554,7 +554,7 @@ private fun LauncherPageHost(
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
-                color = BrutalColors.Orange
+                color = BrutalColors.Yellow
             )
         }
     }
@@ -587,10 +587,10 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
+    val homeClockBackground = if (isDarkTheme) BrutalColors.Pink else BrutalColors.Yellow
     val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
     val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
-    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
+    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -850,7 +850,7 @@ private fun HomeScreen(
                 ) {
                     FixedSmallTile(
                         modifier = Modifier.weight(1f),
-                        background = BrutalColors.Purple
+                        background = BrutalColors.Pink
                     ) {
                         BrutalTape(
                             text = "MANIFESTO",
@@ -882,7 +882,7 @@ private fun HomeScreen(
                     BatteryTile(
                         context = context,
                         modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Orange
+                        background = BrutalColors.Yellow
                     )
 
                     NeoNetworkTile(
@@ -1083,7 +1083,7 @@ private fun HomeScreen(
                                             text = if (selected) "SELECTED" else "USE",
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Orange
+                                            color = BrutalColors.Yellow
                                         )
                                     }
                                 }
@@ -1634,7 +1634,7 @@ private fun SettingsScreen(
         SettingsSectionTitle("CLOCK")
         SettingsSwitch("24-HOUR TIME", "Use 24-hour time on Home.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("AM / PM", "Show the AM/PM marker with 12-hour time.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
-        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Cyan, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("TYPOGRAPHY", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1668,7 +1668,7 @@ private fun SettingsScreen(
                         ThemeButton(
                             label = smoothness.label,
                             selected = motionSmoothness == smoothness,
-                            background = BrutalColors.Lime,
+                            background = BrutalColors.Cyan,
                             modifier = Modifier.weight(1f),
                             onClick = { onMotionSmoothnessChange(smoothness) }
                         )
@@ -1775,11 +1775,11 @@ private fun SettingsScreen(
         }
 
         SettingsSectionTitle("HOME CONTENT")
-        SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
-        if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
+        SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Cyan, onShowWeatherChange)
+        if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
 
         SettingsSectionTitle("APP TILES")
-        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
+        BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Cyan, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("APP TILE CONTENT", fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Text("The selected content mode adapts to every tile size.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
@@ -1805,11 +1805,11 @@ private fun SettingsScreen(
         }
 
         SettingsSectionTitle("INTEGRATIONS")
-        BrutalBlock(Modifier.fillMaxWidth(), background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Purple else BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
+        BrutalBlock(Modifier.fillMaxWidth(), background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Pink else BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("MUSIC + NOTIFICATION ACCESS", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
                 Text(if (notificationAccessGranted) "NOTIFICATION ACCESS IS ENABLED FOR THE MUSIC / CHAT FEATURES." else "ENABLE ANDROID NOTIFICATION ACCESS FOR MUSIC AND LIVE CHAT.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
-                BrutalActionButton(if (notificationAccessGranted) "OPEN NOTIFICATION ACCESS" else "ALLOW MUSIC / NOTIFICATION ACCESS", if (notificationAccessGranted) BrutalColors.Yellow else BrutalColors.Orange, onClick = onOpenNotificationAccess)
+                BrutalActionButton(if (notificationAccessGranted) "OPEN NOTIFICATION ACCESS" else "ALLOW MUSIC / NOTIFICATION ACCESS", if (notificationAccessGranted) BrutalColors.Yellow else BrutalColors.Yellow, onClick = onOpenNotificationAccess)
             }
         }
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Pink, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
@@ -1830,9 +1830,9 @@ private fun SettingsScreen(
                 Text("$favoritesCount PINNED APPS", fontFamily = BrutalTypography.Display, fontSize = 18.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
                 Text("Choose how many Home app tiles are available.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(3,5,7).forEach { count -> ThemeButton(count.toString(), homeAppCount == count, if(count==3) BrutalColors.Cyan else if(count==5) BrutalColors.Orange else BrutalColors.Pink, Modifier.weight(1f)) { onHomeAppCountChange(count) } }
+                    listOf(3,5,7).forEach { count -> ThemeButton(count.toString(), homeAppCount == count, if(count==3) BrutalColors.Cyan else if(count==5) BrutalColors.Yellow else BrutalColors.Pink, Modifier.weight(1f)) { onHomeAppCountChange(count) } }
                 }
-                BrutalActionButton("CLEAR ALL PINNED APPS", BrutalColors.Orange, onClick = onClearFavorites)
+                BrutalActionButton("CLEAR ALL PINNED APPS", BrutalColors.Yellow, onClick = onClearFavorites)
             }
         }
 
