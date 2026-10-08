@@ -141,6 +141,60 @@ fun BrutalTape(
 
 
 @Composable
+fun NeoTileDecoration(
+    label: String,
+    accent: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(modifier = modifier) {
+        content()
+
+        BrutalLabel(
+            text = label,
+            modifier = Modifier.align(Alignment.TopStart),
+            background = accent
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = NeoBrutalTokens.Spacing.Micro / 2, end = NeoBrutalTokens.Spacing.Micro / 2),
+            horizontalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Micro - 1.dp)
+        ) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .border(1.5.dp, textColor)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 2.dp)
+                .width(42.dp)
+                .height(2.dp)
+                .background(textColor)
+        )
+
+        Text(
+            text = "///",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = NeoBrutalTokens.Spacing.Micro / 2, bottom = 0.dp),
+            fontFamily = BrutalTypography.Display,
+            fontSize = NeoBrutalTokens.Type.Meta,
+            fontWeight = FontWeight.Black,
+            color = textColor
+        )
+    }
+}
+
+@Composable
 fun BrutalSection(
     title: String,
     modifier: Modifier = Modifier,
