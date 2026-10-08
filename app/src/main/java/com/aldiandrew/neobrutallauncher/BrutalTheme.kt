@@ -33,7 +33,18 @@ object BrutalColors {
     val Red = Color(0xFFE00000)
 
     fun appPalette(seed: Int = 0): List<Color> {
-        val base = listOf(Pink, Cyan, Lime, Orange, Purple, White, Yellow, Pink)
+        // Editorial neo-brutalism uses flat, opaque blocks with a controlled palette.
+        // Keep the sequence predictable so adjacent tiles feel designed, not random.
+        val base = listOf(
+            White,
+            Yellow,
+            Pink,
+            Cyan,
+            Peach,
+            Mint,
+            Lavender,
+            Sky
+        )
         val shift = Math.floorMod(seed, base.size)
         return List(base.size) { index -> base[(index + shift) % base.size] }
     }
