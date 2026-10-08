@@ -265,13 +265,7 @@ fun AppsPage(
                                 BrutalColors.Lavender
                             )
                             val darkCardPalette = listOf(
-                                BrutalColors.DarkTile,
-                                BrutalColors.Yellow,
-                                BrutalColors.Pink,
-                                BrutalColors.Cyan,
-                                BrutalColors.Orange,
-                                BrutalColors.Purple,
-                                BrutalColors.Lime
+                                BrutalColors.DarkTile
                             )
                             val cardBackground = if (isDark) {
                                 darkCardPalette[index % darkCardPalette.size]
@@ -288,6 +282,7 @@ fun AppsPage(
                                 modifier = Modifier.fillMaxWidth(),
                                 background = cardBackground,
                                 borderWidth = 3.dp,
+                                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                                 shadowX = 5.dp,
                                 shadowY = 5.dp,
                                 onClick = { onLaunch(app) },
