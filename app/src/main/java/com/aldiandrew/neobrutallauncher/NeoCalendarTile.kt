@@ -179,7 +179,7 @@ fun NeoCalendarTile(
                                     .then(
                                         if (isToday) {
                                             Modifier
-                                                .background(BrutalColors.Orange)
+                                                .background(BrutalColors.Yellow)
                                                 .border(2.dp, BrutalColors.Ink)
                                         } else {
                                             Modifier
