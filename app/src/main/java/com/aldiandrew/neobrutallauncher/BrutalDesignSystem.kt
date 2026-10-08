@@ -28,17 +28,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-enum class BrutalityLevel(
-    val label: String,
-    val borderScale: Float,
-    val shadowScale: Float
-) {
-    LITE("LITE", 0.75f, 0.65f),
-    BRUTAL("BRUTAL", 1f, 1f),
-    HARD("HARD", 1.35f, 1.5f),
-    CHAOS("CHAOS", 1.65f, 2f)
-}
-
 enum class TypographyStyle(val label: String) {
     POSTER("POSTER"),
     MONO("MONO"),
@@ -48,52 +37,7 @@ enum class TypographyStyle(val label: String) {
 
 val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.POSTER }
 
-data class BrutalMetrics(
-    val borderScale: Float = 1f,
-    val shadowScale: Float = 1f
-)
-
-val LocalBrutalMetrics = staticCompositionLocalOf { BrutalMetrics() }
-
-object BrutalTypography {
-    private val DisplayBase = FontFamily(
-        Font(R.font.anton_regular, FontWeight.Normal)
-    )
-
-    private val BodyBase = FontFamily(
-        Font(R.font.space_grotesk_regular, FontWeight.Normal),
-        Font(R.font.space_grotesk_bold, FontWeight.Bold)
-    )
-
-    @get:Composable
-    val Display: FontFamily
-        get() = when (LocalBrutalTypographyStyle.current) {
-            TypographyStyle.POSTER -> DisplayBase
-            TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.CONDENSED -> DisplayBase
-            TypographyStyle.HUGE -> DisplayBase
-        }
-
-    @get:Composable
-    val Body: FontFamily
-        get() = when (LocalBrutalTypographyStyle.current) {
-            TypographyStyle.POSTER -> BodyBase
-            TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.CONDENSED -> DisplayBase
-            TypographyStyle.HUGE -> BodyBase
-        }
-
-    @get:Composable
-    val Bricolage: FontFamily
-        get() = Body
-
-    val Poster: FontFamily
-        @Composable get() = DisplayBase
-
-    val Mono = FontFamily.Monospace
-    val Black = FontWeight.ExtraBold
-    val ExtraBold = FontWeight.ExtraBold
-}
+data class BrutalMetrics(val borderScale: Float = 1f, val shadowScale: Float = 1f)
 
 @Composable
 fun BrutalLabel(
