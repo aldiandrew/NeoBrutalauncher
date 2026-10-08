@@ -1479,7 +1479,7 @@ private fun AppTile(
         val isHorizontal = tileSize == NeoTileSize.HORIZONTAL
  
         val iconSize = when {
-            isSmall -> 32.dp
+            isSmall -> 28.dp
             isFourByOne || isHorizontal -> 58.dp
             else -> 60.dp
         }
