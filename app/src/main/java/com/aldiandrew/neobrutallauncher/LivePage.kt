@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -36,6 +37,7 @@ fun LivePage(
     BackHandler(onBack = onOpenHome)
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val quoteRotation = rememberLiveTileData(
         tileId = "live-quotes",
@@ -53,6 +55,9 @@ fun LivePage(
         "EEEE / d MMMM yyyy",
         Locale.ENGLISH
     ).format(now)
+
+    val notes = remember { preferences.noteItems().takeLast(3).reversed() }
+    val tasks = remember { preferences.taskItems().takeLast(3).reversed() }
 
     LazyColumn(
         modifier = Modifier
