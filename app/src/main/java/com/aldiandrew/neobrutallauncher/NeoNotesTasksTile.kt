@@ -59,11 +59,7 @@ fun NeoNotesTasksTile(
         shadowY = 6.dp
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            BrutalLabel(
-                text = "NOTES",
-                background = BrutalColors.Yellow
-            )
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(2.dp))
             NotesTasksColumn(
                 title = "NOTES",
                 inputHint = "TYPE NOTE…",
