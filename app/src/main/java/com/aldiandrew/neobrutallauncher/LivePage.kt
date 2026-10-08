@@ -99,7 +99,7 @@ fun LivePage(
                         fontFamily = BrutalTypography.Display,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Normal,
-                        color = pageText
+                        color = if (isDark) BrutalColors.Red else pageText
                     )
                     Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
                     Text(
@@ -246,7 +246,8 @@ fun LivePage(
             NeoQuoteTile(
                 quote = NeoQuotes.pairForRotation(quoteRotation).second,
                 modifier = Modifier.fillMaxWidth().height(190.dp),
-                emphasized = true
+                emphasized = true,
+                paletteIndex = quoteRotation + 1
             )
         }
     }

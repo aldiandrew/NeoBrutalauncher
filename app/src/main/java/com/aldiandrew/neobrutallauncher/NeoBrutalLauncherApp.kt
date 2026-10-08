@@ -810,7 +810,10 @@ private fun HomeScreen(
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
-                        onTileLongPress = { tileEditMode = true },
+                        onTileLongPress = { tile ->
+                            tileEditMode = true
+                            selectedTile = tile
+                        },
                         onTileEdit = { selectedTile = it },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
@@ -874,12 +877,13 @@ private fun HomeScreen(
                     val quotePair = NeoQuotes.pairForRotation(quoteRotation)
                     NeoQuoteTilePlain(
                         quote = quotePair.first,
-                        modifier = Modifier.weight(1f).aspectRatio(1f)
+                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                        paletteIndex = quoteRotation
                     )
                     NeoQuoteTilePlain(
                         quote = quotePair.second,
                         modifier = Modifier.weight(2f).aspectRatio(2f),
-                        textColor = BrutalColors.Red
+                        paletteIndex = quoteRotation + 1
                     )
                 }
             }
@@ -1180,21 +1184,35 @@ private fun NeoAddAppTile(
 private fun NeoQuoteTilePlain(
     quote: String,
     modifier: Modifier,
-    textColor: Color = MaterialTheme.colorScheme.onBackground
+    paletteIndex: Int
 ) {
-    Box(
-        modifier = modifier.padding(8.dp),
-        contentAlignment = Alignment.CenterStart
+    val palette = NeoQuotes.paletteForRotation(paletteIndex)
+
+    BrutalBlock(
+        modifier = modifier,
+        background = palette.background,
+        borderWidth = 3.dp,
+        borderColor = BrutalColors.Ink,
+        shadowX = 5.dp,
+        shadowY = 5.dp
     ) {
-        Text(
-            text = "“" + quote + "”",
-            fontSize = 13.sp,
-            lineHeight = 15.sp,
-            fontWeight = FontWeight.Black,
-            color = textColor,
-            maxLines = 5,
-            overflow = TextOverflow.Ellipsis
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(9.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = "“" + quote + "”",
+                fontFamily = BrutalTypography.Body,
+                fontSize = 13.sp,
+                lineHeight = 15.sp,
+                fontWeight = FontWeight.Black,
+                color = palette.text,
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
@@ -1408,16 +1426,16 @@ private fun ClockTileContent(
 fun NeoQuoteTile(
     quote: String,
     modifier: Modifier = Modifier,
-    emphasized: Boolean = false
+    emphasized: Boolean = false,
+    paletteIndex: Int = 0
 ) {
-    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val quoteBackground = if (isDark) BrutalColors.DarkTile else BrutalColors.Purple
-    val quoteText = if (isDark) BrutalColors.DarkWhite else BrutalColors.White
+    val palette = NeoQuotes.paletteForRotation(paletteIndex)
 
     BrutalBlock(
         modifier = modifier,
-        background = quoteBackground,
+        background = palette.background,
         borderWidth = 3.dp,
+        borderColor = BrutalColors.Ink,
         shadowX = 6.dp,
         shadowY = 6.dp
     ) {
@@ -1474,7 +1492,7 @@ fun NeoQuoteTile(
                     lineHeight = headerSize,
                     fontWeight = FontWeight.Normal,
                     letterSpacing = if (emphasized) 0.5.sp else 1.sp,
-                    color = quoteText,
+                    color = palette.text,
                     maxLines = 1
                 )
 
@@ -1485,7 +1503,7 @@ fun NeoQuoteTile(
                     fontSize = quoteSize.sp,
                     lineHeight = (quoteSize * 1.08f).sp,
                     fontWeight = FontWeight.Bold,
-                    color = quoteText,
+                    color = palette.text,
                     maxLines = estimatedLines,
                     softWrap = true,
                     overflow = TextOverflow.Clip
@@ -1547,22 +1565,32 @@ private fun AppTile(
         ) {
             when {
                 isFourByOne -> {
+                    val iconSize = minOf(maxHeight * 0.78f, 78.dp)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = app.label.uppercase(),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .fillMaxWidth()
+                                .padding(end = iconSize + 12.dp),
                             fontFamily = BrutalTypography.Display,
                             fontSize = fourByOneTextSize,
                             lineHeight = (fourByOneTextSize.value * 1.02f).sp,
                             fontWeight = FontWeight.Black,
                             color = BrutalColors.Ink,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
+                        )
+                        Image(
+                            bitmap = iconBitmap,
+                            contentDescription = app.label,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(iconSize)
                         )
                     }
                 }
@@ -1598,12 +1626,14 @@ private fun AppTile(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .padding(horizontal = 11.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = app.label.uppercase(),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .fillMaxWidth()
+                                .padding(end = 44.dp),
                             fontFamily = BrutalTypography.Display,
                             fontSize = threeByOneTextSize,
                             lineHeight = (threeByOneTextSize.value * 1.02f).sp,
@@ -1611,6 +1641,13 @@ private fun AppTile(
                             color = BrutalColors.Ink,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
+                        )
+                        Image(
+                            bitmap = iconBitmap,
+                            contentDescription = app.label,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(30.dp)
                         )
                     }
                 }

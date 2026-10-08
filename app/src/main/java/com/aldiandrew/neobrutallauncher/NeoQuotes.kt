@@ -1,6 +1,12 @@
 package com.aldiandrew.neobrutallauncher
 
+import androidx.compose.ui.graphics.Color
 import java.util.Calendar
+
+data class NeoQuotePalette(
+    val background: Color,
+    val text: Color
+)
 
 object NeoQuotes {
     private val quotes = listOf(
@@ -33,6 +39,21 @@ object NeoQuotes {
     fun pairForRotation(rotation: Int): Pair<String, String> {
         val offset = Math.floorMod(rotation, quotes.size)
         return quotes[offset] to quotes[(offset + 1) % quotes.size]
+    }
+
+    private val palettes = listOf(
+        NeoQuotePalette(BrutalColors.Yellow, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Pink, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Cyan, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Lime, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Orange, BrutalColors.Ink),
+        NeoQuotePalette(BrutalColors.Purple, BrutalColors.White),
+        NeoQuotePalette(BrutalColors.Red, BrutalColors.White),
+        NeoQuotePalette(BrutalColors.White, BrutalColors.Ink)
+    )
+
+    fun paletteForRotation(rotation: Int): NeoQuotePalette {
+        return palettes[Math.floorMod(rotation, palettes.size)]
     }
 
     fun pairForToday(): Pair<String, String> {
