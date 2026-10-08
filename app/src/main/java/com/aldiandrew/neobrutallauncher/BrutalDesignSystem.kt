@@ -39,6 +39,46 @@ val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.POST
 
 data class BrutalMetrics(val borderScale: Float = 1f, val shadowScale: Float = 1f)
 
+object BrutalTypography {
+    private val DisplayBase = FontFamily(
+        Font(R.font.anton_regular, FontWeight.Normal)
+    )
+
+    private val BodyBase = FontFamily(
+        Font(R.font.space_grotesk_regular, FontWeight.Normal),
+        Font(R.font.space_grotesk_bold, FontWeight.Bold)
+    )
+
+    @get:Composable
+    val Display: FontFamily
+        get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.POSTER -> DisplayBase
+            TypographyStyle.MONO -> FontFamily.Monospace
+            TypographyStyle.CONDENSED -> DisplayBase
+            TypographyStyle.HUGE -> DisplayBase
+        }
+
+    @get:Composable
+    val Body: FontFamily
+        get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.POSTER -> BodyBase
+            TypographyStyle.MONO -> FontFamily.Monospace
+            TypographyStyle.CONDENSED -> DisplayBase
+            TypographyStyle.HUGE -> BodyBase
+        }
+
+    @get:Composable
+    val Bricolage: FontFamily
+        get() = Body
+
+    val Poster: FontFamily
+        @Composable get() = DisplayBase
+
+    val Mono = FontFamily.Monospace
+    val Black = FontWeight.ExtraBold
+    val ExtraBold = FontWeight.ExtraBold
+}
+
 @Composable
 fun BrutalLabel(
     text: String,
