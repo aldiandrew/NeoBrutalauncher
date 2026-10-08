@@ -92,6 +92,23 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_BATTERY, value).apply()
     }
 
+    fun chatNotificationPackages(): List<String> {
+        return prefs.getStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, emptySet())
+            ?.toList()
+            .orEmpty()
+            .filter { it.isNotBlank() }
+            .take(2)
+    }
+
+    fun setChatNotificationPackages(values: List<String>) {
+        prefs.edit()
+            .putStringSet(
+                KEY_CHAT_NOTIFICATION_PACKAGES,
+                values.filter { it.isNotBlank() }.distinct().take(2).toSet()
+            )
+            .apply()
+    }
+
     fun favorites(): Set<String> {
         return prefs.getStringSet(KEY_FAVORITES, emptySet())?.toSet().orEmpty()
     }
@@ -379,6 +396,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_WEATHER = "show_weather"
         private const val KEY_QUOTE = "show_quote"
         private const val KEY_BATTERY = "show_battery"
+        private const val KEY_CHAT_NOTIFICATION_PACKAGES = "chat_notification_packages"
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_TILE_POSITIONS = "tile_positions"
         private const val KEY_TILE_SIZES = "tile_sizes"
