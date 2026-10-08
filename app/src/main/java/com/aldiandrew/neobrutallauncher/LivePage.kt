@@ -60,9 +60,9 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
-    val accentSurface = BrutalColors.Yellow
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
-    val headerText = BrutalColors.Ink
     val liveClockTileHeight = 126.dp
 
     val dateText = SimpleDateFormat(
@@ -90,10 +90,10 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
                 background = accentSurface,
                 borderWidth = 4.dp,
-                borderColor = BrutalColors.Ink,
+                borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 shadowX = 7.dp,
                 shadowY = 7.dp,
-                shadowColor = BrutalColors.Ink
+                shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             ) {
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -102,14 +102,14 @@ fun LivePage(
                         fontFamily = BrutalTypography.Display,
                         fontSize = NeoBrutalTokens.Type.Title,
                         fontWeight = FontWeight.Normal,
-                        color = BrutalColors.Red
+                        color = if (isDark) BrutalColors.Red else pageText
                     )
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
                         fontSize = NeoBrutalTokens.Type.Hero,
                         lineHeight = NeoBrutalTokens.Type.Hero,
                         fontWeight = FontWeight.Black,
-                        color = headerText
+                        color = pageText
                     )
                     Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = headerText)
                 }
@@ -120,8 +120,8 @@ fun LivePage(
             NeoCalendarTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = BrutalColors.Cyan,
-                textColor = BrutalColors.Ink
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
 
@@ -130,7 +130,7 @@ fun LivePage(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = BrutalColors.Yellow,
+                background = if (isDark) BrutalColors.Pink else BrutalColors.Yellow,
                 textColor = BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
             )
@@ -140,8 +140,8 @@ fun LivePage(
             NeoMusicTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = BrutalColors.Cyan,
-                textColor = BrutalColors.Ink,
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
             )
         }
 
