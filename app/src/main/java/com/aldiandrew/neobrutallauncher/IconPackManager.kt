@@ -3,6 +3,7 @@ package com.aldiandrew.neobrutallauncher
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import org.xmlpull.v1.XmlPullParser
 
@@ -13,8 +14,11 @@ data class IconPackInfo(
 
 class IconPackManager(private val context: Context) {
     private val packageManager = context.packageManager
+    private val preferences = LauncherPreferences(context)
+    private val drawableNameRegex = Regex("[A-Za-z0-9_]+")
     private var cachedPackage: String? = null
     private var cachedMappings: Map<String, String> = emptyMap()
+    private var cachedResources: Resources? = null
 
     fun installedIconPacks(): List<IconPackInfo> {
         val actions = listOf(
@@ -44,14 +48,14 @@ class IconPackManager(private val context: Context) {
         activityName: String,
         fallback: Drawable
     ): Drawable {
-        val packPackage = LauncherPreferences(context).iconPackPackage() ?: return fallback
-        val drawableName = mappingFor(packPackage)["ComponentInfo{$packageName/$activityName}"]
+        val packPackage = preferences.iconPackPackage() ?: return fallback
+        ensureCache(packPackage)
+        val drawableName = cachedMappings["ComponentInfo{$packageName/$activityName}"]
             ?: return fallback
 
         return runCatching {
-            val packInfo = packageManager.getApplicationInfo(packPackage, 0)
-            val resources = packageManager.getResourcesForApplication(packInfo)
-            val safeName = drawableName.takeIf { it.matches(Regex("[A-Za-z0-9_]+")) }
+            val resources = cachedResources ?: return@runCatching fallback
+            val safeName = drawableName.takeIf(drawableNameRegex::matches)
                 ?: return@runCatching fallback
             val drawableId = resources.getIdentifier(safeName, "drawable", packPackage)
                 .takeIf { it != 0 }
@@ -61,35 +65,39 @@ class IconPackManager(private val context: Context) {
         }.getOrDefault(fallback)
     }
 
-    private fun mappingFor(packPackage: String): Map<String, String> {
-        if (cachedPackage == packPackage) return cachedMappings
+    private fun ensureCache(packPackage: String) {
+        if (cachedPackage == packPackage) return
 
-        val mapping = runCatching {
+        val result = runCatching {
             val packInfo = packageManager.getApplicationInfo(packPackage, 0)
             val resources = packageManager.getResourcesForApplication(packInfo)
             val xmlId = resources.getIdentifier("appfilter", "xml", packPackage)
-            if (xmlId == 0) return@runCatching emptyMap()
-
-            val result = HashMap<String, String>()
-            val parser = resources.getXml(xmlId)
-            try {
-                while (parser.next() != XmlPullParser.END_DOCUMENT) {
-                    if (parser.eventType == XmlPullParser.START_TAG && parser.name == "item") {
-                        val component = parser.getAttributeValue(null, "component")
-                        val drawable = parser.getAttributeValue(null, "drawable")
-                        if (!component.isNullOrBlank() && !drawable.isNullOrBlank()) {
-                            result[component] = drawable
+            val mappings = if (xmlId == 0) {
+                emptyMap()
+            } else {
+                val parsed = HashMap<String, String>()
+                val parser = resources.getXml(xmlId)
+                try {
+                    while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                        if (parser.eventType == XmlPullParser.START_TAG && parser.name == "item") {
+                            val component = parser.getAttributeValue(null, "component")
+                            val drawable = parser.getAttributeValue(null, "drawable")
+                            if (!component.isNullOrBlank() && !drawable.isNullOrBlank()) {
+                                parsed[component] = drawable
+                            }
                         }
                     }
+                } finally {
+                    parser.close()
                 }
-            } finally {
-                parser.close()
+                parsed
             }
-            result
-        }.getOrDefault(emptyMap())
+            resources to mappings
+        }.getOrNull()
 
         cachedPackage = packPackage
-        cachedMappings = mapping
-        return mapping
+        cachedResources = result?.first
+        cachedMappings = result?.second.orEmpty()
     }
+
 }
