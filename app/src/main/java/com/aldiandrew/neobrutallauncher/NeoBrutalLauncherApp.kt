@@ -81,7 +81,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun NeoBrutalLauncherApp() {
+fun NeoBrutalLauncherApp(
+    onHideStatusBarChange: (Boolean) -> Unit = {}
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val repository = remember { AppRepository(context) }
     val preferences = remember { LauncherPreferences(context) }
@@ -89,6 +91,10 @@ fun NeoBrutalLauncherApp() {
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
     var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
+    var onboardingCompleted by remember { mutableStateOf(preferences.onboardingCompleted()) }
+    var launchingApp by remember { mutableStateOf<AppInfo?>(null) }
+    var awaitingHomeReturn by remember { mutableStateOf(false) }
+    var homeReturnTrigger by remember { mutableIntStateOf(0) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
@@ -241,6 +247,10 @@ fun NeoBrutalLauncherApp() {
                 notificationAccessGranted =
                     NotificationManagerCompat.getEnabledListenerPackages(context)
                         .contains(context.packageName)
+                if (awaitingHomeReturn) {
+                    awaitingHomeReturn = false
+                    homeReturnTrigger += 1
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -255,7 +265,7 @@ fun NeoBrutalLauncherApp() {
     )
 
     fun requestLaunch(app: AppInfo) {
-        repository.launch(app)
+        launchingApp = app
     }
 
     LaunchedEffect(Unit) {
@@ -263,6 +273,36 @@ fun NeoBrutalLauncherApp() {
     }
 
     when {
+        !onboardingCompleted -> {
+            NeoBrutalTheme(
+                themePreference = themePreference,
+                typographyStyle = typographyStyle
+            ) {
+                NeoOnboardingScreen(
+                    initialTheme = themePreference,
+                    initialUse24Hour = use24Hour,
+                    initialHideStatusBar = hideStatusBar,
+                    onThemeChange = {
+                        themePreference = it
+                        preferences.setTheme(it)
+                    },
+                    onUse24HourChange = {
+                        use24Hour = it
+                        preferences.setUse24Hour(it)
+                    },
+                    onHideStatusBarChange = {
+                        hideStatusBar = it
+                        preferences.setHideStatusBar(it)
+                        onHideStatusBarChange(it)
+                    },
+                    onFinish = {
+                        preferences.setOnboardingCompleted(true)
+                        onboardingCompleted = true
+                    }
+                )
+            }
+        }
+
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
@@ -381,6 +421,7 @@ fun NeoBrutalLauncherApp() {
                     onHideStatusBarChange = {
                         hideStatusBar = it
                         preferences.setHideStatusBar(it)
+                        onHideStatusBarChange(it)
                     },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
@@ -419,15 +460,32 @@ fun NeoBrutalLauncherApp() {
                 typographyStyle = typographyStyle,
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
-                    LauncherPageHost(
-                        currentPage = currentPage,
-                        motionConfig = motionConfig,
-                        wallpaperUri = wallpaperUri,
-                    onPageChange = {
-                        currentPage = it.coerceIn(0, 2)
-                        if (currentPage == 1) refreshApps()
-                    }
-                ) { page ->
+                    NeoHomeReturnMotion(
+                        trigger = homeReturnTrigger,
+                        config = motionConfig,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        NeoLaunchTransition(
+                            app = launchingApp,
+                            config = motionConfig,
+                            onFinished = {
+                                val target = launchingApp
+                                if (target == null) return@NeoLaunchTransition
+                                launchingApp = null
+                                if (repository.launch(target)) {
+                                    awaitingHomeReturn = true
+                                }
+                            }
+                        ) {
+                            LauncherPageHost(
+                                currentPage = currentPage,
+                                motionConfig = motionConfig,
+                                wallpaperUri = wallpaperUri,
+                                onPageChange = {
+                                    currentPage = it.coerceIn(0, 2)
+                                    if (currentPage == 1) refreshApps()
+                                }
+                            ) { page ->
                     if (page == 0) {
                         HomeScreen(
                             apps = apps,
@@ -490,7 +548,8 @@ fun NeoBrutalLauncherApp() {
                             },
                             onOpenHome = { currentPage = 0 }
                         )
-                    }
+                            }
+                        }
                     }
                 }
             }
@@ -1940,7 +1999,7 @@ private fun SettingsScreen(
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Pink, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("DEFAULT HOME APP", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
-                Text("Choose Neo Brutal Launcher as the Android default Home app.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Choose NB Launcher as the Android default Home app.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
                 BrutalActionButton("OPEN HOME SETTINGS", BrutalColors.Yellow) { context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
             }
         }
@@ -1948,7 +2007,7 @@ private fun SettingsScreen(
         SettingsSectionTitle("ABOUT")
         BrutalBlock(Modifier.fillMaxWidth(), background = darkTileBackground, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("NEO BRUTAL LAUNCHER", fontSize = 20.sp, fontWeight = FontWeight.Black, color = BrutalColors.White)
+                Text("NB LAUNCHER", fontSize = 20.sp, fontWeight = FontWeight.Black, color = BrutalColors.White)
                 Text("CORE BUILD 0.1.0", fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = BrutalColors.Cyan)
                 Text("A neo-brutalist launcher focused on fast access to your apps.", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, color = BrutalColors.White)
             }
