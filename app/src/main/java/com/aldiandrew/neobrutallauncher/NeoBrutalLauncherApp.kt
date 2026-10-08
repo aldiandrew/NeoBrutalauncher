@@ -964,7 +964,7 @@ private fun HomeScreen(
                     context = context,
                     modifier = Modifier.fillMaxWidth().aspectRatio(4f),
                     background = homeMusicBackground,
-                    textColor = BrutalColors.Ink
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
                 )
             }
 
@@ -1022,9 +1022,9 @@ private fun HomeScreen(
             item(key = "tasks") {
                 NeoTasksTile(
                     tasks = taskItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(2f),
                     background = homeTasksBackground,
-                    textColor = BrutalColors.Ink,
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
                     onAddTask = { text ->
                         val updated = taskItems + NeoListItem(text = text)
                         taskItems = updated
