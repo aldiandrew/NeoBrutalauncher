@@ -95,7 +95,7 @@ fun AppsPage(
         }
     }
 
-    val isDark = androidx.compose.material3.MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val isDark = LocalNeoThemeIsDark.current
     val themePalette = LocalNeoThemePalette.current
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
