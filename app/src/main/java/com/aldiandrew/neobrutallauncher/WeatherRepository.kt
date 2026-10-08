@@ -71,7 +71,8 @@ object WeatherRepository {
             }.getOrDefault(false)
         }
 
-        val lastKnown = enabledProviders
+        val lastKnown = (providers + LocationManager.PASSIVE_PROVIDER)
+            .distinct()
             .mapNotNull { provider ->
                 runCatching {
                     locationManager.getLastKnownLocation(provider)
