@@ -5,6 +5,7 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.service.notification.NotificationListenerService
+import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -50,6 +51,10 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+        NeoNotificationServiceRegistry.attach(this)
+        NeoChatNotificationStore.setSelectedPackages(
+            LauncherPreferences(this).chatNotificationPackages()
+        )
         sessionManager = getSystemService(MediaSessionManager::class.java)
         sessionManager.addOnActiveSessionsChangedListener(
             sessionListener,
@@ -63,6 +68,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onListenerDisconnected() {
+        NeoNotificationServiceRegistry.detach(this)
         if (::sessionManager.isInitialized) {
             runCatching { sessionManager.removeOnActiveSessionsChangedListener(sessionListener) }
         }
@@ -70,6 +76,22 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         currentController = null
         NeoMusicSessionStore.update(null)
         super.onListenerDisconnected()
+    }
+
+
+
+    override fun onNotificationPosted(sbn: StatusBarNotification) {
+        NeoChatNotificationStore.onPosted(sbn)
+    }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification) {
+        NeoChatNotificationStore.onRemoved(sbn)
+    }
+
+    fun refreshChatNotifications() {
+        NeoChatNotificationStore.clear()
+        val active = runCatching { activeNotifications.orEmpty() }.getOrDefault(emptyArray())
+        active.forEach(NeoChatNotificationStore::onPosted)
     }
 
     private fun selectController(controllers: List<MediaController>) {
