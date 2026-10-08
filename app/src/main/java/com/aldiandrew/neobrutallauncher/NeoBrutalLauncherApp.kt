@@ -198,7 +198,7 @@ fun NeoBrutalLauncherApp() {
                     showBattery = showBattery,
                     appTileContentMode = appTileContentMode,
                     brutalityLevel = brutalityLevel,
-                    clockStyle = clockStyle,
+                    typographyStyle = typographyStyle,
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -344,7 +344,7 @@ fun NeoBrutalLauncherApp() {
                             showQuote = showQuote,
                             showBattery = showBattery,
                             appTileContentMode = appTileContentMode,
-                            clockStyle = clockStyle,
+                            typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
@@ -630,7 +630,7 @@ private fun HomeScreen(
                         shadowY = 4.dp
                     ) {
                         Text(
-                            text = "NEO / HOME",
+                            text = "// HOME",
                             fontFamily = BrutalTypography.Display,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Black,
@@ -688,70 +688,85 @@ private fun HomeScreen(
                     shadowY = 7.dp
                 ) {
                     BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp),
-                        contentAlignment = Alignment.CenterStart
+                        modifier = Modifier.fillMaxSize().padding(13.dp)
                     ) {
+                        val compact = minOf(maxWidth, maxHeight)
+                        val timeSize = when {
+                            compact < 130.dp -> 38.sp
+                            compact < 160.dp -> 46.sp
+                            else -> 56.sp
+                        }
+                        val sideSize = when {
+                            compact < 130.dp -> 7.sp
+                            compact < 160.dp -> 8.5.sp
+                            else -> 10.sp
+                        }
+
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             BrutalLabel(
-                                text = (if (use24Hour) "24H" else "12H") + " / " + clockStyle.label,
+                                text = (if (use24Hour) "24H" else "12H") + " / " + typographyStyle.label,
                                 background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
                             )
-                            Text(
-                                text = time.format(now),
-                                fontSize = when (clockStyle) {
-                                    ClockStyle.HUGE -> 58.sp
-                                    ClockStyle.CONDENSED -> 52.sp
-                                    ClockStyle.MONO -> 50.sp
-                                    ClockStyle.POSTER -> 54.sp
-                                },
-                                lineHeight = when (clockStyle) {
-                                    ClockStyle.HUGE -> 56.sp
-                                    ClockStyle.CONDENSED -> 50.sp
-                                    ClockStyle.MONO -> 48.sp
-                                    ClockStyle.POSTER -> 52.sp
-                                },
-                                fontWeight = FontWeight.Black,
-                                fontFamily = when (clockStyle) {
-                                    ClockStyle.MONO -> BrutalTypography.Mono
-                                    ClockStyle.CONDENSED -> BrutalTypography.Poster
-                                    ClockStyle.HUGE -> BrutalTypography.Poster
-                                    ClockStyle.POSTER -> BrutalTypography.Poster
-                                },
-                                color = homeClockText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip
-                            )
-                            if (showDate) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = longDay.format(now).uppercase(Locale.ENGLISH),
-                                        modifier = Modifier.weight(0.40f),
-                                        fontSize = 10.sp,
-                                        lineHeight = 11.sp,
-                                        fontWeight = FontWeight.Black,
-                                        fontFamily = BrutalTypography.Bricolage,
-                                        color = BrutalColors.Red,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = longDate.format(now).uppercase(Locale.ENGLISH),
-                                        modifier = Modifier.weight(0.60f),
-                                        fontSize = 10.sp,
-                                        lineHeight = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = BrutalTypography.Bricolage,
-                                        color = homeClockText,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = time.format(now),
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = timeSize,
+                                    lineHeight = timeSize,
+                                    fontWeight = FontWeight.Black,
+                                    fontFamily = when (typographyStyle) {
+                                        TypographyStyle.MONO -> BrutalTypography.Mono
+                                        else -> BrutalTypography.Poster
+                                    },
+                                    color = homeClockText,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Clip
+                                )
+
+                                if (showDate) {
+                                    Column(
+                                        modifier = Modifier
+                                            .width(if (compact < 150.dp) 64.dp else 82.dp)
+                                            .padding(start = 10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = longDay.format(now).uppercase(Locale.ENGLISH),
+                                            fontSize = sideSize,
+                                            lineHeight = sideSize + 1.sp,
+                                            fontWeight = FontWeight.Black,
+                                            fontFamily = BrutalTypography.Display,
+                                            color = BrutalColors.Red,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(2.dp)
+                                                .background(homeClockText)
+                                        )
+                                        Text(
+                                            text = longDate.format(now).uppercase(Locale.ENGLISH),
+                                            fontSize = sideSize,
+                                            lineHeight = sideSize + 1.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = BrutalTypography.Display,
+                                            color = homeClockText,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -776,10 +791,10 @@ private fun HomeScreen(
                         Text(
                             text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
                             fontFamily = BrutalTypography.Display,
-                            fontSize = 9.sp,
-                            lineHeight = 10.sp,
+                            fontSize = 7.5.sp,
+                            lineHeight = 8.5.sp,
                             fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.4.sp,
+                            letterSpacing = 0.25.sp,
                             color = BrutalColors.White,
                             maxLines = 3
                         )
@@ -1652,7 +1667,7 @@ private fun SettingsScreen(
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onBrutalityLevelChange: (BrutalityLevel) -> Unit,
-    onClockStyleChange: (ClockStyle) -> Unit,
+    onTypographyStyleChange: (TypographyStyle) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit
@@ -1841,18 +1856,18 @@ private fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    ClockStyle.values().forEach { style ->
+                    TypographyStyle.values().forEach { style ->
                         ThemeButton(
                             label = style.label,
-                            selected = clockStyle == style,
+                            selected = typographyStyle == style,
                             background = when (style) {
-                                ClockStyle.POSTER -> BrutalColors.Yellow
-                                ClockStyle.MONO -> BrutalColors.Cyan
-                                ClockStyle.CONDENSED -> BrutalColors.Lime
-                                ClockStyle.HUGE -> BrutalColors.Pink
+                                TypographyStyle.POSTER -> BrutalColors.Yellow
+                                TypographyStyle.MONO -> BrutalColors.Cyan
+                                TypographyStyle.CONDENSED -> BrutalColors.Lime
+                                TypographyStyle.HUGE -> BrutalColors.Pink
                             },
                             modifier = Modifier.weight(1f),
-                            onClick = { onClockStyleChange(style) }
+                            onClick = { onTypographyStyleChange(style) }
                         )
                     }
                 }
