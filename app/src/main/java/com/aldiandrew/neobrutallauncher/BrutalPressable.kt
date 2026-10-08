@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 fun BrutalPressableBlock(
     modifier: Modifier = Modifier,
     background: androidx.compose.ui.graphics.Color,
-    borderWidth: Dp = 4.dp,
-    shadowX: Dp = 7.dp,
-    shadowY: Dp = 7.dp,
+    borderWidth: Dp = NeoBrutalTokens.Border.Primary,
+    shadowX: Dp = NeoBrutalTokens.Shadow.Medium,
+    shadowY: Dp = NeoBrutalTokens.Shadow.Medium,
     borderColor: androidx.compose.ui.graphics.Color? = null,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
@@ -57,8 +57,8 @@ fun BrutalPressableBlock(
             ),
         background = background,
         borderWidth = borderWidth,
-        shadowX = if (pressed) 0.dp else shadowX,
-        shadowY = if (pressed) 0.dp else shadowY,
+        shadowX = if (pressed) NeoBrutalTokens.Shadow.None else shadowX,
+        shadowY = if (pressed) NeoBrutalTokens.Shadow.None else shadowY,
         borderColor = borderColor,
         content = content
     )
