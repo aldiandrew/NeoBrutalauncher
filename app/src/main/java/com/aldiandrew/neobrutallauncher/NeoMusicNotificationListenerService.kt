@@ -16,7 +16,12 @@ data class MusicInfo(
     val appLabel: String,
     val title: String?,
     val artist: String?,
-    val albumArt: Bitmap?
+    val albumArt: Bitmap?,
+    val positionMs: Long,
+    val durationMs: Long,
+    val playbackSpeed: Float,
+    val positionUpdatedAtMs: Long,
+    val isPlaying: Boolean
 )
 
 object NeoMusicSessionStore {
@@ -122,6 +127,8 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
         val label = packageManager.getApplicationLabel(appInfo).toString()
         val metadata = controller.metadata
+        val playbackState = controller.playbackState
+        val positionUpdatedAtMs = System.currentTimeMillis()
         val albumArt = runCatching {
             metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
                 ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
@@ -143,7 +150,12 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
                 appLabel = label,
                 title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
                 artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
-                albumArt = albumArt
+                albumArt = albumArt,
+                positionMs = (playbackState?.position ?: 0L).coerceAtLeast(0L),
+                durationMs = (metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L).coerceAtLeast(0L),
+                playbackSpeed = (playbackState?.playbackSpeed ?: 1f).coerceAtLeast(0f),
+                positionUpdatedAtMs = positionUpdatedAtMs,
+                isPlaying = playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
             )
         )
     }
