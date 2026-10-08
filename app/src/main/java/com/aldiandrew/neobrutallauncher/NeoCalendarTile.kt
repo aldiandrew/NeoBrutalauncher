@@ -58,7 +58,7 @@ fun NeoCalendarTile(
     val daysInMonth = displayedMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOffset = displayedMonth.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
 
-    val openCalendar = {
+    val openCalendar: () -> Unit = {
         val intent = Intent(Intent.ACTION_MAIN)
             .addCategory(Intent.CATEGORY_APP_CALENDAR)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -74,6 +74,7 @@ fun NeoCalendarTile(
                 )
             }
         }
+        Unit
     }
 
     BrutalBlock(
