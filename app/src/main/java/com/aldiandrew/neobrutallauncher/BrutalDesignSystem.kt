@@ -29,13 +29,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class TypographyStyle(val label: String) {
+    DEFAULT("DEFAULT"),
+    CONDENSED("CONDENSED"),
     POSTER("POSTER"),
     MONO("MONO"),
-    CONDENSED("CONDENSED"),
     HUGE("HUGE")
 }
 
-val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.POSTER }
+val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.DEFAULT }
 
 data class BrutalMetrics(val borderScale: Float = 1f, val shadowScale: Float = 1f)
 
@@ -54,18 +55,20 @@ object BrutalTypography {
     @get:Composable
     val Display: FontFamily
         get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.DEFAULT -> DisplayBase
+            TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.POSTER -> DisplayBase
             TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.HUGE -> DisplayBase
         }
 
     @get:Composable
     val Body: FontFamily
         get() = when (LocalBrutalTypographyStyle.current) {
+            TypographyStyle.DEFAULT -> BodyBase
+            TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.POSTER -> BodyBase
             TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.CONDENSED -> DisplayBase
             TypographyStyle.HUGE -> BodyBase
         }
 
