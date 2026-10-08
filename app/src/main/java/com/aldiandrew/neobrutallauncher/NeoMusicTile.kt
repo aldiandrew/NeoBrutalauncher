@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -91,6 +92,41 @@ fun NeoMusicTile(
     }
 
     val musicInfo by NeoMusicSessionStore.state.collectAsState()
+
+    var progressClock by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(
+        musicInfo?.packageName,
+        musicInfo?.title,
+        musicInfo?.positionUpdatedAtMs,
+        musicInfo?.isPlaying
+    ) {
+        if (musicInfo?.isPlaying == true) {
+            while (true) {
+                progressClock = System.currentTimeMillis()
+                delay(500L)
+            }
+        } else {
+            progressClock = System.currentTimeMillis()
+        }
+    }
+
+    val displayPositionMs = musicInfo?.let { info ->
+        if (info.isPlaying) {
+            info.positionMs +
+                ((progressClock - info.positionUpdatedAtMs) * info.playbackSpeed).toLong()
+        } else {
+            info.positionMs
+        }
+    }?.coerceAtLeast(0L) ?: 0L
+
+    val musicProgress = musicInfo?.let { info ->
+        if (info.durationMs > 0L) {
+            (displayPositionMs.toFloat() / info.durationMs.toFloat()).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+    } ?: 0f
     val fallbackApp = remember { resolveMusicApp(context) }
     val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
     val musicLabel = musicInfo?.appLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
@@ -197,6 +233,16 @@ private fun MusicTileContent(
                     color = textColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+            }
+            if ((musicInfo?.durationMs ?: 0L) > 0L) {
+                BrutalProgress(
+                    progress = musicProgress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    fillColor = textColor,
+                    trackColor = textColor.copy(alpha = 0.18f)
                 )
             }
             if (!hasAccess) {
