@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,15 +36,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private enum class OnboardingStep(
-    val eyebrow: String,
-    val title: String
-) {
-    WELCOME("01 / WELCOME", "NB LAUNCHER"),
-    ACKNOWLEDGEMENT("02 / PRINCIPLES", "BUILT FOR CONTROL"),
-    PREFERENCES("03 / PREFERENCES", "MAKE IT YOURS"),
-    FEATURES("04 / FEATURES", "THREE PAGES"),
-    FINALIZE("05 / READY", "LET'S GO")
+private enum class OnboardingStep(val eyebrow: String) {
+    WELCOME("01 / WELCOME"),
+    ACKNOWLEDGEMENT("02 / PRINCIPLES"),
+    PREFERENCES("03 / PREFERENCES"),
+    FEATURES("04 / FEATURES"),
+    FINALIZE("05 / READY")
 }
 
 @Composable
@@ -101,12 +97,27 @@ fun NeoOnboardingScreen(
 
                 if (step > 0) {
                     Spacer(Modifier.width(10.dp))
-                    BrutalActionButton(
-                        "SKIP",
-                        BrutalColors.White,
+                    BrutalPressableBlock(
                         modifier = Modifier.width(72.dp),
+                        background = BrutalColors.White,
+                        borderWidth = 3.dp,
+                        shadowX = 3.dp,
+                        shadowY = 3.dp,
                         onClick = ::finish
-                    )
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "SKIP",
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = BrutalColors.Ink
+                            )
+                        }
+                    }
                 }
             }
 
