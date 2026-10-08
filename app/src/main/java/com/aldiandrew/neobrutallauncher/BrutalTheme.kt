@@ -20,13 +20,6 @@ object BrutalColors {
     val Yellow = Color(0xFFFFE500)
     val Pink = Color(0xFFFF5C8A)
     val Cyan = Color(0xFF00D9FF)
-    val Lime = Color(0xFF9BFF00)
-    val Orange = Color(0xFFFF6B00)
-    val Purple = Color(0xFF9B5CFF)
-    val Peach = Color(0xFFF4B69C)
-    val Lavender = Color(0xFFD4D1FA)
-    val Sky = Color(0xFFD1E3FA)
-    val Mint = Color(0xFFD1FAF0)
     val DarkPaper = Color(0xFF171717)
     val DarkTile = Color(0xFF292929)
     val DarkWhite = Color(0xFFF7F7F7)
@@ -39,11 +32,7 @@ object BrutalColors {
             White,
             Yellow,
             Pink,
-            Cyan,
-            Peach,
-            Mint,
-            Lavender,
-            Sky
+            Cyan
         )
         val shift = Math.floorMod(seed, base.size)
         return List(base.size) { index -> base[(index + shift) % base.size] }
