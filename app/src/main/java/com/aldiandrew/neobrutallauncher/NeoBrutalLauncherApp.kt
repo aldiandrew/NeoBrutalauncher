@@ -562,11 +562,13 @@ private fun LauncherPageHost(
                         .width(10.dp)
                         .height(10.dp)
                         .background(
-                            if (pagerState.currentPage == index) BrutalColors.Orange else Color.Transparent
+                            if (pagerState.currentPage == index) LocalNeoThemePalette.current.accent(
+                                pagerState.currentPage == 2
+                            ) else Color.Transparent
                         )
                         .border(
                             width = 2.dp,
-                            color = BrutalColors.Orange
+                            color = LocalNeoThemePalette.current.accent(pagerState.currentPage == 2)
                         )
                 )
             }
@@ -579,7 +581,7 @@ private fun LauncherPageHost(
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
-                color = BrutalColors.Orange
+                color = LocalNeoThemePalette.current.accent(pagerState.currentPage == 2)
             )
         }
     }
@@ -611,10 +613,10 @@ private fun HomeScreen(
     val preferences = remember { LauncherPreferences(context) }
     val now = rememberMinuteClock()
     val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val homeClockBackground = if (isDarkTheme) BrutalColors.Purple else BrutalColors.Yellow
-    val homeClockText = if (isDarkTheme) BrutalColors.White else BrutalColors.Ink
-    val homeMusicBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
-    val homeNotesBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Mint
+    val homeClockBackground = themePalette.accent(isDarkTheme)
+    val homeClockText = themePalette.onAccent(isDarkTheme)
+    val homeMusicBackground = themePalette.secondary(isDarkTheme)
+    val homeNotesBackground = themePalette.tilePalette(isDarkTheme).getOrElse(1) { themePalette.surface(isDarkTheme) }
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -631,6 +633,7 @@ private fun HomeScreen(
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
+    val themePalette = LocalNeoThemePalette.current
     val timePattern = when {
         use24Hour -> "HH:mm"
         showAmPm -> "hh:mm a"
@@ -695,7 +698,7 @@ private fun HomeScreen(
         )
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
-    val palette = remember { BrutalColors.appPalette(0) }
+    val palette = themePalette.tilePalette(isDarkTheme)
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
