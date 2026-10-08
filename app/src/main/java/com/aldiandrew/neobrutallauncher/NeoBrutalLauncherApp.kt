@@ -1450,8 +1450,9 @@ private fun AppTile(
             shadowX = 5.dp,
             shadowY = 5.dp
         ) {
-            when (contentMode) {
-                TileContentMode.ICON -> {
+            Box(Modifier.fillMaxSize()) {
+                when (contentMode) {
+                    TileContentMode.ICON -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Image(
                             bitmap = iconBitmap,
@@ -1537,6 +1538,24 @@ private fun AppTile(
                         }
                     }
                 }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 4.dp, bottom = 3.dp)
+                        .width(34.dp)
+                        .height(2.dp)
+                        .background(BrutalColors.Ink)
+                )
+                Text(
+                    text = "///",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 4.dp, bottom = 0.dp),
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Black,
+                    color = BrutalColors.Ink
+                )
             }
         }
     }
@@ -1723,7 +1742,7 @@ private fun SettingsScreen(
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("LOCAL BACKUP / RESTORE", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
-                Text("Backup contains launcher settings, tile layout, pinned apps, notes/tasks and icon-pack selection. It does not contain passwords or notification contents.", fontSize = 10.sp, lineHeight = 14.dp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
+                Text("Backup contains launcher settings, tile layout, pinned apps, notes/tasks and icon-pack selection. It does not contain passwords or notification contents.", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     BrutalActionButton("BACKUP", BrutalColors.Cyan, Modifier.weight(1f), onBackup)
                     BrutalActionButton("RESTORE", BrutalColors.Yellow, Modifier.weight(1f), onRestore)
