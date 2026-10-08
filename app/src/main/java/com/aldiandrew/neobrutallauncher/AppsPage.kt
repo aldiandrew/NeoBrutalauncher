@@ -109,7 +109,7 @@ fun AppsPage(
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             )
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .padding(horizontal = NeoBrutalTokens.Spacing.Medium, vertical = NeoBrutalTokens.Spacing.Medium)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             BrutalBlock(
@@ -127,7 +127,7 @@ fun AppsPage(
                         Text(
                             text = "APPS",
                             fontFamily = BrutalTypography.Display,
-                            fontSize = 28.sp,
+                            fontSize = NeoBrutalTokens.Type.Title,
                             fontWeight = FontWeight.Normal,
                             letterSpacing = 1.2.sp,
                             color = BrutalColors.Ink
@@ -246,7 +246,7 @@ fun AppsPage(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(end = 34.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Small)
                     ) {
                         itemsIndexed(
                             items = sortedApps,
@@ -284,7 +284,7 @@ fun AppsPage(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp),
+                                        .padding(NeoBrutalTokens.Spacing.Small),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Image(
