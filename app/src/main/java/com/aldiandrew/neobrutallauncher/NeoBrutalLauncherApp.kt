@@ -267,6 +267,7 @@ fun NeoBrutalLauncherApp() {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     SettingsScreen(
                     themePreference = themePreference,
+                    themeProfile = themeProfile,
                     use24Hour = use24Hour,
                     showAmPm = showAmPm,
                     homeAppCount = homeAppCount,
@@ -1674,7 +1675,7 @@ private fun SettingsScreen(
                 Text("COLOR THEME", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
                 Text("Choose the launcher color identity independently from light/dark mode.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    NeoThemeProfile.values().chunked(3).forEach { rowProfiles ->
+                    NeoThemeProfile.values().toList().chunked(3).forEach { rowProfiles ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             rowProfiles.forEach { profile ->
                                 val profilePalette = NeoThemePalettes.forProfile(profile)
