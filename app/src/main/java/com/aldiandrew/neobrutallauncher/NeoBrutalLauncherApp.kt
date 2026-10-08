@@ -2057,7 +2057,7 @@ private fun SettingsScreen(
                                     modifier = Modifier.weight(1f),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -2065,7 +2065,7 @@ private fun SettingsScreen(
                                     text = if (selected) "SELECTED" else "USE",
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink
+                                    color = if (selected) BrutalColors.Ink else uiOnSurface
                                 )
                             }
                         }
