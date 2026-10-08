@@ -67,6 +67,7 @@ fun LivePage(
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val accentSurface = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
+    val liveClockTileHeight = 126.dp
 
     val dateText = SimpleDateFormat(
         "EEEE / d MMMM yyyy",
@@ -90,7 +91,7 @@ fun LivePage(
     ) {
         item {
             BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
                 background = accentSurface,
                 borderWidth = 4.dp,
                 borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
@@ -98,6 +99,7 @@ fun LivePage(
                 shadowY = 7.dp,
                 shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             ) {
+
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "LIVE",
@@ -201,7 +203,7 @@ fun LivePage(
         item {
             NeoQuoteTile(
                 quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                modifier = Modifier.fillMaxWidth().height(190.dp),
+                modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
                 emphasized = true,
                 paletteIndex = quoteRotation + 1
             )
