@@ -185,17 +185,14 @@ fun AppsPage(
                                 lightCardPalette[index % lightCardPalette.size]
                             }
 
-                            BrutalBlock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = { onLaunch(app) },
-                                        onLongClick = { onToggleFavorite(app) }
-                                    ),
+                            BrutalPressableBlock(
+                                modifier = Modifier.fillMaxWidth(),
                                 background = cardBackground,
                                 borderWidth = 3.dp,
                                 shadowX = 5.dp,
-                                shadowY = 5.dp
+                                shadowY = 5.dp,
+                                onClick = { onLaunch(app) },
+                                onLongClick = { onToggleFavorite(app) }
                             ) {
                                 Row(
                                     modifier = Modifier
