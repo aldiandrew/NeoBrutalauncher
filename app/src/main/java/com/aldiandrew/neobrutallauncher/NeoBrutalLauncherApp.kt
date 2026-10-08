@@ -2266,10 +2266,61 @@ private fun SettingsScreen(
             Spacer(Modifier.height(12.dp))
         }
     }
+
+    if (showChatAppPicker) {
+        AlertDialog(
+            onDismissRequest = { showChatAppPicker = false },
+            title = {
+                Text(
+                    text = "CHOOSE CHAT APP",
+                    fontFamily = BrutalTypography.Display,
+                    fontWeight = FontWeight.Normal
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.height(360.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(
+                        items = chatCandidates,
+                        key = { it.packageName + "/" + it.activityName }
+                    ) { app ->
+                        BrutalBlock(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onChatNotificationPackagesChange(listOf(app.packageName))
+                                    showChatAppPicker = false
+                                },
+                            background = if (
+                                app.packageName == chatNotificationPackages.firstOrNull()
+                            ) BrutalColors.Yellow else MaterialTheme.colorScheme.surface,
+                            borderWidth = 3.dp,
+                            shadowX = 3.dp,
+                            shadowY = 3.dp
+                        ) {
+                            Text(
+                                text = app.label.uppercase(Locale.ENGLISH),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (
+                                    app.packageName == chatNotificationPackages.firstOrNull()
+                                ) BrutalColors.Ink else uiOnSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
 }
 
 @Composable
-private fun SettingsSectionTitle(title: String) {
+private fun SettingsSectionTitleprivate fun SettingsSectionTitle(title: String) {
     Text(
         text = title,
         modifier = Modifier.padding(horizontal = 2.dp),
@@ -2377,55 +2428,3 @@ fun BrutalActionButton(
             letterSpacing = 0.5.sp
         )
     }    }
-
-    if (showChatAppPicker) {
-        AlertDialog(
-            onDismissRequest = { showChatAppPicker = false },
-            title = {
-                Text(
-                    text = "CHOOSE CHAT APP",
-                    fontFamily = BrutalTypography.Display,
-                    fontWeight = FontWeight.Normal
-                )
-            },
-            text = {
-                LazyColumn(
-                    modifier = Modifier.height(360.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(
-                        items = chatCandidates,
-                        key = { it.packageName + "/" + it.activityName }
-                    ) { app ->
-                        BrutalBlock(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onChatNotificationPackagesChange(listOf(app.packageName))
-                                    showChatAppPicker = false
-                                },
-                            background = if (
-                                app.packageName == chatNotificationPackages.firstOrNull()
-                            ) BrutalColors.Yellow else MaterialTheme.colorScheme.surface,
-                            borderWidth = 3.dp,
-                            shadowX = 3.dp,
-                            shadowY = 3.dp
-                        ) {
-                            Text(
-                                text = app.label.uppercase(Locale.ENGLISH),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (
-                                    app.packageName == chatNotificationPackages.firstOrNull()
-                                ) BrutalColors.Ink else uiOnSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {}
-        )
-    }
-}
