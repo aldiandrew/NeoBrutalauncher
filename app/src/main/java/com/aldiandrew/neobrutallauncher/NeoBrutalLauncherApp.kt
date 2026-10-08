@@ -270,6 +270,7 @@ fun NeoBrutalLauncherApp() {
                     showAmPm = showAmPm,
                     homeAppCount = homeAppCount,
                     showWeather = showWeather,
+                    customQuotes = customQuotes,
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
