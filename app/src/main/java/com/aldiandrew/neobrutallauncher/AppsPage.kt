@@ -38,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -306,11 +305,7 @@ fun AppsPage(
                                             text = firstLetter,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = if (cardBackground == BrutalColors.DarkTile) {
-                                                BrutalColors.Orange
-                                            } else {
-                                                BrutalColors.Orange
-                                            }
+                                            color = BrutalColors.Orange
                                         )
                                         Text(
                                             text = app.label.uppercase(),
