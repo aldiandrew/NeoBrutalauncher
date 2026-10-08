@@ -45,14 +45,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_SHOW_AM_PM, value).apply()
     }
 
-    fun showDate(): Boolean {
-        return prefs.getBoolean(KEY_DATE, true)
-    }
-
-    fun setShowDate(value: Boolean) {
-        prefs.edit().putBoolean(KEY_DATE, value).apply()
-    }
-
     fun homeAppCount(): Int {
         return normalizePinnedCount(prefs.getInt(KEY_HOME_APP_COUNT, 5))
     }
@@ -73,22 +65,6 @@ class LauncherPreferences(context: Context) {
             in 4..6 -> 5
             else -> 7
         }
-    }
-
-    fun showTagline(): Boolean {
-        return prefs.getBoolean(KEY_TAGLINE, true)
-    }
-
-    fun setShowTagline(value: Boolean) {
-        prefs.edit().putBoolean(KEY_TAGLINE, value).apply()
-    }
-
-    fun showAppCount(): Boolean {
-        return prefs.getBoolean(KEY_APP_COUNT, true)
-    }
-
-    fun setShowAppCount(value: Boolean) {
-        prefs.edit().putBoolean(KEY_APP_COUNT, value).apply()
     }
 
     fun showWeather(): Boolean {
@@ -344,11 +320,8 @@ class LauncherPreferences(context: Context) {
             .put("theme", theme().name)
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
-            .put("showDate", showDate())
-            .put("homeAppCount", homeAppCount())
-            .put("showTagline", showTagline())
-            .put("showAppCount", showAppCount())
-            .put("showWeather", showWeather())
+                        .put("homeAppCount", homeAppCount())
+                                    .put("showWeather", showWeather())
             .put("chatNotificationPackages", JSONArray(chatNotificationPackages()))
             .put("favorites", JSONArray(favorites().toList()))
             .put("tilePositions", JSONObject().apply {
@@ -448,11 +421,8 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_THEME, theme.name)
                 .putBoolean(KEY_24_HOUR, root.optBoolean("use24Hour", true))
                 .putBoolean(KEY_SHOW_AM_PM, root.optBoolean("showAmPm", true))
-                .putBoolean(KEY_DATE, root.optBoolean("showDate", true))
-                .putInt(KEY_HOME_APP_COUNT, count)
-                .putBoolean(KEY_TAGLINE, root.optBoolean("showTagline", true))
-                .putBoolean(KEY_APP_COUNT, root.optBoolean("showAppCount", true))
-                .putBoolean(KEY_WEATHER, root.optBoolean("showWeather", false))
+                                .putInt(KEY_HOME_APP_COUNT, count)
+                                                .putBoolean(KEY_WEATHER, root.optBoolean("showWeather", false))
                 .putStringSet(KEY_CHAT_NOTIFICATION_PACKAGES, restoredChat.toSet())
                 .putStringSet(KEY_FAVORITES, restoredFavorites)
                 .putStringSet(KEY_TILE_POSITIONS, restoredPositions)
@@ -474,12 +444,12 @@ class LauncherPreferences(context: Context) {
     fun resetCustomizations() {
         prefs.edit().apply {
             remove(KEY_THEME)
+            remove("show_date")
+            remove("show_tagline")
+            remove("show_app_count")
             remove(KEY_24_HOUR)
             remove(KEY_SHOW_AM_PM)
-            remove(KEY_DATE)
             remove(KEY_HOME_APP_COUNT)
-            remove(KEY_TAGLINE)
-            remove(KEY_APP_COUNT)
             remove(KEY_WEATHER)
             remove(KEY_CHAT_NOTIFICATION_PACKAGES)
             remove(KEY_FAVORITES)
@@ -563,10 +533,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_THEME = "theme"
         private const val KEY_24_HOUR = "use_24_hour"
         private const val KEY_SHOW_AM_PM = "show_am_pm"
-        private const val KEY_DATE = "show_date"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
-        private const val KEY_TAGLINE = "show_tagline"
-        private const val KEY_APP_COUNT = "show_app_count"
         private const val KEY_WEATHER = "show_weather"
         private const val KEY_CHAT_NOTIFICATION_PACKAGES = "chat_notification_packages"
         private const val KEY_FAVORITES = "favorites"
