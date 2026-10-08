@@ -680,6 +680,7 @@ private fun HomeScreen(
     onHomeAppCountChange: (Int) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
+    onExcludedHomeAppsChange: (Set<String>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
     onTileSizeChange: (String, NeoTileSize) -> Unit,
 ) {
@@ -1266,8 +1267,6 @@ private fun HomeScreen(
                                 if (app != null) {
                                     val key = app.packageName + "/" + app.activityName
                                     val updatedExcluded = excludedHomeApps + key
-                                    excludedHomeApps = updatedExcluded
-                                    preferences.setExcludedHomeApps(updatedExcluded)
                                     onExcludedHomeAppsChange(updatedExcluded)
                                 }
                                 selectedTile = null
