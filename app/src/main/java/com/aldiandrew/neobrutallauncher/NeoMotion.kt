@@ -93,43 +93,5 @@ fun NeoHomeReturnMotion(
     )
 }
 
-@Composable
-fun NeoLaunchTransition(
-    app: AppInfo?,
-    config: NeoMotionConfig,
-    onFinished: () -> Unit,
-    content: @Composable BoxScope.() -> Unit
-) {
-    val progress = remember(app?.packageName, app?.activityName) { Animatable(0f) }
-
-    LaunchedEffect(app?.packageName, app?.activityName) {
-        if (app == null) {
-            progress.snapTo(0f)
-            return@LaunchedEffect
-        }
-
-        if (config.reduceMotion) {
-            onFinished()
-            return@LaunchedEffect
-        }
-
-        progress.snapTo(0f)
-        progress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = config.launchDurationMillis())
-        )
-        onFinished()
-    }
-
-    Box(
-        modifier = Modifier.graphicsLayer {
-            val amount = if (app == null) 0f else progress.value
-            scaleX = 1f - (amount * 0.025f)
-            scaleY = 1f - (amount * 0.025f)
-            alpha = 1f - (amount * 0.04f)
-        },
-        content = content
-    )
-}
 
 fun Dp.neoPressTarget(pressed: Boolean): Dp = if (pressed) this else 0.dp
