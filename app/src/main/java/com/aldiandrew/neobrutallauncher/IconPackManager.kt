@@ -99,7 +99,6 @@ class IconPackManager(private val context: Context) {
 
         cachedPackage = packPackage
         cachedResources = result.first
-        @Suppress("UNCHECKED_CAST")
-        cachedMappings = result.second as Map<String, String>
+        cachedMappings = result.second
     }
 }
