@@ -10,6 +10,7 @@ class AppRepository(private val context: Context) {
     private val launcherApps: LauncherApps =
         context.getSystemService(LauncherApps::class.java)
     private val iconPackManager = IconPackManager(context)
+    private val preferences = LauncherPreferences(context)
 
     fun loadApps(): List<AppInfo> {
         val user = Process.myUserHandle()
@@ -40,7 +41,7 @@ class AppRepository(private val context: Context) {
 
     fun launch(app: AppInfo) {
         val key = app.packageName + "/" + app.activityName
-        LauncherPreferences(context).recordAppLaunch(key)
+        preferences.recordAppLaunch(key)
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
             setClassName(app.packageName, app.activityName)
