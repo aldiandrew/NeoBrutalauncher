@@ -856,12 +856,6 @@ private fun HomeScreen(
                         )
                     }
 
-                    BatteryTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Orange
-                    )
-
                     NeoNetworkTile(
                         context = context,
                         modifier = Modifier.weight(1f).aspectRatio(1f)
@@ -1515,8 +1509,6 @@ private fun SettingsScreen(
     showTagline: Boolean,
     showAppCount: Boolean,
     showWeather: Boolean,
-    showQuote: Boolean,
-    showBattery: Boolean,
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
@@ -1536,8 +1528,6 @@ private fun SettingsScreen(
     onShowWeatherChange: (Boolean) -> Unit,
     onRequestWeatherPermission: () -> Unit,
     onOpenNotificationAccess: () -> Unit,
-    onShowQuoteChange: (Boolean) -> Unit,
-    onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
@@ -1608,8 +1598,6 @@ private fun SettingsScreen(
         SettingsSwitch("APP COUNT", "Show the number of apps on Home.", showAppCount, BrutalColors.Yellow, onShowAppCountChange)
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Lime, onShowWeatherChange)
         if (!locationPermissionGranted) BrutalActionButton("ALLOW WEATHER LOCATION", BrutalColors.Orange, onClick = onRequestWeatherPermission)
-        SettingsSwitch("QUOTE", "Show rotating quote content on Home.", showQuote, BrutalColors.Pink, onShowQuoteChange)
-        SettingsSwitch("BATTERY", "Show battery information on Home.", showBattery, BrutalColors.Cyan, onShowBatteryChange)
 
         SettingsSectionTitle("APP TILES")
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Lime, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
