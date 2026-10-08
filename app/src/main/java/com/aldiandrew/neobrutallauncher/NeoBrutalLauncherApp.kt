@@ -1607,9 +1607,12 @@ private fun SettingsScreen(
         modifier = Modifier.fillMaxSize().background(uiBackground)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .padding(
+            horizontal = NeoBrutalTokens.Spacing.Medium,
+            vertical = NeoBrutalTokens.Spacing.Medium
+        )
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Small)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = uiOnSurface) }
