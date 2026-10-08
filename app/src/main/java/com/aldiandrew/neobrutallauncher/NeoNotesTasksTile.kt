@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -47,8 +49,15 @@ fun NeoNotesTasksTile(
 ) {
     var noteDraft by remember { mutableStateOf("") }
 
+    fun saveDraft() {
+        taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
+            onAddTask(it)
+            taskDraft = ""
+        }
+    }
+
     BrutalBlock(
-        modifier = modifier,
+        modifier = modifier.clickable(enabled = taskDraft.isNotBlank()) { saveDraft() },
         background = background,
         borderWidth = 4.dp,
         borderColor = if (
@@ -192,7 +201,13 @@ private fun NotesTasksColumn(
             BasicTextField(
                 value = draft,
                 onValueChange = onDraftChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            saveDraft()
+                        }
+                    },
                 singleLine = true,
                 textStyle = TextStyle(
                     color = textColor,
@@ -254,12 +269,7 @@ fun NeoTasksTile(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             isTasks = true,
             onDraftChange = { taskDraft = it },
-            onAdd = {
-                taskDraft.trim().takeIf { it.isNotEmpty() }?.let {
-                    onAddTask(it)
-                    taskDraft = ""
-                }
-            },
+            onAdd = { saveDraft() },
             onEditItem = onEditTask,
             onToggleItem = onToggleTask
         )
