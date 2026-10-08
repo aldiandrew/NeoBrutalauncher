@@ -163,7 +163,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
                     Bitmap.createScaledBitmap(
                         bitmap,
                         (bitmap.width * scale).toInt().coerceAtLeast(1),
-                        (bitmap.height * scale).coerceAtLeast(1),
+                        (bitmap.height * scale).toInt().coerceAtLeast(1),
                         true
                     )
                 }.getOrDefault(bitmap)
