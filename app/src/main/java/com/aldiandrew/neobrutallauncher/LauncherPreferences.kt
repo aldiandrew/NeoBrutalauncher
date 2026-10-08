@@ -109,7 +109,14 @@ class LauncherPreferences(context: Context) {
     }
 
     fun onboardingCompleted(): Boolean {
-        return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+        if (prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)) return true
+
+        // Existing installs already have launcher preferences, so do not interrupt
+        // an upgrade with first-run onboarding.
+        val existingInstall = prefs.contains(KEY_FAVORITES) ||
+            prefs.contains(KEY_HOME_APP_COUNT) ||
+            prefs.contains(KEY_HOME_APPS_INITIALIZED)
+        return existingInstall
     }
 
     fun setOnboardingCompleted(value: Boolean) {
