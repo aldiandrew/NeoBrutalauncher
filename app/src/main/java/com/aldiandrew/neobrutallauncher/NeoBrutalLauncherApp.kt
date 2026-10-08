@@ -1565,7 +1565,7 @@ private fun AppTile(
         ) {
             when {
                 isFourByOne -> {
-                    val iconSize = minOf(maxHeight * 0.78f, 78.dp)
+                    val iconSize = minOf(this@BoxWithConstraints.maxHeight * 0.78f, 78.dp)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
