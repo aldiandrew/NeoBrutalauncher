@@ -5,11 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -142,6 +145,60 @@ fun BrutalTape(
             fontWeight = FontWeight.Normal,
             letterSpacing = 1.sp,
             color = BrutalColors.Ink
+        )
+    }
+}
+
+@Composable
+fun NeoTileDecoration(
+    label: String,
+    accent: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(modifier = modifier) {
+        content()
+
+        BrutalLabel(
+            text = label,
+            modifier = Modifier.align(Alignment.TopStart),
+            background = accent
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 2.dp, end = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .border(1.5.dp, textColor)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 2.dp)
+                .width(42.dp)
+                .height(2.dp)
+                .background(textColor)
+        )
+
+        Text(
+            text = "///",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 2.dp, bottom = 0.dp),
+            fontFamily = BrutalTypography.Display,
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Black,
+            color = textColor
         )
     }
 }
