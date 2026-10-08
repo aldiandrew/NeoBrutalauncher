@@ -130,8 +130,10 @@ fun AppsPage(
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = "NO LAUNCHABLE APPS",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black,
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.8.sp,
                             color = BrutalColors.Ink
                         )
                         Text(
