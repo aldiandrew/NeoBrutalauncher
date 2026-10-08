@@ -655,86 +655,76 @@ private fun HomeScreen(
                     shadowY = 7.dp
                 ) {
                     BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp),
-                        contentAlignment = Alignment.CenterStart
+                        modifier = Modifier.fillMaxSize().padding(9.dp)
                     ) {
+                        val compact = maxHeight < 175.dp
+                        val timeSize = when (clockStyle) {
+                            ClockStyle.HUGE -> if (compact) 54.sp else 68.sp
+                            ClockStyle.CONDENSED -> if (compact) 50.sp else 58.sp
+                            ClockStyle.MONO -> if (compact) 48.sp else 54.sp
+                            ClockStyle.POSTER -> if (compact) 52.sp else 62.sp
+                        }
+                        val timeLine = when (clockStyle) {
+                            ClockStyle.HUGE -> if (compact) 51.sp else 64.sp
+                            ClockStyle.CONDENSED -> if (compact) 48.sp else 56.sp
+                            ClockStyle.MONO -> if (compact) 46.sp else 52.sp
+                            ClockStyle.POSTER -> if (compact) 49.sp else 60.sp
+                        }
+
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                BrutalLabel(
-                                    text = if (use24Hour) "24H CLOCK" else "12H CLOCK",
-                                    background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
-                                )
-                                BrutalLabel(
-                                    text = clockStyle.label,
-                                    background = BrutalColors.White
-                                )
-                            }
+                            BrutalLabel(
+                                text = (if (use24Hour) "24H" else "12H") + " / " + clockStyle.label,
+                                background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                            )
+
                             Text(
                                 text = time.format(now),
-                                fontSize = when (clockStyle) {
-                                    ClockStyle.HUGE -> 72.sp
-                                    ClockStyle.CONDENSED -> 60.sp
-                                    ClockStyle.MONO -> 56.sp
-                                    ClockStyle.POSTER -> 64.sp
-                                },
-                                lineHeight = when (clockStyle) {
-                                    ClockStyle.HUGE -> 69.sp
-                                    ClockStyle.CONDENSED -> 58.sp
-                                    ClockStyle.MONO -> 54.sp
-                                    ClockStyle.POSTER -> 61.sp
-                                },
+                                fontSize = timeSize,
+                                lineHeight = timeLine,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = when (clockStyle) {
                                     ClockStyle.MONO -> BrutalTypography.Mono
-                                    ClockStyle.CONDENSED -> BrutalTypography.Poster
-                                    ClockStyle.HUGE -> BrutalTypography.Poster
+                                    ClockStyle.CONDENSED,
+                                    ClockStyle.HUGE,
                                     ClockStyle.POSTER -> BrutalTypography.Poster
                                 },
                                 color = homeClockText,
                                 maxLines = 1,
                                 overflow = TextOverflow.Clip
                             )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = longDay.format(now),
-                                    fontSize = 15.sp,
-                                    lineHeight = 17.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = BrutalColors.Red,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
-                                Text(
-                                    text = "/",
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Black,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText
-                                )
-                                Text(
-                                    text = longDate.format(now),
-                                    modifier = Modifier.weight(1f),
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = BrutalTypography.Bricolage,
-                                    color = homeClockText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Clip
-                                )
+
+                            if (showDate) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = longDay.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.38f),
+                                        fontSize = if (compact) 9.sp else 12.sp,
+                                        lineHeight = if (compact) 10.sp else 13.sp,
+                                        fontWeight = FontWeight.Black,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = BrutalColors.Red,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = longDate.format(now).uppercase(Locale.ENGLISH),
+                                        modifier = Modifier.weight(0.62f),
+                                        fontSize = if (compact) 9.sp else 12.sp,
+                                        lineHeight = if (compact) 10.sp else 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = BrutalTypography.Bricolage,
+                                        color = homeClockText,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
@@ -839,10 +829,13 @@ private fun HomeScreen(
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { tile ->
-                            tileEditMode = true
                             selectedTile = tile
+                            tileEditMode = false
                         },
-                        onTileEdit = { selectedTile = it },
+                        onTileEdit = { tile ->
+                            selectedTile = tile
+                            tileEditMode = false
+                        },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
