@@ -22,14 +22,6 @@ class AppRepository(private val context: Context) {
     private var cachedIconPackPackage: String? = null
     private var cachedAtElapsedRealtime = 0L
 
-    fun invalidate() {
-        synchronized(cacheLock) {
-            cachedApps = null
-            cachedIconPackPackage = null
-            cachedAtElapsedRealtime = 0L
-        }
-    }
-
     fun loadApps(): List<AppInfo> {
         val iconPackPackage = preferences.iconPackPackage()
         val now = SystemClock.elapsedRealtime()
