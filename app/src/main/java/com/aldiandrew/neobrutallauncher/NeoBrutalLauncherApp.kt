@@ -1253,10 +1253,11 @@ private fun NeoQuoteTilePlain(
     BrutalBlock(
         modifier = modifier,
         background = palette.background,
-        borderWidth = 3.dp,
+        borderWidth = 4.dp,
         borderColor = BrutalColors.Ink,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        shadowX = 6.dp,
+        shadowY = 6.dp,
+        shadowColor = BrutalColors.Ink
     ) {
         NeoTileDecoration(
             label = "QUOTE",
@@ -1297,10 +1298,11 @@ fun NeoQuoteTile(
     BrutalBlock(
         modifier = modifier,
         background = palette.background,
-        borderWidth = 3.dp,
+        borderWidth = 4.dp,
         borderColor = BrutalColors.Ink,
         shadowX = 6.dp,
-        shadowY = 6.dp
+        shadowY = 6.dp,
+        shadowColor = BrutalColors.Ink
     ) {
         NeoTileDecoration(
             label = "QUOTE",
