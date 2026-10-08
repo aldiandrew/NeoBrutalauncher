@@ -101,6 +101,7 @@ fun NeoBrutalLauncherApp() {
     var appTileContentMode by remember { mutableStateOf(preferences.appTileContentMode()) }
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
+    var iconThemeStyle by remember { mutableStateOf(preferences.iconThemeStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var animationStyle by remember { mutableStateOf(preferences.animationStyle()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
@@ -275,6 +276,7 @@ fun NeoBrutalLauncherApp() {
                     appTileContentMode = appTileContentMode,
                     typographyStyle = typographyStyle,
                     iconPackPackage = iconPackPackage,
+                    iconThemeStyle = iconThemeStyle,
                     animationStyle = animationStyle,
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
@@ -366,6 +368,10 @@ fun NeoBrutalLauncherApp() {
                         iconPackPackage = it
                         preferences.setIconPackPackage(it)
                         refreshApps()
+                    },
+                    onIconThemeStyleChange = {
+                        iconThemeStyle = it
+                        preferences.setIconThemeStyle(it)
                     },
                     onAnimationStyleChange = {
                         animationStyle = it
@@ -1603,6 +1609,7 @@ private fun SettingsScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     iconPackPackage: String?,
+    iconThemeStyle: IconThemeStyle,
     animationStyle: AnimationStyle,
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
@@ -1623,6 +1630,7 @@ private fun SettingsScreen(
     onAppTileContentModeChange: (TileContentMode) -> Unit,
     onTypographyStyleChange: (TypographyStyle) -> Unit,
     onIconPackChange: (String?) -> Unit,
+    onIconThemeStyleChange: (IconThemeStyle) -> Unit,
     onAnimationStyleChange: (AnimationStyle) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
@@ -1773,6 +1781,60 @@ private fun SettingsScreen(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(TileContentMode.ICON, TileContentMode.ICON_TEXT, TileContentMode.TEXT).forEach { mode ->
                         ThemeButton(when(mode) { TileContentMode.ICON -> "ICON"; TileContentMode.ICON_TEXT -> "ICON + TEXT"; TileContentMode.TEXT -> "TEXT" }, appTileContentMode == mode, when(mode) { TileContentMode.ICON -> BrutalColors.Cyan; TileContentMode.ICON_TEXT -> BrutalColors.Yellow; TileContentMode.TEXT -> BrutalColors.Pink }, Modifier.weight(1f)) { onAppTileContentModeChange(mode) }
+                    }
+                }
+            }
+        }
+
+        SettingsSectionTitle("ICON STYLE")
+        BrutalBlock(
+            Modifier.fillMaxWidth(),
+            background = uiSurface,
+            borderWidth = 3.dp,
+            shadowX = 5.dp,
+            shadowY = 5.dp
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text(
+                    "APP ICON STYLE",
+                    fontFamily = BrutalTypography.Display,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = uiOnSurface
+                )
+                Text(
+                    "Controls how app icons are rendered across Home and Apps.",
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = uiOnSurface.copy(alpha = .75f)
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    IconThemeStyle.values().toList().chunked(3).forEach { rowStyles ->
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            rowStyles.forEach { style ->
+                                ThemeButton(
+                                    label = style.label,
+                                    selected = iconThemeStyle == style,
+                                    background = when (style) {
+                                        IconThemeStyle.ORIGINAL -> BrutalColors.Cyan
+                                        IconThemeStyle.MONOCHROME -> BrutalColors.Ink
+                                        IconThemeStyle.ACCENT_TINTED -> LocalNeoThemePalette.current.accent(LocalNeoThemeIsDark.current)
+                                        IconThemeStyle.TEXT_ONLY -> BrutalColors.Yellow
+                                        IconThemeStyle.CIRCLE -> BrutalColors.Pink
+                                        IconThemeStyle.ROUNDED_SQUARE -> BrutalColors.Lime
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onIconThemeStyleChange(style) }
+                                )
+                            }
+                            repeat(3 - rowStyles.size) {
+                                Spacer(Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
