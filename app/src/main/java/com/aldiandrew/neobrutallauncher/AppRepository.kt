@@ -9,6 +9,7 @@ class AppRepository(private val context: Context) {
 
     private val launcherApps: LauncherApps =
         context.getSystemService(LauncherApps::class.java)
+    private val iconPackManager = IconPackManager(context)
 
     fun loadApps(): List<AppInfo> {
         val user = Process.myUserHandle()
@@ -26,7 +27,7 @@ class AppRepository(private val context: Context) {
                     label = label,
                     packageName = activityInfo.packageName,
                     activityName = activityInfo.name,
-                    icon = IconPackManager(context).iconFor(
+                    icon = iconPackManager.iconFor(
                         activityInfo.packageName,
                         activityInfo.name,
                         baseIcon
