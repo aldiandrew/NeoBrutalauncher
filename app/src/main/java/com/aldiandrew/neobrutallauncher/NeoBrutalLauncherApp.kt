@@ -660,8 +660,22 @@ private fun HomeScreen(
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                BrutalLabel(
+                                    text = if (use24Hour) "24H CLOCK" else "12H CLOCK",
+                                    background = if (isDarkTheme) BrutalColors.Cyan else BrutalColors.Pink
+                                )
+                                BrutalLabel(
+                                    text = clockStyle.label,
+                                    background = BrutalColors.White
+                                )
+                            }
                             Text(
                                 text = time.format(now),
                                 fontSize = when (clockStyle) {
@@ -736,11 +750,18 @@ private fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         background = BrutalColors.Purple
                     ) {
+                        BrutalTape(
+                            text = "MANIFESTO",
+                            background = BrutalColors.Yellow
+                        )
+                        Spacer(Modifier.height(6.dp))
                         Text(
                             text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
-                            fontSize = 7.sp,
-                            lineHeight = 8.sp,
-                            fontWeight = FontWeight.Black,
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 9.sp,
+                            lineHeight = 10.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.4.sp,
                             color = BrutalColors.White,
                             maxLines = 3
                         )

@@ -94,25 +94,34 @@ fun AppsPage(
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
                 background = BrutalColors.Cyan,
-                borderWidth = 3.dp,
-                shadowX = 5.dp,
-                shadowY = 5.dp
+                borderWidth = 4.dp,
+                shadowX = 7.dp,
+                shadowY = 7.dp
             ) {
-                Column {
-                    Text(
-                        text = "APPS",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 1.sp,
-                        color = BrutalColors.Ink
-                    )
-                    Text(
-                        text = sortedApps.size.toString() + " APPS / LONG-PRESS TO PIN TO HOME",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.6.sp,
-                        color = BrutalColors.Ink
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "APPS",
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 1.2.sp,
+                            color = BrutalColors.Ink
+                        )
+                        Text(
+                            text = "LONG-PRESS TO PIN",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.9.sp,
+                            color = BrutalColors.Ink
+                        )
+                    }
+                    BrutalLabel(
+                        text = "%02d ITEMS".format(sortedApps.size),
+                        background = BrutalColors.Yellow
                     )
                 }
             }
@@ -130,8 +139,10 @@ fun AppsPage(
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = "NO LAUNCHABLE APPS",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black,
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.8.sp,
                             color = BrutalColors.Ink
                         )
                         Text(
@@ -174,17 +185,14 @@ fun AppsPage(
                                 lightCardPalette[index % lightCardPalette.size]
                             }
 
-                            BrutalBlock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = { onLaunch(app) },
-                                        onLongClick = { onToggleFavorite(app) }
-                                    ),
+                            BrutalPressableBlock(
+                                modifier = Modifier.fillMaxWidth(),
                                 background = cardBackground,
                                 borderWidth = 3.dp,
                                 shadowX = 5.dp,
-                                shadowY = 5.dp
+                                shadowY = 5.dp,
+                                onClick = { onLaunch(app) },
+                                onLongClick = { onToggleFavorite(app) }
                             ) {
                                 Row(
                                     modifier = Modifier
