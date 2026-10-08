@@ -80,7 +80,6 @@ private val DarkScheme = darkColorScheme(
 @Composable
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
-    brutalityLevel: BrutalityLevel = BrutalityLevel.BRUTAL,
     typographyStyle: TypographyStyle = TypographyStyle.POSTER,
     content: @Composable () -> Unit
 ) {
@@ -100,10 +99,7 @@ fun NeoBrutalTheme(
     }
 
     CompositionLocalProvider(
-        LocalBrutalMetrics provides BrutalMetrics(
-            borderScale = brutalityLevel.borderScale,
-            shadowScale = brutalityLevel.shadowScale
-        ),
+        LocalBrutalMetrics provides BrutalMetrics(),
         LocalBrutalTypographyStyle provides typographyStyle
     ) {
         MaterialTheme(colorScheme = if (isDark) DarkScheme else LightScheme) {
