@@ -1,5 +1,7 @@
 package com.aldiandrew.neobrutallauncher
 
+import androidx.compose.runtime.staticCompositionLocalOf
+
 enum class IconThemeStyle(val label: String) {
     ORIGINAL("ORIGINAL"),
     MONOCHROME("MONOCHROME"),
@@ -8,3 +10,6 @@ enum class IconThemeStyle(val label: String) {
     CIRCLE("CIRCLE"),
     ROUNDED_SQUARE("ROUNDED SQUARE")
 }
+
+val LocalIconThemeStyle = staticCompositionLocalOf { IconThemeStyle.ORIGINAL }
+
