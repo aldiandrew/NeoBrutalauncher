@@ -45,12 +45,22 @@ fun NeoWeatherTile(
     }
     var loading by remember { mutableStateOf(weather == null) }
     var error by remember { mutableStateOf<Throwable?>(null) }
+    val locationGranted =
+        context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
     var lastUpdatedMillis by remember {
         mutableStateOf(if (weather != null) System.currentTimeMillis() else null)
     }
 
-    LaunchedEffect(refreshToken) {
+    LaunchedEffect(refreshToken, locationGranted) {
         val cached = WeatherRepository.cachedWeather()
+
+        if (!locationGranted) {
+            weather = null
+            loading = false
+            error = null
+            return@LaunchedEffect
+        }
 
         if (refreshToken == 0 && cached != null) {
             weather = cached
@@ -115,13 +125,13 @@ fun NeoWeatherTile(
                                 fontSize = 18.sp,
                                 lineHeight = 18.sp,
                                 fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                                 maxLines = 1
                             )
                             Icon(
                                 imageVector = icon,
                                 contentDescription = currentWeather!!.description,
-                                tint = BrutalColors.Ink,
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.width(28.dp).height(28.dp)
                             )
                             Text(
@@ -248,11 +258,7 @@ fun NeoWeatherTile(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = when {
-                            loading -> "LOADING"
-                            error != null -> "ERROR"
-                            else -> "NO WEATHER"
-                        },
+                        text = "WEATHER",
                         fontSize = if (compact < 100.dp) 12.sp else 20.sp,
                         lineHeight = if (compact < 100.dp) 13.sp else 22.sp,
                         fontWeight = FontWeight.Black,
@@ -261,7 +267,12 @@ fun NeoWeatherTile(
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        text = if (compact < 100.dp) "TAP" else "TAP TO REFRESH",
+                        text = when {
+                            !locationGranted -> "ALLOW LOCATION IN SETTINGS"
+                            loading -> "LOADING..."
+                            error != null -> "TAP TO RETRY"
+                            else -> if (compact < 100.dp) "TAP" else "TAP TO REFRESH"
+                        },
                         fontSize = if (compact < 100.dp) 8.sp else 10.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink
