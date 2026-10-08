@@ -1,98 +1,217 @@
-# NeoBrutalauncher
+# **Neo Brutal Launcher**
 
-NeoBrutalauncher is an Android home launcher built around a Neo-Brutalist design language.
+> **A bold, focused Android home screen built around hard edges, useful information, and zero visual fluff.**
 
-## Current stable baseline
+<p align="center">
 
-The current stable baseline is the successful design-system build represented by commit `48e67a64ac4c8a0c1811055574fa85ac21c5804c` (GitHub Actions Run #352).
+[![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/about/versions/oreo)
+[![Version](https://img.shields.io/badge/version-0.1.0-111111)](https://github.com/aldiandrew/NeoBrutalauncher/releases)
+[![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/aldiandrew/NeoBrutalauncher/build.yml?branch=main&label=build)](https://github.com/aldiandrew/NeoBrutalauncher/actions/workflows/build.yml)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.x-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 
-The rollback branch `stable-neobrutal-baseline-20261008` points to the pre-design-system baseline at commit `2dcf1f312cebd4ec1ee95d98c647323d8279d227`. Use that branch when a later design change needs a clean rollback point.
+</p>
 
-The current stable build should be preserved for future development unless a change is explicitly requested.
+<p align="center">
+  <a href="https://github.com/aldiandrew/NeoBrutalauncher/releases">
+    <strong>⬇️ DOWNLOAD APK</strong>
+  </a>
+</p>
 
-## Current features
+---
 
-### Launcher
-- Android HOME launcher activity.
-- Installed-app discovery and launching.
-- Dedicated Home, Apps, and Live pages.
-- App drawer with app search.
-- Pinned/favorite apps for Home tiles.
-- Configurable number of Home app tiles.
-- Configurable app tile content: icon, icon + text, or text.
-- Per-tile position and size controls.
-- Neo-Brutalist visual design with hard borders, offset shadows, bold typography, and a controlled three-accent palette.
-- Smooth page transitions between Home, Apps, and Live pages; app open/return animations are intentionally disabled.
-- Configurable motion smoothness: SNAPPY, BALANCED, or FLUID.
-- Optional Reduce Motion mode.
-- App tile order is preserved and is not rearranged from app launch frequency.
+## 🧱 Sekilas Aplikasi
 
-### Home
-- Large clock with 12-hour or 24-hour mode.
-- Optional AM/PM display for 12-hour mode.
-- Typography style selection with Default and Condensed options.
-- Optional local weather display with provider fallbacks for available device location providers.
-- Custom image wallpaper with **Choose Image** and **Clear** controls.
-- Home app tiles without the removed decorative line/marker.
+**Neo Brutal Launcher** adalah launcher Android open-source untuk pengguna yang menginginkan home screen yang terasa seperti sebuah interface yang dirancang, bukan kumpulan widget yang penuh distraksi.
 
-### Live
-- Live clock/date header.
-- Calendar tile.
-- Live chat notification tile with selectable app.
-- Music tile using Android notification/media information.
-- Music controls are disabled until the launcher has Notification Access.
-- Album art is read from media metadata bitmap or URI when available.
-- Recent local notes/tasks section.
-- Rotating quote tile.
-- Custom quote editor with up to 5 user-defined quotes; built-in quotes remain available.
-- Notification access controls for Music and Live Chat features.
+Neo Brutal Launcher mengambil pendekatan **neo-brutalist**: border tegas, offset shadow, tipografi besar, warna blok yang kuat, dan hierarki yang mudah dipindai. Di atas visual tersebut, launcher tetap berfokus pada pekerjaan utama sebuah home app: **membuka aplikasi dengan cepat, menampilkan informasi penting, dan memberi kontrol penuh atas layout.**
 
-### Appearance and settings
-- System, Light, and Dark theme modes.
-- The launcher uses the base stable color system; no additional multi-theme or app icon-style system is enabled.
-- Typography style selection.
-- App tile content selection.
-- Third-party icon pack support where compatible; launcher icon presentation uses the selected pack/original icon without a separate icon-style setting.
-- Wallpaper selection from an image and wallpaper clearing.
-- Backup and restore of launcher settings.
-- Pinned app management.
-- Live Chat app selection and clearing.
-- Notification access management.
+Bukan launcher yang mencoba melakukan semuanya. Ini adalah launcher yang sengaja memilih hal-hal yang penting.
 
-## Neo-Brutalist design system
+### Mengapa dibuat?
 
-- Core accent palette is intentionally limited to Yellow, Cyan, and Pink, with Ink/White/Paper used as structure and neutrals.
-- Borders use reusable 2dp, 3dp, and 4dp levels; hard shadows use 4dp and 6dp standard levels.
-- Layout rhythm uses a 4/8/16dp mobile spacing scale, adapted from the guide's 8px rhythm for a dense launcher surface.
-- Typography is organized around Meta, Label, Body, Tile, Title, and Hero levels while retaining the user's Default/Condensed preference.
-- Interactive buttons use the same hard-shadow press behavior; opening and returning from apps have no decorative launch/return animation.
-- Brutal blocks resolve their default content color from the surface so bright accent tiles use Ink and dark structural surfaces use DarkWhite.
+Home screen sering menjadi bagian Android yang paling sering dilihat, tetapi banyak launcher justru menambahkan semakin banyak lapisan: rekomendasi, panel, animasi, feed, dan elemen dekoratif.
 
-## Design principles
+Neo Brutal Launcher mengambil arah yang berbeda:
 
-- Kotlin + Jetpack Compose.
-- Simple, focused launcher experience.
-- No root or Shizuku is required for the launcher core.
-- No Accessibility Service is required by the launcher core.
-- Hard borders and offset shadows instead of blurred elevation.
-- Saturated colors and large typography.
-- Usability comes before decoration.
-- Removed features are not reintroduced unless explicitly requested.
+- **Home** untuk akses utama dan informasi ringkas.
+- **Apps** untuk menemukan aplikasi dengan cepat.
+- **Live** untuk informasi yang berubah seperti kalender, chat, musik, dan quote.
+- **Settings** untuk membentuk launcher sesuai kebutuhan sendiri.
 
-## Permissions and integrations
+---
 
-The launcher can request:
-- Coarse location for the optional weather feature.
-- Android Notification Listener access for Music and Live Chat features.
+## ✦ Fitur Utama
 
-These permissions are only used by the corresponding optional features.
+### 🏠 Home
+- 🕒 **Jam besar** dengan mode 12/24 jam dan opsi AM/PM.
+- 🌤️ **Live weather** berbasis lokasi perangkat dengan suhu, kondisi, dan lokasi yang ringkas.
+- 🔋 **Battery tile** untuk melihat kondisi baterai dengan cepat.
+- 📶 **Network tile** untuk status konektivitas.
+- 📌 **Pinned apps** yang dapat dipilih sendiri dan ditempatkan di Home.
+- 🧩 **App tiles fleksibel** dengan pilihan icon, icon + text, atau text.
+- 📐 **Ukuran dan posisi tile** yang dapat diatur.
+- 🎨 **Custom wallpaper** untuk memberi identitas visual pada Home.
 
-## License policy
+### 📚 Apps
+- 🔎 **App drawer dengan pencarian**.
+- 🔤 **Navigasi alfabet** untuk daftar aplikasi panjang.
+- ⭐ **Pin/unpin aplikasi** langsung dari daftar Apps.
+- 🚀 **Launch cepat** tanpa harus melewati halaman tambahan.
 
-The application code in this repository is original project code unless a file explicitly says otherwise.
+### ⚡ Live
+- 📅 **Calendar tile** untuk informasi tanggal.
+- 💬 **Live Chat tile** dengan pemilihan aplikasi.
+- 🎵 **Music tile** dengan aplikasi musik terakhir yang digunakan, album art, progress, dan kontrol media.
+- 💭 **Quote tile** dengan quote bawaan dan quote custom.
+- 📝 **Notes / Tasks** untuk ringkasan aktivitas lokal.
 
-This project does not copy source code from third-party launcher projects. Public repositories may be used as architectural or visual references, but source code is only reused when its license permits it and the required notices are preserved.
+### ⚙️ Personalisasi
+- 🌓 **System / Light / Dark theme**.
+- 🔤 **Typography style**.
+- 🎛️ **Motion smoothness** dan opsi Reduce Motion.
+- 🖼️ **Wallpaper picker**.
+- 🎨 **Third-party icon pack** yang kompatibel dengan `appfilter.xml`.
+- 💾 **Backup & restore** pengaturan launcher.
 
-Current audit is documented in THIRD_PARTY_NOTICES.md.
+### 👋 Onboarding
+Pada instalasi baru, launcher memperkenalkan fungsi utamanya dan memungkinkan pengguna **langsung memilih aplikasi favorit** sebelum masuk ke Home.
 
-AndroidX, Jetpack Compose, Kotlin, Gradle, and other dependencies retain their respective upstream licenses.
+---
+
+## 🚀 Highlights
+
+### **Neo-Brutal, bukan Neo-Chaotic**
+Visualnya kuat, tetapi struktur tetap jelas. Border, shadow, spacing, dan typography dibuat konsisten sehingga tampilan tetap mudah dipindai.
+
+### **Cepat ke aplikasi yang penting**
+Pinned apps dan layout tile membuat aplikasi yang paling sering dibuka tetap berada dalam jangkauan.
+
+### **Live information tanpa feed tambahan**
+Weather, calendar, chat notification, music, dan quote ditempatkan sebagai blok informasi yang bisa dibaca sekilas.
+
+### **Open source dan transparan**
+Kode tersedia di GitHub, lisensi proyek menggunakan MIT, dan dependensi/source pihak ketiga didokumentasikan.
+
+### **Tidak bergantung pada root**
+Launcher core menggunakan Android launcher APIs dan tidak memerlukan root atau Shizuku untuk fungsi dasarnya.
+
+### **Fokus pada efisiensi**
+Kode launcher menggunakan caching, memoization, lifecycle-aware work, dan pembatasan bitmap untuk mengurangi pekerjaan berulang dan tekanan memory pada penggunaan normal.
+
+---
+
+## 📸 Tangkapan Layar
+
+> Ganti placeholder berikut dengan screenshot aktual dari build terbaru.
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="30%" alt="Home" />
+  <img src="docs/screenshots/apps.png" width="30%" alt="Apps" />
+  <img src="docs/screenshots/live.png" width="30%" alt="Live" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" width="30%" alt="Settings" />
+  <img src="docs/screenshots/onboarding.png" width="30%" alt="Onboarding" />
+  <img src="docs/screenshots/pinned-apps.png" width="30%" alt="Pinned Apps" />
+</p>
+
+---
+
+## 🛠️ Teknologi & Sumber
+
+### Tech Stack
+- **Kotlin**
+- **Jetpack Compose**
+- **Material 3**
+- **AndroidX Core**
+- **Activity Compose**
+- **Lifecycle Runtime Compose**
+- **Gradle**
+- **JDK 17**
+
+### Integrasi
+- **Android Launcher APIs** untuk discovery dan launching aplikasi.
+- **Android Notification Listener** untuk Live Chat dan Music.
+- **Android Location APIs** untuk memperoleh lokasi weather.
+- **Open-Meteo API** untuk data cuaca.
+- **Icon Pack appfilter.xml** untuk kompatibilitas icon pack pihak ketiga.
+
+### Font & Credits
+Proyek menggunakan font open-source yang didokumentasikan dalam asset/license yang terkait di repository, termasuk **Anton** dan **Space Grotesk**.
+
+Pola komponen dan pendekatan neo-brutalist digunakan sebagai referensi arsitektur/visual dari proyek open-source yang tercantum di [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Neo Brutal Launcher tidak mengklaim kepemilikan atas proyek, library, atau asset pihak ketiga tersebut.
+
+Lihat [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) untuk detail lisensi dan audit source.
+
+---
+
+## 📦 Cara Instalasi
+
+1. Buka halaman **[GitHub Releases](https://github.com/aldiandrew/NeoBrutalauncher/releases)**.
+2. Unduh APK terbaru.
+3. Instal APK di perangkat Android 8.0 atau lebih baru.
+4. Jalankan **Neo Brutal Launcher**.
+5. Pada instalasi pertama, ikuti onboarding dan pilih aplikasi favorit.
+6. Jadikan Neo Brutal Launcher sebagai aplikasi **Home/Launcher default** Android.
+
+> Android dapat meminta izin instalasi dari sumber tertentu saat memasang APK di luar Play Store.
+
+---
+
+## 🔐 Permissions
+
+Neo Brutal Launcher menggunakan izin hanya untuk fitur yang membutuhkannya:
+
+| Permission | Digunakan untuk |
+|---|---|
+| Location | Weather berdasarkan lokasi perangkat |
+| Notification Listener | Music dan Live Chat |
+
+Launcher core tidak membutuhkan root atau Accessibility Service.
+
+---
+
+## 🧪 Build & Development
+
+Build utama menggunakan:
+
+- Android SDK 36
+- Kotlin 2.x
+- Jetpack Compose
+- Gradle 8.13
+- JDK 17
+
+APK release dibangun melalui **GitHub Actions**.
+
+Build workflow:
+[![Build](https://img.shields.io/github/actions/workflow/status/aldiandrew/NeoBrutalauncher/build.yml?branch=main&label=GitHub%20Actions)](https://github.com/aldiandrew/NeoBrutalauncher/actions/workflows/build.yml)
+
+---
+
+## 🗺️ Project Direction
+
+Neo Brutal Launcher dikembangkan dengan prinsip sederhana:
+
+> **Show the structure. Keep the function. Remove the noise.**
+
+Fitur baru harus memperkuat fungsi launcher, bukan hanya menambah kompleksitas.
+
+Baseline desain dan perubahan besar dijaga agar tidak mengubah pengalaman visual yang sudah stabil tanpa permintaan eksplisit.
+
+---
+
+## 📄 License
+
+Neo Brutal Launcher tersedia di bawah **MIT License**.
+
+Lihat [LICENSE](LICENSE) untuk teks lisensi lengkap.
+
+Copyright © 2026 Aldi Andrew.
+
+---
+
+<p align="center">
+  <strong>Built for people who want their home screen to feel like theirs.</strong>
+</p>
