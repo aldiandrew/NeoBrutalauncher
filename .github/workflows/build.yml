@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - ci-verify-run353
   workflow_dispatch:
 
 jobs:
