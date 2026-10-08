@@ -29,18 +29,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putString(KEY_THEME, value.name).apply()
     }
 
-    fun themeProfile(): NeoThemeProfile {
-        return runCatching {
-            NeoThemeProfile.valueOf(
-                prefs.getString(KEY_THEME_PROFILE, NeoThemeProfile.MONO.name)
-                    ?: NeoThemeProfile.MONO.name
-            )
-        }.getOrDefault(NeoThemeProfile.MONO)
-    }
-
-    fun setThemeProfile(value: NeoThemeProfile) {
-        prefs.edit().putString(KEY_THEME_PROFILE, value.name).apply()
-    }
 
     fun use24Hour(): Boolean {
         return prefs.getBoolean(KEY_24_HOUR, true)
@@ -202,18 +190,6 @@ class LauncherPreferences(context: Context) {
     fun iconPackPackage(): String? =
         prefs.getString(KEY_ICON_PACK_PACKAGE, null)?.takeIf { it.isNotBlank() }
 
-    fun animationStyle(): AnimationStyle {
-        return runCatching {
-            AnimationStyle.valueOf(
-                prefs.getString(KEY_ANIMATION_STYLE, AnimationStyle.SMOOTH.name)
-                    ?: AnimationStyle.SMOOTH.name
-            )
-        }.getOrDefault(AnimationStyle.SMOOTH)
-    }
-
-    fun setAnimationStyle(value: AnimationStyle) {
-        prefs.edit().putString(KEY_ANIMATION_STYLE, value.name).apply()
-    }
 
     fun motionSmoothness(): MotionSmoothness {
         return runCatching {
@@ -241,18 +217,6 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
-    fun iconThemeStyle(): IconThemeStyle {
-        return runCatching {
-            IconThemeStyle.valueOf(
-                prefs.getString(KEY_ICON_THEME_STYLE, IconThemeStyle.ORIGINAL.name)
-                    ?: IconThemeStyle.ORIGINAL.name
-            )
-        }.getOrDefault(IconThemeStyle.ORIGINAL)
-    }
-
-    fun setIconThemeStyle(value: IconThemeStyle) {
-        prefs.edit().putString(KEY_ICON_THEME_STYLE, value.name).apply()
-    }
 
     fun appTileContentMode(): TileContentMode {
         return runCatching {
@@ -404,7 +368,6 @@ class LauncherPreferences(context: Context) {
         val root = JSONObject()
             .put("schemaVersion", 1)
             .put("theme", theme().name)
-            .put("themeProfile", themeProfile().name)
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
                         .put("homeAppCount", homeAppCount())
@@ -428,8 +391,6 @@ class LauncherPreferences(context: Context) {
             .put("noteItems", itemsToJson(noteItems()))
             .put("taskItems", itemsToJson(taskItems()))
             .put("iconPackPackage", iconPackPackage())
-            .put("iconThemeStyle", iconThemeStyle().name)
-            .put("animationStyle", animationStyle().name)
             .put("motionSmoothness", motionSmoothness().name)
             .put("reduceMotion", reduceMotion())
             .put("customQuotes", JSONArray(customQuotes()))
@@ -445,16 +406,6 @@ class LauncherPreferences(context: Context) {
             val themeProfile = runCatching { NeoThemeProfile.valueOf(root.optString("themeProfile")) }.getOrDefault(NeoThemeProfile.MONO)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
             val typography = runCatching { TypographyStyle.valueOf(root.optString("typographyStyle")) }.getOrDefault(TypographyStyle.POSTER)
-            val animationStyle = runCatching { AnimationStyle.valueOf(root.optString("animationStyle")) }.getOrDefault(AnimationStyle.SMOOTH)
-            val motionSmoothness = runCatching { MotionSmoothness.valueOf(root.optString("motionSmoothness")) }.getOrDefault(MotionSmoothness.BALANCED)
-            val reduceMotion = root.optBoolean("reduceMotion", false)
-            val count = normalizePinnedCount(root.optInt("homeAppCount", 5))
-
-            fun safeArray(name: String, max: Int): JSONArray {
-                val array = root.optJSONArray(name) ?: JSONArray()
-                require(array.length() <= max)
-                return array
-            }
 
             val favoritesArray = safeArray("favorites", MAX_BACKUP_ITEMS)
             val restoredFavorites = buildSet {
@@ -507,20 +458,6 @@ class LauncherPreferences(context: Context) {
                 if (id.length in 1..128 && tileSize != null) restoredSizes.add(id + "|" + tileSize.name)
             }
 
-            val iconThemeStyle = runCatching { IconThemeStyle.valueOf(root.optString("iconThemeStyle")) }.getOrDefault(IconThemeStyle.ORIGINAL)
-            val restoredQuotes = root.optJSONArray("customQuotes")?.let { array ->
-                buildList {
-                    for (i in 0 until array.length()) {
-                        val value = array.optString(i).trim()
-                        if (value.isNotEmpty() && value.length <= MAX_QUOTE_LENGTH) add(value)
-                    }
-                }.distinct().take(MAX_CUSTOM_QUOTES)
-            }.orEmpty()
-            val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
-            val shortcut = root.optString("appShortcut", "").takeIf { it.length in 1..256 }
-            val iconPack = root.optString("iconPackPackage", "").takeIf {
-                it.matches(Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+"))
-            }
 
             val editor = prefs.edit()
                 .putString(KEY_THEME, theme.name)
@@ -543,7 +480,6 @@ class LauncherPreferences(context: Context) {
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
             if (shortcut == null) editor.remove(KEY_APP_SHORTCUT) else editor.putString(KEY_APP_SHORTCUT, shortcut)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
-            editor.putString(KEY_ICON_THEME_STYLE, iconThemeStyle.name)
             editor.putString(KEY_CUSTOM_QUOTES, JSONArray(restoredQuotes).toString())
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
@@ -555,7 +491,6 @@ class LauncherPreferences(context: Context) {
     fun resetCustomizations() {
         prefs.edit().apply {
             remove(KEY_THEME)
-            remove(KEY_THEME_PROFILE)
             remove("show_date")
             remove("show_tagline")
             remove("show_app_count")
@@ -577,9 +512,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_EXCLUDED_HOME_APPS)
             remove(KEY_APP_SHORTCUT)
             remove(KEY_ICON_PACK_PACKAGE)
-            remove(KEY_ICON_THEME_STYLE)
             remove(KEY_CUSTOM_QUOTES)
-            remove(KEY_ANIMATION_STYLE)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
             remove(KEY_HOME_APPS_INITIALIZED)
@@ -648,7 +581,6 @@ class LauncherPreferences(context: Context) {
 
     companion object {
         private const val KEY_THEME = "theme"
-        private const val KEY_THEME_PROFILE = "theme_profile"
         private const val KEY_24_HOUR = "use_24_hour"
         private const val KEY_SHOW_AM_PM = "show_am_pm"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
@@ -663,20 +595,17 @@ class LauncherPreferences(context: Context) {
         private const val KEY_NOTE_TEXT = "note_text"
         private const val KEY_NOTE_ITEMS = "note_items"
         private const val KEY_TASK_ITEMS = "task_items"
-        private const val KEY_APP_LAUNCH_COUNTS = "app_launch_counts"
         private const val KEY_HOME_APP_ORDER = "home_app_order"
         private const val KEY_EXCLUDED_HOME_APPS = "excluded_home_apps"
         private const val KEY_APP_SHORTCUT = "app_shortcut"
         private const val KEY_TASK_TEXT = "task_text"
         private const val KEY_ICON_PACK_PACKAGE = "icon_pack_package"
-        private const val KEY_ICON_THEME_STYLE = "icon_theme_style"
         private const val KEY_CUSTOM_QUOTES = "custom_quotes"
-        private const val KEY_ANIMATION_STYLE = "animation_style"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val MAX_BACKUP_ITEMS = 500
-        private const val MAX_CUSTOM_QUOTES = 100
+        private const val MAX_CUSTOM_QUOTES = 5
         private const val MAX_QUOTE_LENGTH = 300
     }
 }
