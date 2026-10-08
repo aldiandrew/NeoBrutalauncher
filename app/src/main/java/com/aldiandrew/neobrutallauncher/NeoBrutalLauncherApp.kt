@@ -372,6 +372,7 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                typographyStyle = typographyStyle,
             ) {
                 LauncherPageHost(
                     currentPage = currentPage,
@@ -1673,8 +1674,19 @@ private fun SettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(if (wallpaperUri == null) "SYSTEM / PAPER BACKGROUND" else "CUSTOM WALLPAPER SELECTED", fontSize = 11.sp, fontWeight = FontWeight.Black)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BrutalActionButton("CHOOSE IMAGE", BrutalColors.Cyan, Modifier.weight(1f), onChooseWallpaper)
-                    BrutalActionButton("CLEAR", BrutalColors.Pink, Modifier.weight(1f), onClearWallpaper)
+                    ThemeButton(
+                        "SYSTEM",
+                        wallpaperUri == null,
+                        BrutalColors.Cyan,
+                        Modifier.weight(0.8f),
+                        onClearWallpaper
+                    )
+                    BrutalActionButton(
+                        "CUSTOM IMAGE",
+                        BrutalColors.Pink,
+                        Modifier.weight(1.2f),
+                        onChooseWallpaper
+                    )
                 }
             }
         }
