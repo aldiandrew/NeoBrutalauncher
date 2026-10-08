@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -81,6 +82,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.app.NotificationManagerCompat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -112,12 +114,16 @@ fun NeoBrutalLauncherApp() {
     var brutalityLevel by remember { mutableStateOf(preferences.brutalityLevel()) }
     var clockStyle by remember { mutableStateOf(preferences.clockStyle()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
-    var chaosSeed by remember { mutableStateOf(preferences.chaosSeed()) }
-
     var locationPermissionGranted by remember {
         mutableStateOf(
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED
+        )
+    }
+    var notificationAccessGranted by remember {
+        mutableStateOf(
+            NotificationManagerCompat.getEnabledListenerPackages(context)
+                .contains(context.packageName)
         )
     }
 
@@ -159,6 +165,9 @@ fun NeoBrutalLauncherApp() {
                 locationPermissionGranted =
                     context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED
+                notificationAccessGranted =
+                    NotificationManagerCompat.getEnabledListenerPackages(context)
+                        .contains(context.packageName)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -194,6 +203,7 @@ fun NeoBrutalLauncherApp() {
                     wallpaperUri = wallpaperUri,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
+                    notificationAccessGranted = notificationAccessGranted,
                     onBack = { settingsOpen = false },
                     onThemeChange = {
                         themePreference = it
@@ -239,6 +249,12 @@ fun NeoBrutalLauncherApp() {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     },
+                    onOpenNotificationAccess = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
                     onShowQuoteChange = {
                         showQuote = it
                         preferences.setShowQuote(it)
@@ -265,10 +281,6 @@ fun NeoBrutalLauncherApp() {
                     onClearWallpaper = {
                         wallpaperUri = null
                         preferences.setWallpaperUri(null)
-                    },
-                    onChaosPalette = {
-                        chaosSeed = (chaosSeed + 1).coerceAtLeast(1)
-                        preferences.setChaosSeed(chaosSeed)
                     },
                     onRefreshApps = { refreshApps() },
                     onClearFavorites = {
@@ -306,8 +318,7 @@ fun NeoBrutalLauncherApp() {
                             appTileContentMode = appTileContentMode,
                             clockStyle = clockStyle,
                             wallpaperUri = wallpaperUri,
-                            chaosSeed = chaosSeed,
-                            onOpenSettings = { settingsOpen = true },
+                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = repository::launch,
                             onHomeAppCountChange = { updated ->
@@ -383,7 +394,7 @@ private fun LauncherPageHost(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 1,
+            beyondViewportPageCount = 0,
             userScrollEnabled = true,
             key = { it }
         ) { page ->
@@ -481,7 +492,7 @@ private fun HomeScreen(
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
 
-    val launchCounts = preferences.appLaunchCounts()
+    val launchCounts = remember(apps) { preferences.appLaunchCounts() }
     val rankedApps = apps.sortedWith(
         compareByDescending<AppInfo> { launchCounts[it.packageName + "/" + it.activityName] ?: 0 }
             .thenByDescending { favorites.contains(it.packageName + "/" + it.activityName) }
@@ -489,8 +500,8 @@ private fun HomeScreen(
     )
 
     val appKeys = apps.map { it.packageName + "/" + it.activityName }
-    val storedHomeOrder = preferences.homeAppOrder()
-    var stableHomeOrder by remember(appKeys) {
+    val storedHomeOrder = remember(appKeys) { preferences.homeAppOrder() }
+    var stableHomeOrder by remember(appKeys, storedHomeOrder) {
         mutableStateOf(
             run {
                 val available = appKeys.toSet()
@@ -535,7 +546,8 @@ private fun HomeScreen(
             }
         )
 
-    val shortcutApp = appShortcutKey?.let { appsByKey[it] }
+    val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
+    val palette = remember(chaosSeed) { BrutalColors.appPalette(chaosSeed) }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
     }
@@ -767,7 +779,6 @@ private fun HomeScreen(
                                 } else {
                                     tileSizes[id] ?: defaultSize
                                 }
-                                val palette = BrutalColors.appPalette(chaosSeed)
                                 val tileColor = palette[index % palette.size]
 
                                 add(
@@ -792,6 +803,7 @@ private fun HomeScreen(
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { selectedTile = it },
+                        editMode = selectedTile != null,
                         modifier = Modifier.fillMaxWidth(),
                         gap = 8.dp
                     )
@@ -1641,6 +1653,7 @@ private fun SettingsScreen(
     wallpaperUri: String?,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
+    notificationAccessGranted: Boolean,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
@@ -1650,6 +1663,7 @@ private fun SettingsScreen(
     onShowAppCountChange: (Boolean) -> Unit,
     onShowWeatherChange: (Boolean) -> Unit,
     onRequestWeatherPermission: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
     onShowQuoteChange: (Boolean) -> Unit,
     onShowBatteryChange: (Boolean) -> Unit,
     onAppTileContentModeChange: (TileContentMode) -> Unit,
@@ -1657,7 +1671,6 @@ private fun SettingsScreen(
     onClockStyleChange: (ClockStyle) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
-    onChaosPalette: () -> Unit,
     onRefreshApps: () -> Unit,
     onClearFavorites: () -> Unit
 ) {
@@ -1863,25 +1876,62 @@ private fun SettingsScreen(
                 onCheckedChange = onUse24HourChange
             )
 
-            SettingsSectionTitle("HOME")
+                    SettingsSectionTitle("PERMISSIONS")
 
-            BrutalSection(
-                title = "FIXED HOME TILES",
+            BrutalBlock(
                 modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Cyan
+                background = uiSurface,
+                borderWidth = 3.dp,
+                shadowX = 5.dp,
+                shadowY = 5.dp
             ) {
-                Text(
-                    text = "TAGLINE, WEATHER, BATTERY, NETWORK, MUSIC, NOTES, TASKS AND QUOTES ARE PART OF THE FIXED HOME STRUCTURE.",
-                    fontSize = 10.sp,
-                    lineHeight = 13.sp,
-                    fontWeight = FontWeight.Black
-                )
-                if (!locationPermissionGranted) {
-                    Spacer(Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "WEATHER LOCATION",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        color = uiOnSurface
+                    )
+                    Text(
+                        text = if (locationPermissionGranted) {
+                            "LOCATION ACCESS GRANTED. WEATHER CAN USE YOUR CURRENT AREA."
+                        } else {
+                            "LOCATION ACCESS IS NEEDED TO SHOW LOCAL WEATHER."
+                        },
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface.copy(alpha = 0.75f)
+                    )
                     BrutalActionButton(
-                        title = "ALLOW LOCATION FOR WEATHER",
-                        background = BrutalColors.Orange,
+                        title = if (locationPermissionGranted) "LOCATION ALREADY ALLOWED" else "ALLOW WEATHER LOCATION",
+                        background = if (locationPermissionGranted) BrutalColors.Lime else BrutalColors.Orange,
                         onClick = onRequestWeatherPermission
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = "MUSIC + NOTIFICATION ACCESS",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        color = uiOnSurface
+                    )
+                    Text(
+                        text = if (notificationAccessGranted) {
+                            "NOTIFICATION ACCESS GRANTED. MUSIC TILE CAN READ ACTIVE MEDIA SESSIONS. THIS ACCESS CAN ALSO EXPOSE OTHER NOTIFICATIONS, INCLUDING MESSAGE NOTIFICATIONS; NEO CURRENTLY USES IT ONLY FOR MUSIC."
+                        } else {
+                            "ENABLE ANDROID NOTIFICATION ACCESS FOR THE MUSIC TILE TO DETECT THE MUSIC APP AND CURRENT TRACK."
+                        },
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = uiOnSurface.copy(alpha = 0.75f)
+                    )
+                    BrutalActionButton(
+                        title = if (notificationAccessGranted) "OPEN NOTIFICATION ACCESS" else "ALLOW MUSIC / NOTIFICATION ACCESS",
+                        background = if (notificationAccessGranted) BrutalColors.Cyan else BrutalColors.Orange,
+                        onClick = onOpenNotificationAccess
                     )
                 }
             }
@@ -2013,24 +2063,6 @@ private fun SettingsScreen(
                         }
                     }
                 }
-            }
-
-            BrutalSection(
-                title = "CHAOS PALETTE",
-                modifier = Modifier.fillMaxWidth(),
-                background = BrutalColors.Lime
-            ) {
-                Text(
-                    text = "Reroll the app-tile palette while preserving the workspace structure.",
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                BrutalActionButton(
-                    title = "REROLL PALETTE",
-                    background = BrutalColors.Orange,
-                    onClick = onChaosPalette
-                )
             }
 
             SettingsSectionTitle("FAVORITES")
