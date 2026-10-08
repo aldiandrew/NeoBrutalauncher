@@ -186,7 +186,7 @@ fun NeoTileDecoration(
                 .align(Alignment.BottomEnd)
                 .padding(end = NeoBrutalTokens.Spacing.Micro / 2, bottom = 0.dp),
             fontFamily = BrutalTypography.Display,
-            fontSize = NeoBrutalTokens.Type.Label - 2.sp,
+            fontSize = NeoBrutalTokens.Type.Meta,
             fontWeight = FontWeight.Black,
             color = textColor
         )
