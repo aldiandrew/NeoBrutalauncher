@@ -103,18 +103,18 @@ fun LivePage(
                     Text(
                         text = "LIVE",
                         fontFamily = BrutalTypography.Display,
-                        fontSize = 28.sp,
+                        fontSize = NeoBrutalTokens.Type.Title,
                         fontWeight = FontWeight.Normal,
                         color = if (isDark) BrutalColors.Red else pageText
                     )
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
-                        fontSize = 42.sp,
-                        lineHeight = 42.sp,
+                        fontSize = NeoBrutalTokens.Type.Hero,
+                        lineHeight = NeoBrutalTokens.Type.Hero,
                         fontWeight = FontWeight.Black,
                         color = pageText
                     )
-                    Text(text = dateText, fontSize = 11.sp, fontWeight = FontWeight.Black, color = pageText)
+                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = pageText)
                 }
             }
         }
