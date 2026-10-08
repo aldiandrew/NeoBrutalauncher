@@ -98,19 +98,12 @@ fun NeoWeatherTile(
         else -> Icons.Default.Cloud
     }
 
-    val isDark = LocalNeoThemeIsDark.current
-    val themePalette = LocalNeoThemePalette.current
-    val tileBackground = themePalette.secondary(isDark)
-    val tileText = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
-
     BrutalBlock(
         modifier = modifier,
-        background = tileBackground,
+        background = BrutalColors.Cyan,
         borderWidth = 3.dp,
-        borderColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
         shadowX = 5.dp,
-        shadowY = 5.dp,
-        shadowColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+        shadowY = 5.dp
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val compact = minOf(maxWidth, maxHeight)
@@ -132,13 +125,13 @@ fun NeoWeatherTile(
                                 fontSize = 18.sp,
                                 lineHeight = 18.sp,
                                 fontWeight = FontWeight.Black,
-                                color = tileText,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                                 maxLines = 1
                             )
                             Icon(
                                 imageVector = icon,
                                 contentDescription = currentWeather!!.description,
-                                tint = tileText,
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.width(28.dp).height(28.dp)
                             )
                             Text(
@@ -146,7 +139,7 @@ fun NeoWeatherTile(
                                 fontSize = 7.sp,
                                 lineHeight = 8.sp,
                                 fontWeight = FontWeight.Black,
-                                color = tileText,
+                                color = BrutalColors.Ink,
                                 maxLines = 1
                             )
                         }
@@ -162,7 +155,7 @@ fun NeoWeatherTile(
                                 text = currentWeather!!.description.uppercase(),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
-                                color = tileText,
+                                color = BrutalColors.Ink,
                                 maxLines = 1
                             )
                             Row(
@@ -180,7 +173,7 @@ fun NeoWeatherTile(
                                     fontSize = 31.sp,
                                     lineHeight = 31.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = tileText,
+                                    color = BrutalColors.Ink,
                                     maxLines = 1
                                 )
                             }
@@ -188,7 +181,7 @@ fun NeoWeatherTile(
                                 text = "H ${currentWeather!!.humidityPercent}%   W ${currentWeather!!.windKph.toInt()}K",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
-                                color = tileText,
+                                color = BrutalColors.Ink,
                                 maxLines = 1
                             )
                         }
@@ -209,7 +202,7 @@ fun NeoWeatherTile(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 1.5.sp,
-                                    color = tileText
+                                    color = BrutalColors.Ink
                                 )
                                 Spacer(Modifier.height(3.dp))
                                 Text(
@@ -217,7 +210,7 @@ fun NeoWeatherTile(
                                     fontSize = 12.sp,
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = tileText,
+                                    color = BrutalColors.Ink,
                                     maxLines = 1
                                 )
                                 Spacer(Modifier.height(2.dp))
@@ -226,20 +219,20 @@ fun NeoWeatherTile(
                                     fontSize = 48.sp,
                                     lineHeight = 48.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = tileText,
+                                    color = BrutalColors.Ink,
                                     maxLines = 1
                                 )
                                 Spacer(Modifier.height(5.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    WeatherMetric("HUMIDITY", "${currentWeather!!.humidityPercent}%", tileText)
-                                    WeatherMetric("WIND", "${currentWeather!!.windKph.toInt()} KM/H", tileText)
+                                    WeatherMetric("HUMIDITY", "${currentWeather!!.humidityPercent}%")
+                                    WeatherMetric("WIND", "${currentWeather!!.windKph.toInt()} KM/H")
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = "UPDATED $updatedText • TAP TO REFRESH",
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = tileText.copy(alpha = 0.72f),
+                                    color = BrutalColors.Ink.copy(alpha = 0.72f),
                                     maxLines = 1
                                 )
                             }
@@ -269,7 +262,7 @@ fun NeoWeatherTile(
                         fontSize = if (compact < 100.dp) 12.sp else 20.sp,
                         lineHeight = if (compact < 100.dp) 13.sp else 22.sp,
                         fontWeight = FontWeight.Black,
-                        color = tileText,
+                        color = BrutalColors.Ink,
                         maxLines = 2
                     )
                     Spacer(Modifier.height(5.dp))
@@ -282,7 +275,7 @@ fun NeoWeatherTile(
                         },
                         fontSize = if (compact < 100.dp) 8.sp else 10.sp,
                         fontWeight = FontWeight.Black,
-                        color = tileText
+                        color = BrutalColors.Ink
                     )
                 }
             }
@@ -293,8 +286,7 @@ fun NeoWeatherTile(
 @Composable
 private fun WeatherMetric(
     label: String,
-    value: String,
-    textColor: androidx.compose.ui.graphics.Color
+    value: String
 ) {
     Column {
         Text(
@@ -302,13 +294,13 @@ private fun WeatherMetric(
             fontSize = 9.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.5.sp,
-            color = textColor.copy(alpha = 0.75f)
+            color = BrutalColors.Ink.copy(alpha = 0.75f)
         )
         Text(
             text = value,
             fontSize = 14.sp,
             fontWeight = FontWeight.Black,
-            color = textColor
+            color = BrutalColors.Ink
         )
     }
 }
