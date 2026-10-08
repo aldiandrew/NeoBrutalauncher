@@ -523,7 +523,6 @@ private fun HomeScreen(
 
     var weatherRefreshToken by remember { mutableIntStateOf(0) }
     var noteItems by remember { mutableStateOf(preferences.noteItems()) }
-    var taskItems by remember { mutableStateOf(preferences.taskItems()) }
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
     var tileEditMode by remember { mutableStateOf(false) }
     var showAppPicker by remember { mutableStateOf(false) }
@@ -698,9 +697,9 @@ private fun HomeScreen(
                             else -> 56.sp
                         }
                         val sideSize = when {
-                            compact < 130.dp -> 7.sp
-                            compact < 160.dp -> 8.5.sp
-                            else -> 10.sp
+                            compact < 130.dp -> 10.sp
+                            compact < 160.dp -> 12.sp
+                            else -> 15.sp
                         }
 
                         Column(
@@ -737,8 +736,8 @@ private fun HomeScreen(
                                 if (showDate) {
                                     Column(
                                         modifier = Modifier
-                                            .width(if (compact < 150.dp) 64.dp else 82.dp)
-                                            .padding(start = 10.dp),
+                                            .width(if (compact < 150.dp) 78.dp else 102.dp)
+                                            .padding(start = 12.dp),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Text(
@@ -887,7 +886,6 @@ private fun HomeScreen(
             item(key = "notes-tasks") {
                 NeoNotesTasksTile(
                     notes = noteItems,
-                    tasks = taskItems,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f),
                     background = homeNotesBackground,
                     textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
@@ -902,25 +900,6 @@ private fun HomeScreen(
                         }
                         noteItems = updated
                         preferences.setNoteItems(updated)
-                    },
-                    onAddTask = { text ->
-                        val updated = taskItems + NeoListItem(text = text)
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    },
-                    onEditTask = { index, text ->
-                        val updated = taskItems.mapIndexed { itemIndex, item ->
-                            if (itemIndex == index) item.copy(text = text) else item
-                        }
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    },
-                    onToggleTask = { index ->
-                        val updated = taskItems.mapIndexed { itemIndex, item ->
-                            if (itemIndex == index) item.copy(checked = !item.checked) else item
-                        }
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
                     }
                 )
             }
