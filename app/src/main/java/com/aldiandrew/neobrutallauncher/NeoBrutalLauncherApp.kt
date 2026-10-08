@@ -736,11 +736,18 @@ private fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         background = BrutalColors.Purple
                     ) {
+                        BrutalTape(
+                            text = "MANIFESTO",
+                            background = BrutalColors.Yellow
+                        )
+                        Spacer(Modifier.height(6.dp))
                         Text(
                             text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
-                            fontSize = 7.sp,
-                            lineHeight = 8.sp,
-                            fontWeight = FontWeight.Black,
+                            fontFamily = BrutalTypography.Display,
+                            fontSize = 9.sp,
+                            lineHeight = 10.sp,
+                            fontWeight = FontWeight.Normal,
+                            letterSpacing = 0.4.sp,
                             color = BrutalColors.White,
                             maxLines = 3
                         )
