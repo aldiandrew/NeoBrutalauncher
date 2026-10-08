@@ -265,7 +265,10 @@ fun NeoBrutalLauncherApp() {
                 themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
-                CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
+                CompositionLocalProvider(
+                    LocalNeoMotionConfig provides motionConfig,
+                    LocalIconThemeStyle provides iconThemeStyle
+                ) {
                     SettingsScreen(
                     themePreference = themePreference,
                     themeProfile = themeProfile,
@@ -413,7 +416,10 @@ fun NeoBrutalLauncherApp() {
                 themeProfile = themeProfile,
                 typographyStyle = typographyStyle,
             ) {
-                CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
+                CompositionLocalProvider(
+                    LocalNeoMotionConfig provides motionConfig,
+                    LocalIconThemeStyle provides iconThemeStyle
+                ) {
                     LauncherPageHost(
                         currentPage = currentPage,
                         homeReturnTrigger = homeReturnTrigger,
