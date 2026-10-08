@@ -253,12 +253,9 @@ fun AppsPage(
                             items = sortedApps,
                             key = { _, app -> app.packageName + "/" + app.activityName }
                         ) { index, app ->
-                            val iconBitmap = remember(app.packageName, app.icon) {
-                                app.icon.toBitmap(64, 64).asImageBitmap()
-                            }
-
+                            val iconThemeStyle = LocalIconThemeStyle.current
                             val cardBackground = cardPalette[index % cardPalette.size]
-                            val cardTextColor = if (isDark && cardBackground == BrutalColors.DarkTile) {
+                            val cardTextColor = if (isDark) {
                                 BrutalColors.DarkWhite
                             } else {
                                 BrutalColors.Ink
@@ -280,14 +277,14 @@ fun AppsPage(
                                         .padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier
-                                            .width(50.dp)
-                                            .height(50.dp)
-                                    )
-                                    Spacer(Modifier.width(12.dp))
+                                    if (iconThemeStyle.showsIcon()) {
+                                        NeoAppIcon(
+                                            app = app,
+                                            size = 50.dp,
+                                            style = iconThemeStyle
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+                                    }
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         val firstLetter =
@@ -297,7 +294,7 @@ fun AppsPage(
                                             text = firstLetter,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Orange
+                                            color = themePalette.accent(isDark)
                                         )
                                         Text(
                                             text = app.label.uppercase(),
