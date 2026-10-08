@@ -35,53 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun NeoNotesTasksTile(
-    notes: List<NeoListItem>,
-    modifier: Modifier = Modifier,
-    background: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface,
-    onAddNote: (String) -> Unit,
-    onEditNote: (Int, String) -> Unit
-) {
-    var noteDraft by remember { mutableStateOf("") }
-
-    BrutalBlock(
-        modifier = modifier,
-        background = background,
-        borderWidth = 4.dp,
-        borderColor = if (
-            background == BrutalColors.DarkTile ||
-            background == BrutalColors.DarkPaper
-        ) BrutalColors.DarkWhite else BrutalColors.Ink,
-        shadowX = 6.dp,
-        shadowY = 6.dp
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(Modifier.height(2.dp))
-            NotesTasksColumn(
-                title = "NOTES",
-                inputHint = "TYPE NOTE…",
-                items = notes,
-                draft = noteDraft,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                isTasks = false,
-                onDraftChange = { noteDraft = it },
-                onAdd = {
-                    noteDraft.trim().takeIf { it.isNotEmpty() }?.let {
-                        onAddNote(it)
-                        noteDraft = ""
-                    }
-                },
-                onEditItem = onEditNote,
-                onToggleItem = {}
-            )
-        }
-    }
-}
-
-@Composable
 private fun NotesTasksColumn(
     title: String,
     inputHint: String,
