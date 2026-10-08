@@ -100,7 +100,6 @@ fun NeoBrutalLauncherApp() {
     var apps by remember { mutableStateOf(emptyList<AppInfo>()) }
     var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
-    var tileEditMode by remember { mutableStateOf(false) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
@@ -491,6 +490,7 @@ private fun HomeScreen(
     var noteItems by remember { mutableStateOf(preferences.noteItems()) }
     var taskItems by remember { mutableStateOf(preferences.taskItems()) }
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
+    var tileEditMode by remember { mutableStateOf(false) }
     var showAppPicker by remember { mutableStateOf(false) }
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
     var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
