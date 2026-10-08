@@ -6,9 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -62,18 +62,7 @@ private val LightScheme = lightColorScheme(
     onSurface = BrutalColors.Ink
 )
 
-private val DefaultLightScheme = lightColorScheme(
-    primary = BrutalColors.Ink,
-    onPrimary = BrutalColors.White,
-    secondary = BrutalColors.Pink,
-    onSecondary = BrutalColors.Ink,
-    background = BrutalColors.Paper,
-    onBackground = BrutalColors.Ink,
-    surface = BrutalColors.Paper,
-    onSurface = BrutalColors.Ink
-)
-
-private val DefaultDarkScheme = darkColorScheme(
+private val DarkScheme = darkColorScheme(
     primary = BrutalColors.DarkWhite,
     onPrimary = BrutalColors.Ink,
     secondary = BrutalColors.Cyan,
@@ -89,13 +78,9 @@ private val DefaultDarkScheme = darkColorScheme(
     onError = BrutalColors.White
 )
 
-val LocalNeoThemePalette = staticCompositionLocalOf { NeoThemePalettes.forProfile(NeoThemeProfile.MONO) }
-val LocalNeoThemeIsDark = androidx.compose.runtime.staticCompositionLocalOf { false }
-
 @Composable
 fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
-    themeProfile: NeoThemeProfile = NeoThemeProfile.MONO,
     typographyStyle: TypographyStyle = TypographyStyle.POSTER,
     content: @Composable () -> Unit
 ) {
@@ -103,41 +88,6 @@ fun NeoBrutalTheme(
         ThemePreference.SYSTEM -> isSystemInDarkTheme()
         ThemePreference.LIGHT -> false
         ThemePreference.DARK -> true
-    }
-
-    val palette = NeoThemePalettes.forProfile(themeProfile)
-    val scheme = if (isDark) {
-        darkColorScheme(
-            primary = palette.darkAccent,
-            onPrimary = palette.darkOnAccent,
-            secondary = palette.darkSecondary,
-            onSecondary = palette.darkOnAccent,
-            background = palette.darkBackground,
-            onBackground = BrutalColors.DarkWhite,
-            surface = palette.darkSurface,
-            onSurface = BrutalColors.DarkWhite,
-            surfaceVariant = palette.darkSurface,
-            onSurfaceVariant = BrutalColors.DarkWhite,
-            outline = BrutalColors.DarkWhite,
-            error = BrutalColors.Red,
-            onError = BrutalColors.White
-        )
-    } else {
-        lightColorScheme(
-            primary = palette.lightAccent,
-            onPrimary = palette.lightOnAccent,
-            secondary = palette.lightSecondary,
-            onSecondary = palette.lightOnAccent,
-            background = palette.lightBackground,
-            onBackground = BrutalColors.Ink,
-            surface = palette.lightSurface,
-            onSurface = BrutalColors.Ink,
-            surfaceVariant = palette.lightSurface,
-            onSurfaceVariant = BrutalColors.Ink,
-            outline = BrutalColors.Ink,
-            error = BrutalColors.Red,
-            onError = BrutalColors.White
-        )
     }
 
     val view = LocalView.current
@@ -152,10 +102,9 @@ fun NeoBrutalTheme(
     CompositionLocalProvider(
         LocalBrutalMetrics provides BrutalMetrics(),
         LocalBrutalTypographyStyle provides typographyStyle,
-        LocalNeoThemePalette provides palette,
         LocalNeoThemeIsDark provides isDark
     ) {
-        MaterialTheme(colorScheme = scheme) {
+        MaterialTheme(colorScheme = if (isDark) DarkScheme else LightScheme) {
             CompositionLocalProvider(
                 LocalTextStyle provides LocalTextStyle.current.copy(
                     fontFamily = BrutalTypography.Body
@@ -166,3 +115,5 @@ fun NeoBrutalTheme(
         }
     }
 }
+
+val LocalNeoThemeIsDark = staticCompositionLocalOf { false }
