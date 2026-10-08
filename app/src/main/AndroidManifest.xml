@@ -27,7 +27,8 @@
     <application
         android:allowBackup="true"
         android:label="NB Launcher"
-        android:icon="@mipmap/ic_launcher"\n        android:roundIcon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.NeoBrutLauncher"
         android:enableOnBackInvokedCallback="false">
