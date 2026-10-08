@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
@@ -167,10 +168,18 @@ fun NeoChatNotificationTile(
         shadowX = 5.dp,
         shadowY = 5.dp
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+        NeoTileDecoration(
+            label = "CHAT",
+            accent = BrutalColors.Yellow,
+            textColor = textColor,
+            modifier = Modifier.fillMaxSize()
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             if (iconBitmap != null) {
                 Image(
                     bitmap = iconBitmap,
@@ -221,6 +230,7 @@ fun NeoChatNotificationTile(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
             }
         }
     }
