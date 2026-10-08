@@ -92,7 +92,6 @@ fun NeoBrutalLauncherApp(
     var currentPage by remember { mutableStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
     var onboardingCompleted by remember { mutableStateOf(preferences.onboardingCompleted()) }
-    var launchingApp by remember { mutableStateOf<AppInfo?>(null) }
     var awaitingHomeReturn by remember { mutableStateOf(false) }
     var homeReturnTrigger by remember { mutableIntStateOf(0) }
 
@@ -267,7 +266,9 @@ fun NeoBrutalLauncherApp(
     )
 
     fun requestLaunch(app: AppInfo) {
-        launchingApp = app
+        if (repository.launch(app, animate = !motionConfig.reduceMotion)) {
+            awaitingHomeReturn = true
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -467,28 +468,15 @@ fun NeoBrutalLauncherApp(
                         config = motionConfig,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        NeoLaunchTransition(
-                            app = launchingApp,
-                            config = motionConfig,
-                            onFinished = {
-                                val target = launchingApp
-                                if (target != null) {
-                                    launchingApp = null
-                                    if (repository.launch(target)) {
-                                        awaitingHomeReturn = true
-                                    }
-                                }
+                        LauncherPageHost(
+                            currentPage = currentPage,
+                            motionConfig = motionConfig,
+                            wallpaperUri = wallpaperUri,
+                            onPageChange = {
+                                currentPage = it.coerceIn(0, 2)
+                                if (currentPage == 1) refreshApps()
                             }
-                        ) {
-                            LauncherPageHost(
-                                currentPage = currentPage,
-                                motionConfig = motionConfig,
-                                wallpaperUri = wallpaperUri,
-                                onPageChange = {
-                                    currentPage = it.coerceIn(0, 2)
-                                    if (currentPage == 1) refreshApps()
-                                }
-                            ) { page ->
+                        ) { page ->
                     if (page == 0) {
                         HomeScreen(
                             apps = apps,
@@ -552,7 +540,6 @@ fun NeoBrutalLauncherApp(
                             onOpenHome = { currentPage = 0 }
                         )
                     }
-                            }
                         }
                     }
                 }
