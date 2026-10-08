@@ -2593,7 +2593,11 @@ private fun ThemeButton(
             fontFamily = BrutalTypography.Display,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (selected) {
+                BrutalColors.Ink
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
         )
     }
 }
