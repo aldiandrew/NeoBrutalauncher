@@ -122,15 +122,28 @@ fun NeoWeatherTile(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(if (compact < 100.dp) 6.dp else 10.dp),
+                        .padding(if (compact < 100.dp) 4.dp else 6.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = currentWeather.description,
+                        tint = BrutalColors.Ink,
+                        modifier = Modifier.size(
+                            when {
+                                compact < 90.dp -> 22.dp
+                                compact < 155.dp -> 30.dp
+                                else -> 36.dp
+                            }
+                        )
+                    )
+                    Spacer(Modifier.height(2.dp))
                     Text(
                         text = currentWeather.locationName.uppercase(Locale.ENGLISH),
                         modifier = Modifier.fillMaxWidth(),
-                        fontSize = locationSize,
-                        lineHeight = locationSize,
+                        fontSize = if (compact < 90.dp) 7.sp else 9.sp,
+                        lineHeight = if (compact < 90.dp) 8.sp else 10.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1,
@@ -138,51 +151,14 @@ fun NeoWeatherTile(
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center
                     )
-
-                    Spacer(Modifier.height(if (compact < 100.dp) 4.dp else 6.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(
-                            if (compact < 100.dp) 4.dp else 8.dp
-                        )
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = currentWeather.description,
-                            tint = BrutalColors.Ink,
-                            modifier = Modifier.size(
-                                when {
-                                    compact < 100.dp -> 24.dp
-                                    compact < 155.dp -> 40.dp
-                                    else -> 56.dp
-                                }
-                            )
-                        )
-                        Text(
-                            text = currentWeather.temperatureC.toInt().toString() + "°",
-                            fontSize = temperatureSize,
-                            lineHeight = temperatureSize,
-                            fontWeight = FontWeight.Black,
-                            color = BrutalColors.Ink,
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
-
-                    Spacer(Modifier.height(if (compact < 100.dp) 4.dp else 6.dp))
-
                     Text(
-                        text = currentWeather.description.uppercase(Locale.ENGLISH),
-                        modifier = Modifier.fillMaxWidth(),
-                        fontSize = conditionSize,
-                        lineHeight = conditionSize,
+                        text = currentWeather.temperatureC.toInt().toString() + "°",
+                        fontSize = if (compact < 90.dp) 20.sp else 26.sp,
+                        lineHeight = if (compact < 90.dp) 21.sp else 27.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
+                        softWrap = false
                     )
                 }
             } else {
