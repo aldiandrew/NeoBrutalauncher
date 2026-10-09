@@ -429,6 +429,9 @@ fun AppsPage(
     contextApp?.let { app ->
         AlertDialog(
             onDismissRequest = { contextApp = null },
+            containerColor = uiSurface,
+            titleContentColor = uiOnSurface,
+            textContentColor = uiOnSurface,
             title = {
                 Text(text = app.label.uppercase(), fontFamily = BrutalTypography.Display, fontWeight = FontWeight.Normal)
             },
@@ -449,11 +452,17 @@ fun AppsPage(
                         BrutalActionButton(
                             title = "UNINSTALL", background = BrutalColors.Pink,
                             onClick = {
+                                val uninstallIntent = Intent(
+                                    Intent.ACTION_UNINSTALL_PACKAGE,
+                                    Uri.parse("package:" + app.packageName)
+                                )
                                 runCatching {
+                                    context.startActivity(uninstallIntent)
+                                }.onFailure {
+                                    // Some Android builds expose uninstall only from App info.
                                     context.startActivity(
-                                        Intent(Intent.ACTION_DELETE).apply {
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                             data = Uri.parse("package:" + app.packageName)
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         }
                                     )
                                 }
