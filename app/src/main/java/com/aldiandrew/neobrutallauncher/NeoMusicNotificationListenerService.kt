@@ -201,6 +201,36 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         return limited
     }
 
+    fun controlPlayback(action: String) {
+        val controller = currentController
+            ?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+        val controls = controller?.transportControls
+        if (controls != null) {
+            runCatching {
+                when (action) {
+                    "previous" -> controls.skipToPrevious()
+                    "next" -> controls.skipToNext()
+                    "toggle" -> {
+                        if (controller.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING) {
+                            controls.pause()
+                        } else {
+                            controls.play()
+                        }
+                    }
+                }
+            }
+        } else {
+            val audioManager = getSystemService(android.media.AudioManager::class.java)
+            val keyCode = when (action) {
+                "previous" -> android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS
+                "next" -> android.view.KeyEvent.KEYCODE_MEDIA_NEXT
+                else -> android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+            }
+            audioManager.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, keyCode))
+            audioManager.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, keyCode))
+        }
+    }
+
     private fun publish(controller: MediaController?) {
         if (controller == null || !NeoSupportedMusicApps.supports(controller.packageName)) {
             clearAlbumArtCache()
