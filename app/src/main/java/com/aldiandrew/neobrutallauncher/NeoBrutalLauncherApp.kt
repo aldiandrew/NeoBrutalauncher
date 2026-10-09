@@ -646,8 +646,6 @@ private fun HomeScreen(
     val homeClockText = BrutalColors.Ink
     val homeMusicBackground = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Cyan
     val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
-    val homeTasksText = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -954,7 +952,7 @@ private fun HomeScreen(
                     context = context,
                     modifier = Modifier.fillMaxWidth().aspectRatio(4f),
                     background = homeMusicBackground,
-                    textColor = BrutalColors.Ink
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
                 )
             }
 
@@ -1007,39 +1005,6 @@ private fun HomeScreen(
                         gap = 8.dp
                     )
                 }
-            }
-
-            item(key = "tasks") {
-                NeoTasksTile(
-                    tasks = taskItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
-                    background = homeTasksBackground,
-                    textColor = homeTasksText,
-                    onAddTask = { text ->
-                        val updated = taskItems + NeoListItem(text = text)
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    },
-                    onEditTask = { index, text ->
-                        val updated = taskItems.mapIndexed { itemIndex, item ->
-                            if (itemIndex == index) item.copy(text = text) else item
-                        }
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    },
-                    onToggleTask = { index ->
-                        val updated = taskItems.mapIndexed { itemIndex, item ->
-                            if (itemIndex == index) item.copy(checked = !item.checked) else item
-                        }
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    },
-                    onDeleteTask = { index ->
-                        val updated = taskItems.filterIndexed { itemIndex, _ -> itemIndex != index }
-                        taskItems = updated
-                        preferences.setTaskItems(updated)
-                    }
-                )
             }
 
             item(key = "footer") {
