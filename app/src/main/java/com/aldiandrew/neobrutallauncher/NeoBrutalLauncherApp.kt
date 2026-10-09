@@ -965,7 +965,9 @@ private fun HomeScreen(
     }
 
     if (showAppPicker) {
-        val sortedPickerApps = apps.sortedBy { it.label.lowercase() }
+        // AppRepository already sorts apps by case-insensitive label.
+        // Reuse that order instead of sorting again whenever this dialog recomposes.
+        val sortedPickerApps = apps
 
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showAppPicker = false },
