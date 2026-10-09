@@ -104,10 +104,10 @@ fun NeoMusicTile(
     val preferences = remember { LauncherPreferences(context) }
     val fallbackApp = remember { resolveMusicApp(context) }
     val lastMusicPackage = remember(musicInfo?.packageName) {
-        preferences.lastMusicPackage()?.takeIf(NeoSupportedMusicApps::supports)
+        preferences.lastMusicPackage()?.takeIf { NeoSupportedMusicApps.supports(it) }
     }
     val musicPackage = musicInfo?.packageName
-        ?.takeIf(NeoSupportedMusicApps::supports)
+        ?.takeIf { NeoSupportedMusicApps.supports(it) }
         ?: lastMusicPackage
         ?: fallbackApp?.packageName
     val lastMusicLabel = remember(lastMusicPackage) {
