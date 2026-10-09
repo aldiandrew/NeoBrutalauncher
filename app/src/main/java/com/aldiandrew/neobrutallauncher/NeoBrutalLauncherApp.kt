@@ -92,6 +92,7 @@ fun NeoBrutalLauncherApp() {
     var onboardingCompleted by remember { mutableStateOf(preferences.onboardingCompleted()) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
+    var designPreset by remember { mutableStateOf(preferences.designPreset()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
     var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
@@ -257,6 +258,7 @@ fun NeoBrutalLauncherApp() {
         !onboardingCompleted -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
                 hideStatusBar = hideStatusBar
             ) {
@@ -303,12 +305,14 @@ fun NeoBrutalLauncherApp() {
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
                 hideStatusBar = hideStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     SettingsScreen(
                     themePreference = themePreference,
+                    designPreset = designPreset,
                     use24Hour = use24Hour,
                     showAmPm = showAmPm,
                     homeAppCount = homeAppCount,
@@ -331,6 +335,10 @@ fun NeoBrutalLauncherApp() {
                     onThemeChange = {
                         themePreference = it
                         preferences.setTheme(it)
+                    },
+                    onDesignPresetChange = {
+                        designPreset = it
+                        preferences.setDesignPreset(it)
                     },
                     onUse24HourChange = {
                         use24Hour = it
@@ -458,6 +466,7 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
                 hideStatusBar = hideStatusBar
             ) {
@@ -1627,6 +1636,7 @@ private fun SettingsScreen(
     apps: List<AppInfo>,
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
+    designPreset: DesignPreset,
     use24Hour: Boolean,
     showAmPm: Boolean,
     homeAppCount: Int,
@@ -1646,6 +1656,7 @@ private fun SettingsScreen(
     onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onDesignPresetChange: (DesignPreset) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
     onShowAmPmChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
@@ -1720,6 +1731,28 @@ private fun SettingsScreen(
                     ThemeButton("SYSTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
                     ThemeButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
                     ThemeButton("DARK", themePreference == ThemePreference.DARK, BrutalColors.Pink, Modifier.weight(1f)) { onThemeChange(ThemePreference.DARK) }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text("COLOR PRESET", fontFamily = BrutalTypography.Display, fontSize = 14.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                DesignPreset.values().toList().chunked(2).forEach { rowPresets ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        rowPresets.forEach { preset ->
+                            val presetColor = when (preset) {
+                                DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFFFFE500)
+                                DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
+                                DesignPreset.COBALT_POP -> Color(0xFF3155F5)
+                                DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
+                            }
+                            ThemeButton(
+                                preset.label,
+                                designPreset == preset,
+                                presetColor,
+                                Modifier.weight(1f)
+                            ) {
+                                onDesignPresetChange(preset)
+                            }
+                        }
+                    }
                 }
             }
         }
