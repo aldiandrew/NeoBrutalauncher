@@ -484,6 +484,12 @@ fun NeoBrutalLauncherApp() {
                                 homeAppCount = updated
                                 preferences.setHomeAppCount(updated)
                             },
+                            onRemovePinnedApp = { app ->
+                                val key = app.packageName + "/" + app.activityName
+                                val updated = favorites - key
+                                favorites = updated
+                                preferences.setFavorites(updated)
+                            },
                             tilePositions = tilePositions,
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
@@ -632,6 +638,7 @@ private fun HomeScreen(
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
+    onRemovePinnedApp: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
@@ -1059,10 +1066,12 @@ private fun HomeScreen(
     }
 
     selectedTile?.let { tile ->
-        val lastId = launchableApps.lastOrNull()?.let {
-            "app_" + it.packageName + "_" + it.activityName
+        val tileApp = launchableApps.firstOrNull {
+            ("app_" + it.packageName + "_" + it.activityName) == tile.id
         }
-        val locked = tile.id == lastId
+        val isPinnedApp = tileApp?.let {
+            favorites.contains(it.packageName + "/" + it.activityName)
+        } == true
 
         AlertDialog(
             onDismissRequest = {
@@ -1080,38 +1089,42 @@ private fun HomeScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = if (locked) {
-                            "FIXED 4x1 / LAST HOME APP"
-                        } else {
-                            "CURRENT SIZE: " + tile.size.label
-                        },
+                        text = "CURRENT SIZE: " + tile.size.label,
                         fontWeight = FontWeight.Black
                     )
 
-                    if (!locked) {
-                        listOf(
-                            NeoTileSize.SMALL,
-                            NeoTileSize.HORIZONTAL,
-                            NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE
-                        ).forEach { option ->
-                            BrutalActionButton(
-                                title = "SET ${option.label}",
-                                background = BrutalColors.White
-                            ) {
-                                onTileSizeChange(tile.id, option)
-                                selectedTile = null
-                                tileEditMode = false
-                            }
-                        }
-
-
+                    listOf(
+                        NeoTileSize.SMALL,
+                        NeoTileSize.HORIZONTAL,
+                        NeoTileSize.THREE_BY_ONE,
+                        NeoTileSize.FOUR_BY_ONE
+                    ).forEach { option ->
                         BrutalActionButton(
-                            title = "MOVE TILE",
-                            background = BrutalColors.Cyan
+                            title = "SET ${option.label}",
+                            background = if (tile.size == option) BrutalColors.Yellow else BrutalColors.White
                         ) {
+                            onTileSizeChange(tile.id, option)
                             selectedTile = null
-                            tileEditMode = true
+                            tileEditMode = false
+                        }
+                    }
+
+                    BrutalActionButton(
+                        title = "MOVE TILE",
+                        background = BrutalColors.Cyan
+                    ) {
+                        selectedTile = null
+                        tileEditMode = true
+                    }
+
+                    if (isPinnedApp && tileApp != null) {
+                        BrutalActionButton(
+                            title = "REMOVE PIN",
+                            background = BrutalColors.Pink
+                        ) {
+                            onRemovePinnedApp(tileApp)
+                            selectedTile = null
+                            tileEditMode = false
                         }
                     }
                 }
