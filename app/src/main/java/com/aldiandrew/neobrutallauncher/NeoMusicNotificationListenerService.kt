@@ -198,13 +198,10 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         ).any { metadataText.contains(it) }
 
         if (communicationPackage && callLikeMetadata) return null
-        // A communication app with no track-like metadata and no explicit media usage
-        // is more likely exposing a call/session shell than a playable media item.
-        if (
-            communicationPackage &&
-            !hasMediaMetadata &&
-            usage != AudioAttributes.USAGE_MEDIA
-        ) {
+        // A communication app without media metadata is not a reliable music source,
+        // even if its session is surfaced as media. Voice messages with useful metadata
+        // remain eligible; the package name alone never excludes a session.
+        if (communicationPackage && !hasMediaMetadata) {
             return null
         }
 
