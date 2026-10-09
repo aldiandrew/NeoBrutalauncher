@@ -1626,10 +1626,13 @@ private fun SettingsScreen(
 
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("WALLPAPER", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(
-                    text = if (wallpaperUri == null) "BELUM ADA WALLPAPER" else "WALLPAPER KUSTOM DIPILIH",
+                    text = if (wallpaperUri == null) "Belum ada gambar yang dipilih." else "Gambar kustom sedang digunakan.",
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Black
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = uiOnSurface.copy(alpha = .8f)
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsActionButton(
@@ -1719,19 +1722,20 @@ private fun SettingsScreen(
             shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("PAKET IKON", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(
-                    text = selectedIconPack?.label?.uppercase(Locale.ENGLISH) ?: "IKON SISTEM",
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
+                    text = selectedIconPack?.label?.uppercase(Locale.ENGLISH) ?: "IKON BAWAAN SISTEM",
+                    fontSize = 13.sp,
+                    lineHeight = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = uiOnSurface
                 )
                 Text(
-                    text = "Pilih paket ikon untuk layar utama dan daftar aplikasi.",
+                    text = "Ubah gaya ikon aplikasi di layar utama dan daftar aplikasi.",
                     fontSize = 12.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = uiOnSurface.copy(alpha = .75f)
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = uiOnSurface.copy(alpha = .8f)
                 )
                 SettingsActionButton(
                     title = "PILIH PAKET IKON",
@@ -1752,18 +1756,13 @@ private fun SettingsScreen(
             shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("APLIKASI FAVORIT", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(
-                    "$favoritesCount APLIKASI DISematkan".uppercase(Locale.getDefault()),
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = uiOnSurface
-                )
-                Text(
-                    "Pilih jumlah ubin aplikasi yang tersedia di layar utama.",
+                    "$favoritesCount aplikasi dipilih. Tentukan jumlah ubin yang tersedia di layar utama.",
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = uiOnSurface.copy(alpha = .75f)
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = uiOnSurface.copy(alpha = .8f)
                 )
                 Row(
                     Modifier.fillMaxWidth(),
@@ -1783,14 +1782,14 @@ private fun SettingsScreen(
                     }
                 }
                 SettingsActionButton(
-                    "PILIH APLIKASI SEMATAN",
+                    "PILIH APLIKASI FAVORIT",
                     BrutalColors.Cyan,
                     Modifier.fillMaxWidth()
                 ) {
                     showPinnedAppPicker = true
                 }
                 SettingsActionButton(
-                    "HAPUS SEMUA SEMATAN",
+                    "HAPUS SEMUA FAVORIT",
                     BrutalColors.Yellow,
                     onClick = onClearFavorites
                 )
@@ -1921,7 +1920,7 @@ private fun SettingsScreen(
             }
         }
 
-        SettingsSectionTitle("PELUNCUR DEFAULT")
+        SettingsSectionTitle("LAUNCHER")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("APLIKASI LAYAR UTAMA DEFAULT", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
@@ -2042,7 +2041,7 @@ private fun SettingsScreen(
             onDismissRequest = { showPinnedAppPicker = false },
             title = {
                 Text(
-                    text = "PILIH APLIKASI SEMATAN",
+                    text = "PILIH APLIKASI FAVORIT",
                     fontFamily = BrutalTypography.Display,
                     fontWeight = FontWeight.Normal
                 )
