@@ -217,8 +217,8 @@ fun NeoChatNotificationTile(
                 ) {
                     Text(
                         text = item?.title ?: "NO NEW NOTIFICATIONS",
-                        fontSize = 9.sp,
-                        lineHeight = 10.sp,
+                        fontSize = 11.sp,
+                        lineHeight = 12.sp,
                         fontWeight = FontWeight.Black,
                         color = textColor,
                         maxLines = 1,
@@ -227,8 +227,8 @@ fun NeoChatNotificationTile(
                     if (item != null && item.text.isNotBlank()) {
                         Text(
                             text = item.text,
-                            fontSize = 8.sp,
-                            lineHeight = 9.sp,
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColor.copy(alpha = 0.8f),
                             maxLines = 2,
