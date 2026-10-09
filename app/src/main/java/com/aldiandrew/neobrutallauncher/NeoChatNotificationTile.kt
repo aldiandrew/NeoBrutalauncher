@@ -180,7 +180,7 @@ fun NeoChatNotificationTile(
         ) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         NeoTileDecoration(
-            label = "CHAT",
+            label = if (packageName != null) "CHAT / ${appLabel.uppercase(Locale.ENGLISH)}" else "CHAT",
             accent = BrutalColors.Yellow,
             textColor = textColor,
             modifier = Modifier.fillMaxSize(),
