@@ -194,11 +194,22 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
             .lowercase(java.util.Locale.ROOT)
         val callLikeMetadata = listOf(
             "voice call", "video call", "audio call", "incoming call",
-            "outgoing call", "calling", "ringing"
+            "outgoing call", "calling", "ringing", "call"
         ).any { metadataText.contains(it) }
 
-        if (communicationPackage && callLikeMetadata) return null
-        // A communication app without media metadata is not a reliable music source,
+        val appLabel = runCatching {
+            val appInfo = packageManager.getApplicationInfo(controller.packageName, 0)
+            packageManager.getApplicationLabel(appInfo).toString()
+        }.getOrNull()
+        val genericAppTitle = title != null && (
+            title.equals(appLabel, ignoreCase = true) ||
+                title.lowercase(java.util.Locale.ROOT) in setOf(
+                    "whatsapp", "telegram", "signal", "discord", "skype", "messenger"
+                )
+            ) && artist == null && album == null && description == null
+
+        if (communicationPackage && (callLikeMetadata || genericAppTitle)) return null
+        // A communication app without track-like metadata is not a reliable music source,
         // even if its session is surfaced as media. Voice messages with useful metadata
         // remain eligible; the package name alone never excludes a session.
         if (communicationPackage && !hasMediaMetadata) {
