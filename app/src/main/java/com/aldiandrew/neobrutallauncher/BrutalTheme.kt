@@ -46,7 +46,7 @@ object BrutalColors {
         get() = when (activePreset) {
             DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFFFFE500)
             DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
-            DesignPreset.COBALT_POP -> Color(0xFF8FA8FF)
+            DesignPreset.COBALT_POP -> Color(0xFFFFD166)
             DesignPreset.MONOCHROME -> Color(0xFFD0D0D0)
         }
 
@@ -54,7 +54,7 @@ object BrutalColors {
         get() = when (activePreset) {
             DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFFFF5C8A)
             DesignPreset.ACID_DARK -> Color(0xFFFF4FD8)
-            DesignPreset.COBALT_POP -> Color(0xFFFF8A65)
+            DesignPreset.COBALT_POP -> Color(0xFFFF9E80)
             DesignPreset.MONOCHROME -> Color(0xFF858585)
         }
 
@@ -62,7 +62,7 @@ object BrutalColors {
         get() = when (activePreset) {
             DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFF00D9FF)
             DesignPreset.ACID_DARK -> Color(0xFF8A5CFF)
-            DesignPreset.COBALT_POP -> Color(0xFF3155F5)
+            DesignPreset.COBALT_POP -> Color(0xFF9CB4FF)
             DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
         }
 
@@ -93,7 +93,7 @@ object BrutalColors {
     fun appPalette(seed: Int = 0): List<Color> {
         val base = when (activePreset) {
             DesignPreset.NEO_BRUTAL_CLASSIC -> listOf(White, Yellow, Pink, Cyan)
-            DesignPreset.ACID_DARK -> listOf(Yellow, Pink, Cyan, DarkTile)
+            DesignPreset.ACID_DARK -> listOf(Yellow, Pink, Cyan, White)
             DesignPreset.COBALT_POP -> listOf(Cyan, Yellow, Pink, White)
             DesignPreset.MONOCHROME -> listOf(White, Yellow, Pink, Cyan)
         }
