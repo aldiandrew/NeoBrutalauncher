@@ -604,6 +604,14 @@ private fun LauncherPageHost(
                     modifier = Modifier
                         .width(10.dp)
                         .height(10.dp)
+                        .clickable(
+                            onClickLabel = when (index) {
+                                0 -> "Open Home"
+                                1 -> "Open Apps"
+                                else -> "Open Live"
+                            },
+                            onClick = { onPageChange(index) }
+                        )
                         .background(
                             if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
                         )
