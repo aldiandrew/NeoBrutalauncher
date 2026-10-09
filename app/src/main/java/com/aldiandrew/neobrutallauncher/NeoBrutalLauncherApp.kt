@@ -1596,7 +1596,7 @@ private fun SettingsScreen(
         SettingsSectionTitle("TAMPILAN")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("MODE WARNA", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = uiOnSurface)
+                Text("MODE WARNA", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text("Pilih tema warna untuk tampilan launcher.", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ThemeButton("SISTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
@@ -1608,7 +1608,7 @@ private fun SettingsScreen(
 
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("GAYA HURUF", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("GAYA HURUF", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(TypographyStyle.DEFAULT, TypographyStyle.CONDENSED).forEach { style ->
                         ThemeButton(
@@ -1661,7 +1661,7 @@ private fun SettingsScreen(
             onHideStatusBarChange
         )
 
-        SettingsSectionTitle("JAM & WAKTU")
+        SettingsSectionTitle("JAM")
         SettingsSwitch("FORMAT 24 JAM", "Gunakan format waktu 24 jam di layar utama.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("TAMPILKAN AM / PM", "Tampilkan penanda AM/PM pada format 12 jam.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
         SettingsSectionTitle("ANIMASI")
@@ -1674,7 +1674,7 @@ private fun SettingsScreen(
             shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("KELANCARAN ANIMASI", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("KELANCARAN ANIMASI", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text("Atur kelancaran gerakan saat berpindah layar.", fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MotionSmoothness.values().forEach { smoothness ->
@@ -1699,7 +1699,7 @@ private fun SettingsScreen(
 
         SettingsSectionTitle("APLIKASI & WIDGET")
         SettingsSwitch("CUACA", "Tampilkan cuaca lokal. Izin lokasi diperlukan.", showWeather, BrutalColors.Cyan, onShowWeatherChange)
-        if (!locationPermissionGranted) SettingsActionButton("ALLOW WEATHER LOCATION", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
+        if (!locationPermissionGranted) SettingsActionButton("IZINKAN LOKASI UNTUK CUACA", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
 
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1806,7 +1806,7 @@ private fun SettingsScreen(
             shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("EDITOR KUTIPAN", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = uiOnSurface)
+                Text("EDITOR KUTIPAN", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(
                     "${editedQuotes.size} KUSTOM / ${NeoQuotes.allQuotes(editedQuotes).size} TOTAL",
                     fontSize = 12.sp,
@@ -1890,19 +1890,19 @@ private fun SettingsScreen(
         SettingsSectionTitle("INTEGRASI")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("AKSES NOTIFIKASI & MUSIK", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Normal, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
+                Text("AKSES NOTIFIKASI & MUSIK", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(if (notificationAccessGranted) "AKSES NOTIFIKASI AKTIF UNTUK FITUR MUSIK DAN CHAT." else "AKTIFKAN AKSES NOTIFIKASI ANDROID UNTUK FITUR MUSIK DAN CHAT.", fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink)
                 SettingsActionButton(if (notificationAccessGranted) "BUKA PENGATURAN AKSES NOTIFIKASI" else "IZINKAN AKSES MUSIK / NOTIFIKASI", if (notificationAccessGranted) BrutalColors.Yellow else BrutalColors.Yellow, onClick = onOpenNotificationAccess)
             }
         }
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("UBIN CHAT LANGSUNG", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("UBIN CHAT LANGSUNG", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text(selectedChatApp?.label?.uppercase(Locale.ENGLISH) ?: "BELUM ADA APLIKASI", fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Text("Notifikasi terbaru dari aplikasi ini akan tampil di halaman LIVE.", fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsActionButton(if (selectedChatApp == null) "PILIH APLIKASI" else "GANTI APLIKASI", BrutalColors.Yellow, Modifier.weight(1f)) { showChatAppPicker = true }
-                    if (selectedChatApp != null) SettingsActionButton("CLEAR", BrutalColors.White, Modifier.weight(.7f)) { onChatNotificationPackagesChange(emptyList()) }
+                    if (selectedChatApp != null) SettingsActionButton("HAPUS", BrutalColors.White, Modifier.weight(.7f)) { onChatNotificationPackagesChange(emptyList()) }
                 }
             }
         }
@@ -1910,7 +1910,7 @@ private fun SettingsScreen(
         SettingsSectionTitle("CADANGAN & PEMULIHAN")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("CADANGKAN / PULIHKAN DATA", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = uiOnSurface)
+                Text("CADANGKAN / PULIHKAN DATA", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text("Cadangan mencakup pengaturan launcher, tata letak ubin, aplikasi sematan, catatan/tugas, dan paket ikon. Kata sandi serta isi notifikasi tidak disertakan.", fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsActionButton("CADANGKAN", BrutalColors.Cyan, Modifier.weight(1f), onBackup)
@@ -1923,9 +1923,9 @@ private fun SettingsScreen(
         SettingsSectionTitle("LAUNCHER")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 3.dp, shadowY = 3.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("APLIKASI LAYAR UTAMA DEFAULT", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("APLIKASI LAYAR UTAMA DEFAULT", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
                 Text("Jadikan Neo Brutal Launcher sebagai aplikasi layar utama bawaan Android.", fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium)
-                SettingsActionButton("BUKA PENGATURAN LAYAR UTAMA", BrutalColors.Yellow) { context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                SettingsActionButton("PILIH APLIKASI LAYAR UTAMA", BrutalColors.Yellow) { context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
             }
         }
 
