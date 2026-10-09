@@ -101,14 +101,18 @@ fun BrutalToggle(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val trackColor = if (checked) BrutalColors.Lime else {
+        if (isDark) BrutalColors.DarkTile else BrutalColors.White
+    }
+    val outlineColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+    val thumbColor = if (isDark && !checked) BrutalColors.DarkWhite else BrutalColors.Ink
+
     Box(
         modifier = modifier
             .size(width = 56.dp, height = 30.dp)
-            .border(NeoBrutalTokens.Border.Primary, BrutalColors.Ink, RoundedCornerShape(0.dp))
-            .background(
-                if (checked) accent else BrutalColors.White,
-                RoundedCornerShape(0.dp)
-            )
+            .border(NeoBrutalTokens.Border.Primary, outlineColor, RoundedCornerShape(0.dp))
+            .background(trackColor, RoundedCornerShape(0.dp))
             .clickable { onCheckedChange(!checked) },
         contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart
     ) {
@@ -116,8 +120,8 @@ fun BrutalToggle(
             modifier = Modifier
                 .padding(NeoBrutalTokens.Spacing.Micro)
                 .size(22.dp)
-                .border(NeoBrutalTokens.Border.Secondary, BrutalColors.Ink, RoundedCornerShape(0.dp))
-                .background(BrutalColors.Ink, RoundedCornerShape(0.dp))
+                .border(NeoBrutalTokens.Border.Secondary, outlineColor, RoundedCornerShape(0.dp))
+                .background(thumbColor, RoundedCornerShape(0.dp))
         )
     }
 }
