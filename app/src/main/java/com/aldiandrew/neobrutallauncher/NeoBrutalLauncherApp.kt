@@ -1589,8 +1589,8 @@ private fun SettingsScreen(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = uiOnSurface) }
-            BrutalBlock(modifier = Modifier.weight(1f), background = BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
-                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = NeoBrutalTokens.Type.Title, fontWeight = FontWeight.Normal, color = BrutalColors.Ink)
+            BrutalBlock(modifier = Modifier.weight(1f), background = uiSurface, borderWidth = NeoBrutalTokens.Border.Primary, borderColor = uiOnSurface, shadowX = NeoBrutalTokens.Shadow.Medium, shadowY = NeoBrutalTokens.Shadow.Medium) {
+                Text("SETTINGS", fontFamily = BrutalTypography.Display, fontSize = NeoBrutalTokens.Type.Title, fontWeight = FontWeight.Normal, color = uiOnSurface)
             }
         }
 
@@ -2135,32 +2135,30 @@ private fun SettingsSectionTitle(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 5.dp, bottom = 1.dp),
+            .padding(top = 12.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
-        BrutalBlock(
-            background = BrutalColors.Yellow,
-            borderWidth = 2.dp,
-            shadowX = 3.dp,
-            shadowY = 3.dp
-        ) {
-            Text(
-                text = title,
-                modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-                fontFamily = BrutalTypography.Display,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                letterSpacing = 1.1.sp,
-                color = BrutalColors.Ink,
-                maxLines = 1
-            )
-        }
+        Box(
+            modifier = Modifier
+                .width(5.dp)
+                .height(20.dp)
+                .background(BrutalColors.Yellow)
+        )
+        Text(
+            text = title,
+            fontFamily = BrutalTypography.Display,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.1.sp,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1
+        )
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(2.dp)
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.72f))
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.22f))
         )
     }
 }
@@ -2173,36 +2171,45 @@ private fun SettingsSwitch(
     background: Color,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val surface = MaterialTheme.colorScheme.surface
+    val onSurface = MaterialTheme.colorScheme.onSurface
     BrutalBlock(
         modifier = Modifier.fillMaxWidth(),
-        background = background,
-        borderWidth = 3.dp,
-        shadowX = 5.dp,
-        shadowY = 5.dp
+        background = surface,
+        borderWidth = NeoBrutalTokens.Border.Primary,
+        borderColor = onSurface,
+        shadowX = NeoBrutalTokens.Shadow.Medium,
+        shadowY = NeoBrutalTokens.Shadow.Medium
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = title,
                     fontFamily = BrutalTypography.Display,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
+                    fontSize = 15.sp,
+                    lineHeight = 19.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = onSurface
                 )
-                Spacer(Modifier.height(4.dp))
                 Text(
                     text = description,
                     fontSize = 11.sp,
                     lineHeight = 15.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Normal,
+                    color = onSurface.copy(alpha = 0.72f)
                 )
             }
-
             BrutalToggle(
                 checked = checked,
-                accent = background,
+                accent = BrutalColors.Yellow,
                 onCheckedChange = onCheckedChange
             )
         }
