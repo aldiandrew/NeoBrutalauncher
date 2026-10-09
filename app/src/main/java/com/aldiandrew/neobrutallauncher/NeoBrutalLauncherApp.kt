@@ -92,6 +92,7 @@ fun NeoBrutalLauncherApp() {
     var onboardingCompleted by remember { mutableStateOf(preferences.onboardingCompleted()) }
 
     var themePreference by remember { mutableStateOf(preferences.theme()) }
+    var designPreset by remember { mutableStateOf(preferences.designPreset()) }
     var use24Hour by remember { mutableStateOf(preferences.use24Hour()) }
     var showAmPm by remember { mutableStateOf(preferences.showAmPm()) }
     var homeAppCount by remember { mutableStateOf(preferences.homeAppCount()) }
@@ -106,6 +107,7 @@ fun NeoBrutalLauncherApp() {
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var hideStatusBar by remember { mutableStateOf(preferences.hideStatusBar()) }
+    var transparentStatusBar by remember { mutableStateOf(preferences.transparentStatusBar()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -257,8 +259,10 @@ fun NeoBrutalLauncherApp() {
         !onboardingCompleted -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 NeoOnboardingScreen(
                     apps = apps,
@@ -303,12 +307,15 @@ fun NeoBrutalLauncherApp() {
         settingsOpen -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     SettingsScreen(
                     themePreference = themePreference,
+                    designPreset = designPreset,
                     use24Hour = use24Hour,
                     showAmPm = showAmPm,
                     homeAppCount = homeAppCount,
@@ -323,6 +330,7 @@ fun NeoBrutalLauncherApp() {
                     favorites = favorites,
                     favoritesCount = favorites.size,
                     hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
                     chatNotificationPackages = selectedChatPackages,
@@ -331,6 +339,10 @@ fun NeoBrutalLauncherApp() {
                     onThemeChange = {
                         themePreference = it
                         preferences.setTheme(it)
+                    },
+                    onDesignPresetChange = {
+                        designPreset = it
+                        preferences.setDesignPreset(it)
                     },
                     onUse24HourChange = {
                         use24Hour = it
@@ -433,6 +445,10 @@ fun NeoBrutalLauncherApp() {
                         hideStatusBar = it
                         preferences.setHideStatusBar(it)
                     },
+                    onTransparentStatusBarChange = {
+                        transparentStatusBar = it
+                        preferences.setTransparentStatusBar(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -458,8 +474,10 @@ fun NeoBrutalLauncherApp() {
         else -> {
             NeoBrutalTheme(
                 themePreference = themePreference,
+                designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     LauncherPageHost(
@@ -602,16 +620,29 @@ private fun LauncherPageHost(
             repeat(3) { index ->
                 Box(
                     modifier = Modifier
-                        .width(10.dp)
-                        .height(10.dp)
-                        .background(
-                            if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = BrutalColors.Yellow
-                        )
-                )
+                        .size(32.dp)
+                        .clickable(
+                            onClickLabel = when (index) {
+                                0 -> "Open Home"
+                                1 -> "Open Apps"
+                                else -> "Open Live"
+                            },
+                            onClick = { onPageChange(index) }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .background(
+                                if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = BrutalColors.Yellow
+                            )
+                    )
+                }
             }
             Text(
                 text = when (pagerState.currentPage) {
@@ -743,7 +774,7 @@ private fun HomeScreen(
     }
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
-    val palette = remember { BrutalColors.appPalette(0) }
+    val palette = remember(BrutalColors.activePreset) { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
@@ -779,14 +810,27 @@ private fun HomeScreen(
                         shadowX = 4.dp,
                         shadowY = 4.dp
                     ) {
-                        Text(
-                            text = "// Home",
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            color = BrutalColors.Ink
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(1.dp)
+                        ) {
+                            Text(
+                                text = "NEO",
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = 23.sp,
+                                lineHeight = 24.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.2.sp,
+                                color = BrutalColors.Ink
+                            )
+                            Text(
+                                text = "BRUTAL LAUNCHER / 01",
+                                fontSize = 8.sp,
+                                lineHeight = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.7.sp,
+                                color = BrutalColors.Ink
+                            )
+                        }
                     }
 
                     Box(
@@ -848,7 +892,8 @@ private fun HomeScreen(
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = tileSizes[id] ?: defaultSize
-                                val tileColor = palette[index % palette.size]
+                                val stableVariant = Math.floorMod(app.packageName.hashCode(), 5)
+                                val tileColor = palette[Math.floorMod(app.packageName.hashCode(), palette.size)]
 
                                 add(
                                     NeoTileSpec(
@@ -863,7 +908,7 @@ private fun HomeScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentMode = appTileContentMode,
                                             tileSize = size,
-                                            variant = index
+                                            variant = stableVariant
                                         )
                                     }
                                 )
@@ -883,11 +928,11 @@ private fun HomeScreen(
                                     if (shortcutApp != null) {
                                         AppTile(
                                             app = shortcutApp,
-                                            background = palette[launchableApps.size % palette.size],
+                                            background = palette[Math.floorMod(shortcutApp.packageName.hashCode(), palette.size)],
                                             modifier = Modifier.fillMaxSize(),
                                             contentMode = appTileContentMode,
                                             tileSize = shortcutSize,
-                                            variant = launchableApps.size
+                                            variant = Math.floorMod(shortcutApp.packageName.hashCode(), 5)
                                         )
                                     } else {
                                         BrutalBlock(
@@ -938,33 +983,56 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "status-row") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-
-                    Box(
-                        modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
-                    ) {
-                        NeoWeatherTile(
-                            context = context,
-                            refreshToken = weatherRefreshToken,
-                            modifier = Modifier.fillMaxSize()
+            item(key = "system-tiles") {
+                NeoTileGrid(
+                    tiles = buildList {
+                        add(
+                            NeoTileSpec(
+                                id = "system_battery",
+                                size = NeoTileSize.SMALL,
+                                label = "BATTERY"
+                            ) {
+                                BatteryTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.Yellow
+                                )
+                            }
                         )
-                    }
-
-                    BatteryTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Yellow
-                    )
-
-                    NeoNetworkTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f)
-                    )
-                }
+                        add(
+                            NeoTileSpec(
+                                id = "system_network",
+                                size = NeoTileSize.SMALL,
+                                label = "NETWORK"
+                            ) {
+                                NeoNetworkTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        )
+                        if (showWeather) {
+                            add(
+                                NeoTileSpec(
+                                    id = "system_weather",
+                                    size = NeoTileSize.SMALL,
+                                    label = "WEATHER",
+                                    onClick = { weatherRefreshToken++ }
+                                ) {
+                                    NeoWeatherTile(
+                                        context = context,
+                                        refreshToken = weatherRefreshToken,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    positions = emptyMap(),
+                    onPositionsChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    gap = 8.dp
+                )
             }
 
             item(key = "music") {
@@ -1472,22 +1540,11 @@ private fun AppTile(
                                 )
                             }
                         } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    bitmap = iconBitmap,
-                                    contentDescription = app.label,
-                                    modifier = Modifier.size(iconSize)
-                                )
+                            val appTitle: @Composable (Modifier, TextAlign) -> Unit = { textModifier, alignment ->
                                 Text(
                                     text = app.label.uppercase(),
-                                    modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Start,
+                                    modifier = textModifier,
+                                    textAlign = alignment,
                                     fontFamily = BrutalTypography.Display,
                                     fontSize = maxTextSize,
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
@@ -1496,6 +1553,89 @@ private fun AppTile(
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                            }
+                            when (Math.floorMod(variant, 5)) {
+                                0 -> Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                    appTitle(Modifier.weight(1f), TextAlign.Start)
+                                }
+
+                                1 -> Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    appTitle(Modifier.weight(1f), TextAlign.Start)
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                }
+
+                                2 -> Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                    appTitle(Modifier.weight(1f), TextAlign.Center)
+                                }
+
+                                3 -> Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                    Spacer(Modifier.height(2.dp))
+                                    appTitle(Modifier.fillMaxWidth(), TextAlign.Center)
+                                }
+
+                                else -> Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 5.dp)
+                                ) {
+                                    Image(
+                                        bitmap = iconBitmap,
+                                        contentDescription = app.label,
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(iconSize)
+                                    )
+                                    appTitle(
+                                        Modifier
+                                            .align(Alignment.BottomStart)
+                                            .fillMaxWidth()
+                                            .padding(end = iconSize + 6.dp),
+                                        TextAlign.Start
+                                    )
+                                }
                             }
                         }
                     }
@@ -1510,6 +1650,7 @@ private fun SettingsScreen(
     apps: List<AppInfo>,
     chatNotificationPackages: List<String>,
     themePreference: ThemePreference,
+    designPreset: DesignPreset,
     use24Hour: Boolean,
     showAmPm: Boolean,
     homeAppCount: Int,
@@ -1524,11 +1665,13 @@ private fun SettingsScreen(
     favorites: Set<String>,
     favoritesCount: Int,
     hideStatusBar: Boolean,
+    transparentStatusBar: Boolean,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
     onChatNotificationPackagesChange: (List<String>) -> Unit,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onDesignPresetChange: (DesignPreset) -> Unit,
     onUse24HourChange: (Boolean) -> Unit,
     onShowAmPmChange: (Boolean) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
@@ -1543,6 +1686,7 @@ private fun SettingsScreen(
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
     onHideStatusBarChange: (Boolean) -> Unit,
+    onTransparentStatusBarChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1603,6 +1747,28 @@ private fun SettingsScreen(
                     ThemeButton("SYSTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
                     ThemeButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
                     ThemeButton("DARK", themePreference == ThemePreference.DARK, BrutalColors.Pink, Modifier.weight(1f)) { onThemeChange(ThemePreference.DARK) }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text("COLOR PRESET", fontFamily = BrutalTypography.Display, fontSize = 14.sp, fontWeight = FontWeight.Normal, color = uiOnSurface)
+                DesignPreset.values().toList().chunked(2).forEach { rowPresets ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        rowPresets.forEach { preset ->
+                            val presetColor = when (preset) {
+                                DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFFFFE500)
+                                DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
+                                DesignPreset.COBALT_POP -> Color(0xFF9CB4FF)
+                                DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
+                            }
+                            ThemeButton(
+                                preset.label,
+                                designPreset == preset,
+                                presetColor,
+                                Modifier.weight(1f)
+                            ) {
+                                onDesignPresetChange(preset)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1666,6 +1832,14 @@ private fun SettingsScreen(
             hideStatusBar,
             BrutalColors.Yellow,
             onHideStatusBarChange
+        )
+
+        SettingsSwitch(
+            "TRANSPARENT STATUS BAR",
+            "Use a transparent Android status bar background without hiding its icons.",
+            transparentStatusBar,
+            BrutalColors.Cyan,
+            onTransparentStatusBarChange
         )
 
         SettingsSectionTitle("QUOTES")
@@ -2132,15 +2306,37 @@ private fun SettingsScreen(
 
 @Composable
 private fun SettingsSectionTitle(title: String) {
-    Text(
-        text = title,
-        modifier = Modifier.padding(horizontal = 2.dp),
-        fontFamily = BrutalTypography.Display,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        letterSpacing = 1.5.sp,
-        color = MaterialTheme.colorScheme.onBackground
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BrutalBlock(
+            background = BrutalColors.Yellow,
+            borderWidth = 2.dp,
+            shadowX = 0.dp,
+            shadowY = 0.dp
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                fontFamily = BrutalTypography.Display,
+                fontSize = 13.sp,
+                lineHeight = 15.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.1.sp,
+                color = BrutalColors.Ink
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.onBackground)
+        )
+    }
 }
 
 @Composable

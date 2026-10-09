@@ -10,6 +10,13 @@ enum class ThemePreference {
     DARK
 }
 
+enum class DesignPreset(val label: String) {
+    NEO_BRUTAL_CLASSIC("NEO-BRUTAL CLASSIC"),
+    ACID_DARK("ACID DARK"),
+    COBALT_POP("COBALT POP"),
+    MONOCHROME("MONOCHROME")
+}
+
 class LauncherPreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences(
@@ -27,6 +34,19 @@ class LauncherPreferences(context: Context) {
 
     fun setTheme(value: ThemePreference) {
         prefs.edit().putString(KEY_THEME, value.name).apply()
+    }
+
+    fun designPreset(): DesignPreset {
+        return runCatching {
+            DesignPreset.valueOf(
+                prefs.getString(KEY_DESIGN_PRESET, DesignPreset.NEO_BRUTAL_CLASSIC.name)
+                    ?: DesignPreset.NEO_BRUTAL_CLASSIC.name
+            )
+        }.getOrDefault(DesignPreset.NEO_BRUTAL_CLASSIC)
+    }
+
+    fun setDesignPreset(value: DesignPreset) {
+        prefs.edit().putString(KEY_DESIGN_PRESET, value.name).apply()
     }
 
     fun use24Hour(): Boolean {
@@ -334,6 +354,12 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_HIDE_STATUS_BAR, value).apply()
     }
 
+    fun transparentStatusBar(): Boolean = prefs.getBoolean(KEY_TRANSPARENT_STATUS_BAR, true)
+
+    fun setTransparentStatusBar(value: Boolean) {
+        prefs.edit().putBoolean(KEY_TRANSPARENT_STATUS_BAR, value).apply()
+    }
+
 
     fun customQuotes(): List<String> {
         val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
@@ -363,6 +389,9 @@ class LauncherPreferences(context: Context) {
         val root = JSONObject()
             .put("schemaVersion", 1)
             .put("theme", theme().name)
+            .put("designPreset", designPreset().name)
+            .put("hideStatusBar", hideStatusBar())
+            .put("transparentStatusBar", transparentStatusBar())
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
                         .put("homeAppCount", homeAppCount())
@@ -398,6 +427,9 @@ class LauncherPreferences(context: Context) {
             val root = JSONObject(raw)
             require(root.optInt("schemaVersion", -1) == 1)
             val theme = runCatching { ThemePreference.valueOf(root.optString("theme")) }.getOrDefault(ThemePreference.SYSTEM)
+            val designPreset = runCatching {
+                DesignPreset.valueOf(root.optString("designPreset", DesignPreset.NEO_BRUTAL_CLASSIC.name))
+            }.getOrDefault(DesignPreset.NEO_BRUTAL_CLASSIC)
             val contentMode = runCatching { TileContentMode.valueOf(root.optString("appTileContentMode")) }.getOrDefault(TileContentMode.ICON_TEXT)
             val typography = when (root.optString("typographyStyle")) {
                 TypographyStyle.CONDENSED.name -> TypographyStyle.CONDENSED
@@ -484,6 +516,7 @@ class LauncherPreferences(context: Context) {
 
             val editor = prefs.edit()
                 .putString(KEY_THEME, theme.name)
+                .putString(KEY_DESIGN_PRESET, designPreset.name)
                 .putBoolean(KEY_24_HOUR, root.optBoolean("use24Hour", true))
                 .putBoolean(KEY_SHOW_AM_PM, root.optBoolean("showAmPm", true))
                                 .putInt(KEY_HOME_APP_COUNT, count)
@@ -497,6 +530,7 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
                 .putBoolean(KEY_HIDE_STATUS_BAR, root.optBoolean("hideStatusBar", false))
+                .putBoolean(KEY_TRANSPARENT_STATUS_BAR, root.optBoolean("transparentStatusBar", true))
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
@@ -513,6 +547,7 @@ class LauncherPreferences(context: Context) {
     fun resetCustomizations() {
         prefs.edit().apply {
             remove(KEY_THEME)
+            remove(KEY_DESIGN_PRESET)
             remove("show_date")
             remove("show_tagline")
             remove("show_app_count")
@@ -538,6 +573,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
             remove(KEY_HIDE_STATUS_BAR)
+            remove(KEY_TRANSPARENT_STATUS_BAR)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
         }
@@ -604,6 +640,7 @@ class LauncherPreferences(context: Context) {
 
     companion object {
         private const val KEY_THEME = "theme"
+        private const val KEY_DESIGN_PRESET = "design_preset"
         private const val KEY_24_HOUR = "use_24_hour"
         private const val KEY_SHOW_AM_PM = "show_am_pm"
         private const val KEY_HOME_APP_COUNT = "home_app_count"
@@ -627,6 +664,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
+        private const val KEY_TRANSPARENT_STATUS_BAR = "transparent_status_bar"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_LAST_MUSIC_PACKAGE = "last_music_package"

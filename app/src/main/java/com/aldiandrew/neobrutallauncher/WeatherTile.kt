@@ -103,22 +103,6 @@ fun NeoWeatherTile(
             val compact = minOf(maxWidth, maxHeight)
 
             if (currentWeather != null) {
-                val locationSize = when {
-                    compact < 90.dp -> 8.sp
-                    compact < 155.dp -> 10.sp
-                    else -> 12.sp
-                }
-                val temperatureSize = when {
-                    compact < 90.dp -> 26.sp
-                    compact < 155.dp -> 34.sp
-                    else -> 48.sp
-                }
-                val conditionSize = when {
-                    compact < 90.dp -> 8.sp
-                    compact < 155.dp -> 10.sp
-                    else -> 12.sp
-                }
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -140,21 +124,17 @@ fun NeoWeatherTile(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = currentWeather.locationName.uppercase(Locale.ENGLISH),
-                        modifier = Modifier.fillMaxWidth(),
-                        fontSize = if (compact < 90.dp) 7.sp else 9.sp,
-                        lineHeight = if (compact < 90.dp) 8.sp else 10.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
                         text = currentWeather.temperatureC.toInt().toString() + "°",
-                        fontSize = if (compact < 90.dp) 20.sp else 26.sp,
-                        lineHeight = if (compact < 90.dp) 21.sp else 27.sp,
+                        fontSize = when {
+                            compact < 90.dp -> 20.sp
+                            compact < 155.dp -> 26.sp
+                            else -> 34.sp
+                        },
+                        lineHeight = when {
+                            compact < 90.dp -> 21.sp
+                            compact < 155.dp -> 27.sp
+                            else -> 35.sp
+                        },
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1,
@@ -165,29 +145,27 @@ fun NeoWeatherTile(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(10.dp),
+                        .padding(6.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "WEATHER",
-                        fontSize = if (compact < 100.dp) 12.sp else 20.sp,
-                        lineHeight = if (compact < 100.dp) 13.sp else 22.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "Weather unavailable",
+                        tint = BrutalColors.Ink,
+                        modifier = Modifier.size(if (compact < 90.dp) 22.dp else 28.dp)
                     )
-                    Spacer(Modifier.height(5.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = when {
-                            !locationGranted -> "ALLOW LOCATION IN SETTINGS"
+                            !locationGranted -> "ALLOW LOCATION"
                             loading -> "LOADING..."
                             error != null -> "TAP TO RETRY"
                             else -> "TAP TO REFRESH"
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        fontSize = if (compact < 100.dp) 8.sp else 10.sp,
-                        lineHeight = 12.sp,
+                        fontSize = if (compact < 100.dp) 7.sp else 9.sp,
+                        lineHeight = 10.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 2,
