@@ -43,7 +43,6 @@ fun LivePage(
     BackHandler(onBack = onOpenHome)
 
     val context = androidx.compose.ui.platform.LocalContext.current
-    val preferences = remember { LauncherPreferences(context) }
     var showChatAppPicker by remember { mutableStateOf(false) }
     val chatCandidates = remember(apps) {
         apps.groupBy { it.packageName }
@@ -60,29 +59,28 @@ fun LivePage(
     ) {
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
+    val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val accentSurface = BrutalColors.Yellow
     val pageText = MaterialTheme.colorScheme.onBackground
     val headerText = BrutalColors.Ink
-    val liveClockTileHeight = 126.dp
+    val liveClockTileHeight = 148.dp
 
     val dateText = SimpleDateFormat(
         "EEEE, d MMMM yyyy",
         Locale.getDefault()
     ).format(now)
 
-    val notes = remember { preferences.noteItems().takeLast(3).reversed() }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-             .background(Color.Transparent)
+            .background(Color.Transparent)
             .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp,
-                start = 18.dp,
-                end = 18.dp
+                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 16.dp,
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 80.dp,
+                start = 20.dp,
+                end = 20.dp
             ),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             BrutalBlock(
@@ -90,12 +88,11 @@ fun LivePage(
                 background = accentSurface,
                 borderWidth = 4.dp,
                 borderColor = BrutalColors.Ink,
-                shadowX = 7.dp,
-                shadowY = 7.dp,
+                shadowX = 6.dp,
+                shadowY = 6.dp,
                 shadowColor = BrutalColors.Ink
             ) {
-
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = "LIVE",
                         fontFamily = BrutalTypography.Display,
@@ -105,12 +102,20 @@ fun LivePage(
                     )
                     Text(
                         text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
-                        fontSize = NeoBrutalTokens.Type.Hero,
-                        lineHeight = NeoBrutalTokens.Type.Hero,
+                        fontSize = 38.sp,
+                        lineHeight = 40.sp,
                         fontWeight = FontWeight.Black,
                         color = headerText
                     )
-                    Text(text = dateText, fontSize = NeoBrutalTokens.Type.Label, fontWeight = FontWeight.Black, color = headerText)
+                    Text(
+                        text = dateText,
+                        fontSize = 12.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        color = headerText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -129,8 +134,8 @@ fun LivePage(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = BrutalColors.Yellow,
-                textColor = BrutalColors.Ink,
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
             )
         }
@@ -139,50 +144,9 @@ fun LivePage(
             NeoMusicTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Cyan,
-                textColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
-        }
-
-        item {
-            BrutalBlock(
-                modifier = Modifier.fillMaxWidth(),
-                background = MaterialTheme.colorScheme.background,
-                borderWidth = 3.dp,
-                borderColor = MaterialTheme.colorScheme.onBackground,
-                shadowX = 0.dp,
-                shadowY = 0.dp
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = "LATEST NOTES",
-                        fontFamily = BrutalTypography.Display,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = pageText
-                    )
-                    if (notes.isEmpty()) {
-                        Text(
-                            text = "NO LOCAL ACTIVITY YET",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Black,
-                            color = pageText
-                        )
-                    } else {
-                        notes.forEach {
-                            Text(
-                                text = "NOTE  /  " + it.text,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = pageText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                    }
-                }
-            }
         }
 
         item {
@@ -206,7 +170,7 @@ fun LivePage(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "SELECT THE APP USED BY THE LIVE CHAT TILE.",
                         fontSize = 10.sp,
@@ -221,7 +185,7 @@ fun LivePage(
                     } else {
                         LazyColumn(
                             modifier = Modifier.height(360.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(
                                 items = chatCandidates,
