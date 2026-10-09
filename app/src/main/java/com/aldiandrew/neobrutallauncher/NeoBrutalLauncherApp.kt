@@ -892,7 +892,7 @@ private fun HomeScreen(
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = tileSizes[id] ?: defaultSize
-                                val stableVariant = Math.floorMod(app.packageName.hashCode(), 5)
+                                val stableVariant = appTileLayoutVariant(app, size)
                                 val tileColor = palette[Math.floorMod(app.packageName.hashCode(), palette.size)]
 
                                 add(
@@ -932,7 +932,7 @@ private fun HomeScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentMode = appTileContentMode,
                                             tileSize = shortcutSize,
-                                            variant = Math.floorMod(shortcutApp.packageName.hashCode(), 5)
+                                            variant = appTileLayoutVariant(shortcutApp, shortcutSize)
                                         )
                                     } else {
                                         BrutalBlock(
@@ -1441,6 +1441,12 @@ fun NeoQuoteTile(
     }
 }
 
+private fun appTileLayoutVariant(app: AppInfo, tileSize: NeoTileSize): Int {
+    // Stable per app + size: no random layout changes across recomposition or restarts.
+    val layoutKey = app.packageName + "/" + app.activityName + ":" + tileSize.name
+    return Math.floorMod(layoutKey.hashCode(), 5)
+}
+
 @Composable
 private fun AppTile(
     app: AppInfo,
@@ -1454,20 +1460,20 @@ private fun AppTile(
         val iconBitmap = remember(app.packageName, app.icon) {
             app.icon.toBitmap(64, 64).asImageBitmap()
         }
-
+        val compactTile = tileSize == NeoTileSize.SMALL
         val iconSize = when (tileSize) {
-            NeoTileSize.SMALL -> 28.dp
-            NeoTileSize.HORIZONTAL -> 30.dp
-            NeoTileSize.THREE_BY_ONE -> 30.dp
-            NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.78f, 78.dp)
+            NeoTileSize.SMALL -> minOf(maxWidth * 0.34f, maxHeight * 0.36f, 26.dp)
+            NeoTileSize.HORIZONTAL -> minOf(maxHeight * 0.38f, 30.dp)
+            NeoTileSize.THREE_BY_ONE -> minOf(maxHeight * 0.42f, 34.dp)
+            NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.72f, 72.dp)
         }
-
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
             NeoTileSize.HORIZONTAL -> 15.sp
-            NeoTileSize.THREE_BY_ONE -> 23.sp
-            NeoTileSize.FOUR_BY_ONE -> 30.sp
+            NeoTileSize.THREE_BY_ONE -> if (maxWidth < 220.dp) 18.sp else 23.sp
+            NeoTileSize.FOUR_BY_ONE -> if (maxWidth < 300.dp) 23.sp else 30.sp
         }
+        val textMaxLines = if (compactTile) 1 else 2
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1505,42 +1511,15 @@ private fun AppTile(
                                 lineHeight = (maxTextSize.value * 1.02f).sp,
                                 fontWeight = FontWeight.Black,
                                 color = BrutalColors.Ink,
-                                maxLines = 2,
+                                maxLines = textMaxLines,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
                     TileContentMode.ICON_TEXT -> {
-                        if (tileSize == NeoTileSize.SMALL) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Image(
-                                    bitmap = iconBitmap,
-                                    contentDescription = app.label,
-                                    modifier = Modifier.size(iconSize)
-                                )
-                                Spacer(Modifier.height(3.dp))
-                                Text(
-                                    text = app.label.uppercase(),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = BrutalTypography.Display,
-                                    fontSize = maxTextSize,
-                                    lineHeight = (maxTextSize.value * 1.02f).sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        } else {
-                            val appTitle: @Composable (Modifier, TextAlign) -> Unit = { textModifier, alignment ->
+                        val appTitle: @Composable (Modifier, TextAlign, Int) -> Unit =
+                            { textModifier, alignment, lines ->
                                 Text(
                                     text = app.label.uppercase(),
                                     modifier = textModifier,
@@ -1550,91 +1529,218 @@ private fun AppTile(
                                     lineHeight = (maxTextSize.value * 1.02f).sp,
                                     fontWeight = FontWeight.Black,
                                     color = BrutalColors.Ink,
-                                    maxLines = 2,
+                                    maxLines = lines,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            when (Math.floorMod(variant, 5)) {
-                                0 -> Row(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier.size(iconSize)
-                                    )
-                                    appTitle(Modifier.weight(1f), TextAlign.Start)
-                                }
+                        val appIcon: @Composable (Modifier) -> Unit = { iconModifier ->
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = app.label,
+                                modifier = iconModifier.size(iconSize)
+                            )
+                        }
+                        val layout = Math.floorMod(variant, 5)
 
-                                1 -> Row(
+                        when (tileSize) {
+                            NeoTileSize.SMALL -> {
+                                // Five compact compositions; all keep the icon and name legible.
+                                Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .padding(5.dp)
                                 ) {
-                                    appTitle(Modifier.weight(1f), TextAlign.Start)
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier.size(iconSize)
-                                    )
+                                    when (layout) {
+                                        0 -> {
+                                            appIcon(Modifier.align(Alignment.TopCenter))
+                                            appTitle(
+                                                Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .fillMaxWidth(),
+                                                TextAlign.Center,
+                                                1
+                                            )
+                                        }
+                                        1 -> {
+                                            appIcon(Modifier.align(Alignment.TopStart))
+                                            appTitle(
+                                                Modifier
+                                                    .align(Alignment.BottomStart)
+                                                    .fillMaxWidth(),
+                                                TextAlign.Start,
+                                                1
+                                            )
+                                        }
+                                        2 -> {
+                                            appIcon(Modifier.align(Alignment.TopEnd))
+                                            appTitle(
+                                                Modifier
+                                                    .align(Alignment.BottomStart)
+                                                    .fillMaxWidth()
+                                                    .padding(end = iconSize + 2.dp),
+                                                TextAlign.Start,
+                                                1
+                                            )
+                                        }
+                                        3 -> {
+                                            appTitle(
+                                                Modifier
+                                                    .align(Alignment.TopStart)
+                                                    .fillMaxWidth()
+                                                    .padding(end = iconSize + 2.dp),
+                                                TextAlign.Start,
+                                                1
+                                            )
+                                            appIcon(Modifier.align(Alignment.BottomEnd))
+                                        }
+                                        else -> {
+                                            appIcon(Modifier.align(Alignment.CenterStart))
+                                            appTitle(
+                                                Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .fillMaxWidth(0.82f),
+                                                TextAlign.End,
+                                                1
+                                            )
+                                        }
+                                    }
                                 }
+                            }
 
-                                2 -> Row(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier.size(iconSize)
-                                    )
-                                    appTitle(Modifier.weight(1f), TextAlign.Center)
-                                }
-
-                                3 -> Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 5.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
-                                        modifier = Modifier.size(iconSize)
-                                    )
-                                    Spacer(Modifier.height(2.dp))
-                                    appTitle(Modifier.fillMaxWidth(), TextAlign.Center)
-                                }
-
-                                else -> Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 5.dp)
-                                ) {
-                                    Image(
-                                        bitmap = iconBitmap,
-                                        contentDescription = app.label,
+                            NeoTileSize.HORIZONTAL -> {
+                                if (maxHeight < 66.dp || maxWidth < 130.dp) {
+                                    Row(
+                                        modifier = Modifier.fillMaxSize().padding(6.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        appIcon(Modifier)
+                                        appTitle(Modifier.weight(1f), TextAlign.Start, 1)
+                                    }
+                                } else {
+                                    Box(
                                         modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(iconSize)
-                                    )
-                                    appTitle(
-                                        Modifier
-                                            .align(Alignment.BottomStart)
-                                            .fillMaxWidth()
-                                            .padding(end = iconSize + 6.dp),
-                                        TextAlign.Start
-                                    )
+                                            .fillMaxSize()
+                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    ) {
+                                        when (layout) {
+                                            0 -> Row(
+                                                Modifier.fillMaxSize(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                appIcon(Modifier)
+                                                appTitle(Modifier.weight(1f), TextAlign.Start, 2)
+                                            }
+                                            1 -> Row(
+                                                Modifier.fillMaxSize(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                appTitle(Modifier.weight(1f), TextAlign.Start, 2)
+                                                appIcon(Modifier)
+                                            }
+                                            2 -> {
+                                                appIcon(Modifier.align(Alignment.TopStart))
+                                                appTitle(
+                                                    Modifier.align(Alignment.BottomEnd).fillMaxWidth(0.78f),
+                                                    TextAlign.End,
+                                                    1
+                                                )
+                                            }
+                                            3 -> {
+                                                appTitle(
+                                                    Modifier.align(Alignment.TopStart).fillMaxWidth(0.78f),
+                                                    TextAlign.Start,
+                                                    1
+                                                )
+                                                appIcon(Modifier.align(Alignment.BottomEnd))
+                                            }
+                                            else -> Row(
+                                                Modifier.fillMaxSize(),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                appIcon(Modifier)
+                                                appTitle(Modifier.weight(1f), TextAlign.Center, 2)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            NeoTileSize.THREE_BY_ONE,
+                            NeoTileSize.FOUR_BY_ONE -> {
+                                // Width/height checks keep the selected composition from colliding.
+                                if (maxHeight < 66.dp || maxWidth < 190.dp) {
+                                    Row(
+                                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        appIcon(Modifier)
+                                        appTitle(Modifier.weight(1f), TextAlign.Start, 2)
+                                    }
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(
+                                                horizontal = if (tileSize == NeoTileSize.FOUR_BY_ONE) 14.dp else 9.dp,
+                                                vertical = 7.dp
+                                            )
+                                    ) {
+                                        when (layout) {
+                                            0 -> Row(
+                                                Modifier.fillMaxSize(),
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                appIcon(Modifier)
+                                                appTitle(Modifier.weight(1f), TextAlign.Start, 2)
+                                            }
+                                            1 -> {
+                                                appTitle(
+                                                    Modifier.align(Alignment.CenterStart)
+                                                        .fillMaxWidth(0.76f)
+                                                        .padding(end = iconSize + 8.dp),
+                                                    TextAlign.Start,
+                                                    2
+                                                )
+                                                appIcon(Modifier.align(Alignment.CenterEnd))
+                                            }
+                                            2 -> {
+                                                appIcon(Modifier.align(Alignment.TopEnd))
+                                                appTitle(
+                                                    Modifier.align(Alignment.BottomStart)
+                                                        .fillMaxWidth(0.82f)
+                                                        .padding(end = iconSize + 8.dp),
+                                                    TextAlign.Start,
+                                                    2
+                                                )
+                                            }
+                                            3 -> {
+                                                appTitle(
+                                                    Modifier.align(Alignment.TopStart)
+                                                        .fillMaxWidth(0.82f)
+                                                        .padding(end = iconSize + 8.dp),
+                                                    TextAlign.Start,
+                                                    2
+                                                )
+                                                appIcon(Modifier.align(Alignment.BottomEnd))
+                                            }
+                                            else -> {
+                                                appIcon(Modifier.align(Alignment.BottomStart))
+                                                appTitle(
+                                                    Modifier.align(Alignment.TopEnd)
+                                                        .fillMaxWidth(0.78f)
+                                                        .padding(start = iconSize + 8.dp),
+                                                    TextAlign.End,
+                                                    2
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1644,6 +1750,7 @@ private fun AppTile(
         }
     }
 }
+
 
 @Composable
 private fun SettingsScreen(
