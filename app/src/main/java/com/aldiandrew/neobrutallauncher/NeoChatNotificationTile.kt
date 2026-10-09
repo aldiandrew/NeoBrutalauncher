@@ -35,6 +35,7 @@ import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.lang.ref.WeakReference
+import java.util.Locale
 
 data class NeoChatNotification(
     val key: String,
