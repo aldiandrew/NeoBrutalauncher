@@ -24,6 +24,28 @@ data class MusicInfo(
     val isPlaying: Boolean
 )
 
+object NeoSupportedMusicApps {
+    // Only known music-player packages are allowed to own the music tile.
+    // This prevents unrelated media sessions (for example PDF readers) from taking it over.
+    val packages = linkedSetOf(
+        "com.google.android.apps.youtube.music",
+        "com.spotify.music",
+        "com.google.android.music",
+        "com.android.music",
+        "com.motorola.music",
+        "com.sec.android.app.music",
+        "com.miui.player",
+        "com.oppo.music",
+        "com.vivo.music",
+        "com.huawei.music",
+        "com.oneplus.music",
+        "org.videolan.vlc",
+        "com.soundcloud.android"
+    )
+
+    fun supports(packageName: String?): Boolean = packageName != null && packageName in packages
+}
+
 object NeoMusicSessionStore {
     private val _state = MutableStateFlow<MusicInfo?>(null)
     val state = _state.asStateFlow()
@@ -112,9 +134,13 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     private fun selectController(controllers: List<MediaController>) {
         currentController?.unregisterCallback(controllerCallback)
         clearAlbumArtCache()
-        currentController = controllers.firstOrNull {
+
+        val supportedControllers = controllers.filter {
+            NeoSupportedMusicApps.supports(it.packageName)
+        }
+        currentController = supportedControllers.firstOrNull {
             it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
-        } ?: controllers.firstOrNull()
+        } ?: supportedControllers.firstOrNull()
 
         currentController?.registerCallback(controllerCallback)
         publish(currentController)
@@ -176,7 +202,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     }
 
     private fun publish(controller: MediaController?) {
-        if (controller == null) {
+        if (controller == null || !NeoSupportedMusicApps.supports(controller.packageName)) {
             clearAlbumArtCache()
             NeoMusicSessionStore.update(null)
             return
