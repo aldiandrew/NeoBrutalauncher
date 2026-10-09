@@ -644,8 +644,10 @@ private fun HomeScreen(
     val now = rememberMinuteClock()
     val homeClockBackground = BrutalColors.Yellow
     val homeClockText = BrutalColors.Ink
-    val homeMusicBackground = BrutalColors.Cyan
-    val homeTasksBackground = BrutalColors.Cyan
+    val homeMusicBackground = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Cyan
+    val isDarkTheme = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
+    val homeTasksBackground = if (isDarkTheme) BrutalColors.DarkTile else BrutalColors.Cyan
+    val homeTasksText = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
     val quoteRotation = rememberLiveTileData(
         tileId = "home-quotes",
         refreshIntervalMillis = 30L * 60L * 1000L,
@@ -1010,9 +1012,9 @@ private fun HomeScreen(
             item(key = "tasks") {
                 NeoTasksTile(
                     tasks = taskItems,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
                     background = homeTasksBackground,
-                    textColor = BrutalColors.Ink,
+                    textColor = homeTasksText,
                     onAddTask = { text ->
                         val updated = taskItems + NeoListItem(text = text)
                         taskItems = updated
