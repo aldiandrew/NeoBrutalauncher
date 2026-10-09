@@ -207,8 +207,7 @@ fun NeoCalendarTile(
 
             Text(
                 text = "TODAY  /  " +
-                    SimpleDateFormat("EEEE, d MMMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH) +
-                    "  /  TAP TO OPEN CALENDAR",
+                    SimpleDateFormat("EEEE, d MMMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 8.sp,
                 lineHeight = 9.sp,
