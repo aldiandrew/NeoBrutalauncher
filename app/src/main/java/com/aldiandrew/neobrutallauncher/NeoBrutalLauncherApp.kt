@@ -779,14 +779,27 @@ private fun HomeScreen(
                         shadowX = 4.dp,
                         shadowY = 4.dp
                     ) {
-                        Text(
-                            text = "// Home",
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            color = BrutalColors.Ink
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(1.dp)
+                        ) {
+                            Text(
+                                text = "NEO",
+                                fontFamily = BrutalTypography.Display,
+                                fontSize = 23.sp,
+                                lineHeight = 24.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.2.sp,
+                                color = BrutalColors.Ink
+                            )
+                            Text(
+                                text = "BRUTAL LAUNCHER / 01",
+                                fontSize = 8.sp,
+                                lineHeight = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.7.sp,
+                                color = BrutalColors.Ink
+                            )
+                        }
                     }
 
                     Box(
@@ -938,33 +951,56 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "status-row") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-
-                    Box(
-                        modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
-                    ) {
-                        NeoWeatherTile(
-                            context = context,
-                            refreshToken = weatherRefreshToken,
-                            modifier = Modifier.fillMaxSize()
+            item(key = "system-tiles") {
+                NeoTileGrid(
+                    tiles = buildList {
+                        add(
+                            NeoTileSpec(
+                                id = "system_battery",
+                                size = NeoTileSize.SMALL,
+                                label = "BATTERY"
+                            ) {
+                                BatteryTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize(),
+                                    background = BrutalColors.Yellow
+                                )
+                            }
                         )
-                    }
-
-                    BatteryTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Yellow
-                    )
-
-                    NeoNetworkTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f)
-                    )
-                }
+                        add(
+                            NeoTileSpec(
+                                id = "system_network",
+                                size = NeoTileSize.SMALL,
+                                label = "NETWORK"
+                            ) {
+                                NeoNetworkTile(
+                                    context = context,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        )
+                        if (showWeather) {
+                            add(
+                                NeoTileSpec(
+                                    id = "system_weather",
+                                    size = NeoTileSize.SMALL,
+                                    label = "WEATHER",
+                                    onClick = { weatherRefreshToken++ }
+                                ) {
+                                    NeoWeatherTile(
+                                        context = context,
+                                        refreshToken = weatherRefreshToken,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    positions = emptyMap(),
+                    onPositionsChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    gap = 8.dp
+                )
             }
 
             item(key = "music") {
