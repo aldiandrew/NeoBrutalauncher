@@ -758,7 +758,7 @@ private fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BrutalBlock(
-                        modifier = Modifier.width(150.dp),
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
                         background = BrutalColors.Cyan,
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
