@@ -2154,7 +2154,6 @@ private fun SettingsActionButton(
         borderWidth = NeoBrutalTokens.Border.Primary,
         shadowX = 3.dp,
         shadowY = 3.dp,
-        shadowColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.Yellow else BrutalColors.Ink,
         onClick = onClick
     ) {
         Text(
@@ -2270,7 +2269,6 @@ private fun ThemeButton(
         borderWidth = if (selected) NeoBrutalTokens.Border.Strong else NeoBrutalTokens.Border.Secondary,
         shadowX = 3.dp,
         shadowY = 3.dp,
-        shadowColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.Yellow else BrutalColors.Ink,
         onClick = onClick
     ) {
         Text(
