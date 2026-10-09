@@ -201,7 +201,11 @@ fun NeoBrutalLauncherApp() {
         refreshScope.launch(Dispatchers.Default) {
             val loadedApps = repository.loadApps()
             withContext(Dispatchers.Main.immediate) {
-                apps = loadedApps
+                // AppRepository returns the same list instance while its cache is valid.
+                // Avoid a structural list equality check on cache-hit refreshes.
+                if (apps !== loadedApps) {
+                    apps = loadedApps
+                }
                 if (preferences.onboardingCompleted() &&
                     !preferences.homeAppsInitialized() &&
                     favorites.isEmpty()
