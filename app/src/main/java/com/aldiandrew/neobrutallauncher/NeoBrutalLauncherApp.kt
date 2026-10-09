@@ -680,7 +680,9 @@ private fun HomeScreen(
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
 
-    val appKeys = apps.map { it.packageName + "/" + it.activityName }
+    val appKeys = remember(apps) {
+        apps.map { it.packageName + "/" + it.activityName }
+    }
     val storedHomeOrder = remember(appKeys) { preferences.homeAppOrder() }
     var stableHomeOrder by remember(appKeys, storedHomeOrder) {
         mutableStateOf(
@@ -713,19 +715,28 @@ private fun HomeScreen(
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
-    val launchableApps = stableHomeOrder
-        .filterNot { excludedHomeApps.contains(it) }
-        .sortedWith(
-            compareByDescending<String> { favorites.contains(it) }
-        )
-        .mapNotNull { appsByKey[it] }
-        .take(homeAppCount.coerceIn(2, 8))
-        .sortedWith(
-            compareBy<AppInfo> {
-                tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
-                    ?: Int.MAX_VALUE
-            }
-        )
+    val launchableApps = remember(
+        stableHomeOrder,
+        excludedHomeApps,
+        favorites,
+        appsByKey,
+        homeAppCount,
+        tilePositions
+    ) {
+        stableHomeOrder
+            .filterNot { excludedHomeApps.contains(it) }
+            .sortedWith(
+                compareByDescending<String> { favorites.contains(it) }
+            )
+            .mapNotNull { appsByKey[it] }
+            .take(homeAppCount.coerceIn(2, 8))
+            .sortedWith(
+                compareBy<AppInfo> {
+                    tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
+                        ?: Int.MAX_VALUE
+                }
+            )
+    }
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
     val palette = remember { BrutalColors.appPalette(0) }
