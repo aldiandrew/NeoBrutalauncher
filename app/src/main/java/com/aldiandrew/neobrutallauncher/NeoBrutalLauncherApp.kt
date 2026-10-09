@@ -897,11 +897,11 @@ private fun HomeScreen(
                                     if (shortcutApp != null) {
                                         AppTile(
                                             app = shortcutApp,
-                                            background = BrutalColors.Pink,
+                                            background = palette[Math.floorMod(shortcutApp.packageName.hashCode(), palette.size)],
                                             modifier = Modifier.fillMaxSize(),
                                             contentMode = appTileContentMode,
                                             tileSize = shortcutSize,
-                                            variant = 4
+                                            variant = Math.floorMod(shortcutApp.packageName.hashCode(), 5)
                                         )
                                     } else {
                                         BrutalBlock(
