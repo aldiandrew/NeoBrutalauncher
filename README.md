@@ -147,18 +147,16 @@ Repeated work is reduced through caching and Compose memoization, media progress
 
 ## 📸 Screenshots
 
-> Replace these placeholders with screenshots from the latest release.
-
 <p align="center">
-  <img src="docs/screenshots/home.png" width="30%" alt="Home screen" />
-  <img src="docs/screenshots/apps.png" width="30%" alt="Apps screen" />
-  <img src="docs/screenshots/live.png" width="30%" alt="Live screen" />
+  <img src="docs/screenshots/Screenshot_20261009-122639_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 1" />
+  <img src="docs/screenshots/Screenshot_20261009-122649_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 2" />
+  <img src="docs/screenshots/Screenshot_20261009-122703_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 3" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" width="30%" alt="Settings screen" />
-  <img src="docs/screenshots/onboarding.png" width="30%" alt="Onboarding screen" />
-  <img src="docs/screenshots/pinned-apps.png" width="30%" alt="Pinned apps picker" />
+  <img src="docs/screenshots/Screenshot_20261009-122714_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 4" />
+  <img src="docs/screenshots/Screenshot_20261009-122737_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 5" />
+  <img src="docs/screenshots/Screenshot_20261009-122815_Neo%20Brutal%20Launcher.png" width="30%" alt="Neo Brutal Launcher screenshot 6" />
 </p>
 
 ---
