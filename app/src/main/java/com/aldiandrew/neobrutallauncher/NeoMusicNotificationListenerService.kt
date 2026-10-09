@@ -165,7 +165,6 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         val bitmap = sequenceOf(
             extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON),
             extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE),
-            extras.getParcelable<Bitmap>(Notification.EXTRA_BIG_PICTURE)
         ).filterNotNull().firstOrNull()
         if (bitmap != null) return bitmap
 
