@@ -405,7 +405,13 @@ fun NeoBrutalLauncherApp() {
                         val updated = favorites.toMutableSet()
                         if (updated.contains(key)) {
                             updated.remove(key)
-                        } else if (updated.size < homeAppCount) {
+                        } else {
+                            // Pinning must work even when every Home slot is already occupied.
+                            // Evict the oldest existing pin so the newly selected app can take a slot.
+                            val pinLimit = homeAppCount.coerceIn(2, 8)
+                            if (updated.size >= pinLimit) {
+                                updated.firstOrNull()?.let(updated::remove)
+                            }
                             updated.add(key)
                         }
                         favorites = updated
