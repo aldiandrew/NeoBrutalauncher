@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -988,7 +989,7 @@ private fun HomeScreen(
                         )
                     } else {
                         LazyColumn(
-                            modifier = Modifier.height(420.dp),
+                            modifier = Modifier.heightIn(max = minOf(420.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             items(
@@ -1933,7 +1934,7 @@ private fun SettingsScreen(
             },
             text = {
                 LazyColumn(
-                    modifier = Modifier.height(360.dp),
+                    modifier = Modifier.heightIn(max = minOf(360.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     item {
