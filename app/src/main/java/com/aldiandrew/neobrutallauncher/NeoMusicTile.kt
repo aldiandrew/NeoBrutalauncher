@@ -59,14 +59,17 @@ private data class MusicApp(
 )
 
 private fun resolveMusicApp(context: Context): MusicApp? {
-    val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC)
-    val info = context.packageManager.queryIntentActivities(intent, 0)
-        .firstOrNull()?.activityInfo?.applicationInfo ?: return null
-    return MusicApp(
-        label = context.packageManager.getApplicationLabel(info).toString(),
-        icon = context.packageManager.getApplicationIcon(info),
-        packageName = info.packageName
-    )
+    for (packageName in NeoSupportedMusicApps.packages) {
+        val info = runCatching {
+            context.packageManager.getApplicationInfo(packageName, 0)
+        }.getOrNull() ?: continue
+        return MusicApp(
+            label = context.packageManager.getApplicationLabel(info).toString(),
+            icon = context.packageManager.getApplicationIcon(info),
+            packageName = info.packageName
+        )
+    }
+    return null
 }
 
 private fun dispatchMediaKey(context: Context, keyCode: Int) {
@@ -101,9 +104,12 @@ fun NeoMusicTile(
     val preferences = remember { LauncherPreferences(context) }
     val fallbackApp = remember { resolveMusicApp(context) }
     val lastMusicPackage = remember(musicInfo?.packageName) {
-        preferences.lastMusicPackage()
+        preferences.lastMusicPackage()?.takeIf(NeoSupportedMusicApps::supports)
     }
-    val musicPackage = musicInfo?.packageName ?: lastMusicPackage ?: fallbackApp?.packageName
+    val musicPackage = musicInfo?.packageName
+        ?.takeIf(NeoSupportedMusicApps::supports)
+        ?: lastMusicPackage
+        ?: fallbackApp?.packageName
     val lastMusicLabel = remember(lastMusicPackage) {
         lastMusicPackage?.let {
             runCatching {
@@ -112,7 +118,9 @@ fun NeoMusicTile(
             }.getOrNull()
         }
     }
-    val musicLabel = musicInfo?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
+    val musicLabel = musicInfo
+        ?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+        ?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SELECTED MUSIC PLAYER"
     val iconBitmap = remember(musicPackage) {
         runCatching {
             musicPackage?.let {
@@ -140,7 +148,7 @@ fun NeoMusicTile(
         MusicTileContent(
             hasAccess = hasAccess,
             musicLabel = musicLabel,
-            musicInfo = musicInfo,
+            musicInfo = musicInfo?.takeIf { NeoSupportedMusicApps.supports(it.packageName) },
             iconBitmap = iconBitmap,
             textColor = textColor,
             context = context
