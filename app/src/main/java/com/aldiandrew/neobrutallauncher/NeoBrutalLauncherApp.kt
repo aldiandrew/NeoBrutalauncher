@@ -1751,7 +1751,7 @@ private fun SettingsScreen(
                             val presetColor = when (preset) {
                                 DesignPreset.NEO_BRUTAL_CLASSIC -> Color(0xFFFFE500)
                                 DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
-                                DesignPreset.COBALT_POP -> Color(0xFF3155F5)
+                                DesignPreset.COBALT_POP -> Color(0xFF9CB4FF)
                                 DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
                             }
                             ThemeButton(
