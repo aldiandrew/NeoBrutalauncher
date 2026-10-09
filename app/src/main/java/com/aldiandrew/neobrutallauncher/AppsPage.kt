@@ -59,8 +59,6 @@ private val Alphabet = ('A'..'Z').toList()
 fun AppsPage(
     apps: List<AppInfo>,
     favorites: Set<String>,
-    favoriteLimit: Int,
-    onToggleFavorite: (AppInfo) -> Unit,
     onLaunch: (AppInfo) -> Unit,
     onOpenHome: () -> Unit
 ) {
@@ -402,7 +400,8 @@ fun AppsPage(
                     scrubLetter?.let { letter ->
                         BrutalBlock(
                             modifier = Modifier
-                                .align(Alignment.Center)
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 32.dp)
                                 .width(64.dp)
                                 .height(64.dp),
                             background = BrutalColors.Pink,
@@ -428,7 +427,6 @@ fun AppsPage(
         }
     }
     contextApp?.let { app ->
-        val isPinned = favorites.contains(app.packageName + "/" + app.activityName)
         AlertDialog(
             onDismissRequest = { contextApp = null },
             title = {
@@ -436,11 +434,6 @@ fun AppsPage(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    BrutalActionButton(
-                        title = if (isPinned) "REMOVE PIN" else "PIN TO HOME",
-                        background = BrutalColors.Yellow,
-                        onClick = { onToggleFavorite(app); contextApp = null }
-                    )
                     BrutalActionButton(
                         title = "OPEN APP", background = BrutalColors.Cyan,
                         onClick = { onLaunch(app); contextApp = null }
@@ -456,7 +449,14 @@ fun AppsPage(
                         BrutalActionButton(
                             title = "UNINSTALL", background = BrutalColors.Pink,
                             onClick = {
-                                runCatching { context.startActivity(Intent(Intent.ACTION_DELETE).apply { data = Uri.parse("package:" + app.packageName) }) }
+                                runCatching {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_DELETE).apply {
+                                            data = Uri.parse("package:" + app.packageName)
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                    )
+                                }
                                 contextApp = null
                             }
                         )

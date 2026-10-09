@@ -183,7 +183,8 @@ fun NeoChatNotificationTile(
             label = "CHAT",
             accent = BrutalColors.Yellow,
             textColor = textColor,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            showBottomLine = false
         ) {
             Row(
                 modifier = Modifier

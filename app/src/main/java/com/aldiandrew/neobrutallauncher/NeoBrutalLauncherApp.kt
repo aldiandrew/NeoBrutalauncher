@@ -499,18 +499,6 @@ fun NeoBrutalLauncherApp() {
                         AppsPage(
                             apps = apps,
                             favorites = favorites,
-                            favoriteLimit = homeAppCount,
-                            onToggleFavorite = { app ->
-                                val key = app.packageName + "/" + app.activityName
-                                val updated = favorites.toMutableSet()
-                                if (updated.contains(key)) {
-                                    updated.remove(key)
-                                } else if (updated.size < homeAppCount) {
-                                    updated.add(key)
-                                }
-                                favorites = updated
-                                preferences.setFavorites(updated)
-                            },
                             onLaunch = ::requestLaunch,
                             onOpenHome = { currentPage = 0 }
                         )
@@ -1043,6 +1031,11 @@ private fun HomeScreen(
                         }
                         taskItems = updated
                         preferences.setTaskItems(updated)
+                    },
+                    onDeleteTask = { index ->
+                        val updated = taskItems.filterIndexed { itemIndex, _ -> itemIndex != index }
+                        taskItems = updated
+                        preferences.setTaskItems(updated)
                     }
                 )
             }
@@ -1226,25 +1219,6 @@ private fun HomeScreen(
                             }
                         }
 
-                        if (homeAppCount > 2) {
-                            BrutalActionButton(
-                                title = "REMOVE FROM HOME",
-                                background = BrutalColors.Pink
-                            ) {
-                                val app = launchableApps.firstOrNull {
-                                    "app_" + it.packageName + "_" + it.activityName == tile.id
-                                }
-                                if (app != null) {
-                                    val key = app.packageName + "/" + app.activityName
-                                    val updatedExcluded = excludedHomeApps + key
-                                    excludedHomeApps = updatedExcluded
-                                    preferences.setExcludedHomeApps(updatedExcluded)
-                                    onHomeAppCountChange((homeAppCount - 1).coerceAtLeast(2))
-                                }
-                                selectedTile = null
-                                tileEditMode = false
-                            }
-                        }
 
                         BrutalActionButton(
                             title = "MOVE TILE",

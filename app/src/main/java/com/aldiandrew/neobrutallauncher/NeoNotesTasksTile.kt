@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -94,7 +95,8 @@ private fun NotesTasksColumn(
     onDraftChange: (String) -> Unit,
     onAdd: () -> Unit,
     onEditItem: (Int, String) -> Unit,
-    onToggleItem: (Int) -> Unit
+    onToggleItem: (Int) -> Unit,
+    onDeleteItem: (Int) -> Unit = {}
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
     val visibleItems = items.takeLast(3)
@@ -172,6 +174,16 @@ private fun NotesTasksColumn(
                             fontWeight = FontWeight.Bold
                         )
                     )
+                    if (isTasks) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Delete task",
+                            tint = BrutalColors.Pink,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable { onDeleteItem(actualIndex) }
+                        )
+                    }
                 }
             }
 
@@ -192,7 +204,10 @@ private fun NotesTasksColumn(
             BasicTextField(
                 value = draft,
                 onValueChange = onDraftChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .border(1.dp, textColor.copy(alpha = 0.65f), RoundedCornerShape(0.dp))
+                    .padding(horizontal = 6.dp, vertical = 5.dp),
                 singleLine = true,
                 textStyle = TextStyle(
                     color = textColor,
@@ -213,12 +228,7 @@ private fun NotesTasksColumn(
                     inner()
                 }
             )
-            Text(
-                text = " +",
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Black,
-                color = textColor.copy(alpha = 0.5f)
-            )
+            Spacer(Modifier.width(2.dp))
         }
     }
 }
@@ -231,7 +241,8 @@ fun NeoTasksTile(
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     onAddTask: (String) -> Unit,
     onEditTask: (Int, String) -> Unit,
-    onToggleTask: (Int) -> Unit
+    onToggleTask: (Int) -> Unit,
+    onDeleteTask: (Int) -> Unit
 ) {
     var taskDraft by remember { mutableStateOf("") }
 
@@ -261,7 +272,8 @@ fun NeoTasksTile(
                 }
             },
             onEditItem = onEditTask,
-            onToggleItem = onToggleTask
+            onToggleItem = onToggleTask,
+            onDeleteItem = onDeleteTask
         )
     }
 }

@@ -145,6 +145,7 @@ fun NeoTileDecoration(
     accent: Color,
     textColor: Color,
     modifier: Modifier = Modifier,
+    showBottomLine: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier) {
@@ -171,14 +172,16 @@ fun NeoTileDecoration(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(bottom = 2.dp)
-                .width(42.dp)
-                .height(2.dp)
-                .background(textColor)
-        )
+        if (showBottomLine) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 2.dp)
+                    .width(42.dp)
+                    .height(2.dp)
+                    .background(textColor)
+            )
+        }
 
         Text(
             text = "///",
