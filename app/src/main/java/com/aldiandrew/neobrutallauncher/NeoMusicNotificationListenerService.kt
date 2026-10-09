@@ -155,6 +155,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         val sourceKey = listOf(
             metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI),
             metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI),
+            metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),
             metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
             metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
             metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM)
@@ -167,12 +168,18 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         val loaded = runCatching {
             metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
                 ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)?.let { uri ->
                     contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
                         BitmapFactory::decodeStream
                     )
                 }
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI)?.let { uri ->
+                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
+                        BitmapFactory::decodeStream
+                    )
+                }
+                ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)?.let { uri ->
                     contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
                         BitmapFactory::decodeStream
                     )
