@@ -72,6 +72,7 @@ fun AppsPage(
     val sortedApps = remember(apps, searchQuery) {
         apps.filter { searchQuery.isBlank() || it.label.contains(searchQuery, ignoreCase = true) }
     }
+    val appPalette = remember { BrutalColors.appPalette(0) }
     val listState = rememberLazyListState()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
     var contextApp by remember { mutableStateOf<AppInfo?>(null) }
@@ -254,8 +255,7 @@ fun AppsPage(
                                 app.icon.toBitmap(64, 64).asImageBitmap()
                             }
 
-                            val palette = remember { BrutalColors.appPalette(0) }
-                            val cardBackground = palette[index % palette.size]
+                            val cardBackground = appPalette[index % appPalette.size]
                             val currentLetter = app.label.firstOrNull()?.uppercaseChar() ?: '#'
                             val previousLetter = sortedApps
                                 .getOrNull(index - 1)
