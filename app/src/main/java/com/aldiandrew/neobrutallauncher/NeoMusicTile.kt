@@ -2,9 +2,7 @@ package com.aldiandrew.neobrutallauncher
 
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.provider.Settings
-import android.view.KeyEvent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
@@ -70,12 +69,6 @@ private fun resolveMusicApp(context: Context): MusicApp? {
         )
     }
     return null
-}
-
-private fun dispatchMediaKey(context: Context, keyCode: Int) {
-    val audioManager = context.getSystemService(AudioManager::class.java)
-    audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
-    audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
 }
 
 private fun hasMusicAccess(context: Context): Boolean =
@@ -151,7 +144,8 @@ fun NeoMusicTile(
             musicInfo = musicInfo?.takeIf { NeoSupportedMusicApps.supports(it.packageName) },
             iconBitmap = iconBitmap,
             textColor = textColor,
-            context = context
+            context = context,
+            musicPackage = musicPackage
         )
     }
 }
@@ -163,7 +157,8 @@ private fun MusicTileContent(
     musicInfo: MusicInfo?,
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
-    context: Context
+    context: Context,
+    musicPackage: String?
 ) {
     Row(
         modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
@@ -251,22 +246,33 @@ private fun MusicTileContent(
                 Icons.Default.SkipPrevious,
                 "Previous",
                 textColor,
-                context,
-                enabled = hasAccess && musicInfo != null
+                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("previous") }
             )
             MusicControlButton(
-                Icons.Default.PlayArrow,
-                "Play or pause",
+                if (musicInfo?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
+                if (musicInfo?.isPlaying == true) "Pause" else "Play",
                 textColor,
-                context,
-                enabled = hasAccess && musicInfo != null
+                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                onClick = {
+                    if (musicInfo == null && musicPackage != null) {
+                        runCatching {
+                            context.packageManager.getLaunchIntentForPackage(musicPackage)?.let { intent ->
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            }
+                        }
+                    } else {
+                        NeoNotificationServiceRegistry.service?.controlPlayback("toggle")
+                    }
+                }
             )
             MusicControlButton(
                 Icons.Default.SkipNext,
                 "Next",
                 textColor,
-                context,
-                enabled = hasAccess && musicInfo != null
+                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("next") }
             )
         }
     }
@@ -329,23 +335,14 @@ private fun MusicControlButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
     textColor: Color,
-    context: Context,
-    enabled: Boolean
+    enabled: Boolean,
+    onClick: () -> Unit
 ) {
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
             .size(38.dp)
             .border(2.dp, textColor.copy(alpha = if (enabled) 1f else 0.45f))
-            .clickable(enabled = enabled) {
-            dispatchMediaKey(
-                context,
-                when (icon) {
-                    Icons.Default.SkipPrevious -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
-                    Icons.Default.SkipNext -> KeyEvent.KEYCODE_MEDIA_NEXT
-                    else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
-                }
-            )
-        },
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
