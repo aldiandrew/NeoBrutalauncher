@@ -160,12 +160,13 @@ fun NeoChatNotificationTile(
 
     BrutalBlock(
         modifier = modifier.clickable {
-            packageName?.let { pkg ->
-                packageManager.getLaunchIntentForPackage(pkg)?.let { intent ->
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
-                }
-            } ?: onChooseApp()
+            val launchIntent = packageName?.let { packageManager.getLaunchIntentForPackage(it) }
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(launchIntent)
+            } else {
+                onChooseApp()
+            }
         },
         background = background,
         borderWidth = 4.dp,
@@ -181,7 +182,7 @@ fun NeoChatNotificationTile(
         ) BrutalColors.DarkWhite else BrutalColors.Ink
     ) {
         NeoTileDecoration(
-            label = if (packageName != null) "CHAT / ${appLabel.uppercase(Locale.ENGLISH)}" else "CHAT",
+            label = if (packageName != null) appLabel.uppercase(Locale.ENGLISH) else "CHAT",
             accent = BrutalColors.Yellow,
             textColor = textColor,
             modifier = Modifier.fillMaxSize(),
@@ -193,57 +194,48 @@ fun NeoChatNotificationTile(
                     .padding(top = 24.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-            if (iconBitmap != null) {
-                Image(
-                    bitmap = iconBitmap,
-                    contentDescription = appLabel,
-                    modifier = Modifier.size(38.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Chat,
-                    contentDescription = "Chat notifications",
-                    tint = textColor,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(Modifier.width(7.dp))
-            }
+                if (iconBitmap != null) {
+                    Image(
+                        bitmap = iconBitmap,
+                        contentDescription = appLabel,
+                        modifier = Modifier.size(38.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Chat,
+                        contentDescription = "Chat notifications",
+                        tint = textColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(Modifier.width(7.dp))
+                }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                Text(
-                    text = appLabel.uppercase(),
-                    fontFamily = BrutalTypography.Display,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = item?.title ?: "NO NEW NOTIFICATIONS",
-                    fontSize = 9.sp,
-                    lineHeight = 10.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (item != null && item.text.isNotBlank()) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
                     Text(
-                        text = item.text,
-                        fontSize = 8.sp,
-                        lineHeight = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor.copy(alpha = 0.8f),
-                        maxLines = 2,
+                        text = item?.title ?: "NO NEW NOTIFICATIONS",
+                        fontSize = 9.sp,
+                        lineHeight = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (item != null && item.text.isNotBlank()) {
+                        Text(
+                            text = item.text,
+                            fontSize = 8.sp,
+                            lineHeight = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor.copy(alpha = 0.8f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
-            }
             }
         }
     }
