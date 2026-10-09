@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -141,6 +142,7 @@ fun NeoBrutalTheme(
     designPreset: DesignPreset = DesignPreset.NEO_BRUTAL_CLASSIC,
     typographyStyle: TypographyStyle = TypographyStyle.DEFAULT,
     hideStatusBar: Boolean = false,
+    transparentStatusBar: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
@@ -155,6 +157,11 @@ fun NeoBrutalTheme(
         BrutalColors.configure(designPreset, isDark)
         val window = (view.context as? Activity)?.window ?: return@SideEffect
         val controller = WindowInsetsControllerCompat(window, view)
+        window.statusBarColor = if (transparentStatusBar) {
+            android.graphics.Color.TRANSPARENT
+        } else {
+            (if (isDark) BrutalColors.DarkPaper else BrutalColors.Paper).toArgb()
+        }
         controller.isAppearanceLightStatusBars = !isDark
         controller.isAppearanceLightNavigationBars = !isDark
         if (hideStatusBar) {
