@@ -354,6 +354,12 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_HIDE_STATUS_BAR, value).apply()
     }
 
+    fun transparentStatusBar(): Boolean = prefs.getBoolean(KEY_TRANSPARENT_STATUS_BAR, true)
+
+    fun setTransparentStatusBar(value: Boolean) {
+        prefs.edit().putBoolean(KEY_TRANSPARENT_STATUS_BAR, value).apply()
+    }
+
 
     fun customQuotes(): List<String> {
         val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
@@ -384,6 +390,7 @@ class LauncherPreferences(context: Context) {
             .put("schemaVersion", 1)
             .put("theme", theme().name)
             .put("designPreset", designPreset().name)
+            .put("transparentStatusBar", transparentStatusBar())
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
                         .put("homeAppCount", homeAppCount())
@@ -522,6 +529,7 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
                 .putBoolean(KEY_HIDE_STATUS_BAR, root.optBoolean("hideStatusBar", false))
+                .putBoolean(KEY_TRANSPARENT_STATUS_BAR, root.optBoolean("transparentStatusBar", true))
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
@@ -564,6 +572,7 @@ class LauncherPreferences(context: Context) {
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
             remove(KEY_HIDE_STATUS_BAR)
+            remove(KEY_TRANSPARENT_STATUS_BAR)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
         }
@@ -654,6 +663,7 @@ class LauncherPreferences(context: Context) {
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
         private const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
+        private const val KEY_TRANSPARENT_STATUS_BAR = "transparent_status_bar"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_LAST_MUSIC_PACKAGE = "last_music_package"
