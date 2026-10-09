@@ -66,10 +66,11 @@ fun AppsPage(
 
     var searchOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    // AppRepository already returns apps sorted by case-insensitive label.
+    // Filtering preserves that order, so avoid sorting the entire result again
+    // on every search-query change.
     val sortedApps = remember(apps, searchQuery) {
-        apps
-            .filter { searchQuery.isBlank() || it.label.contains(searchQuery, ignoreCase = true) }
-            .sortedBy { it.label.lowercase() }
+        apps.filter { searchQuery.isBlank() || it.label.contains(searchQuery, ignoreCase = true) }
     }
     val listState = rememberLazyListState()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
