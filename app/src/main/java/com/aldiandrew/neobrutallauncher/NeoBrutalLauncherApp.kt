@@ -760,7 +760,7 @@ private fun HomeScreen(
     }
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
-    val palette = remember { BrutalColors.appPalette(0) }
+    val palette = remember(BrutalColors.activePreset) { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
