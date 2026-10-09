@@ -98,21 +98,11 @@ fun NeoMusicTile(
 
     val musicInfo by NeoMusicSessionStore.state.collectAsState()
 
-    val preferences = remember { LauncherPreferences(context) }
     val fallbackApp = remember { resolveMusicApp(context) }
-    val lastMusicPackage = remember(musicInfo?.packageName) {
-        preferences.lastMusicPackage()
-    }
-    val musicPackage = musicInfo?.packageName ?: lastMusicPackage ?: fallbackApp?.packageName
-    val lastMusicLabel = remember(lastMusicPackage) {
-        lastMusicPackage?.let {
-            runCatching {
-                val info = context.packageManager.getApplicationInfo(it, 0)
-                context.packageManager.getApplicationLabel(info).toString()
-            }.getOrNull()
-        }
-    }
-    val musicLabel = musicInfo?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SYSTEM MEDIA"
+    // Only use the saved active media session; do not resurrect a stale package name
+    // when Android no longer reports a valid media session.
+    val musicPackage = musicInfo?.packageName ?: fallbackApp?.packageName
+    val musicLabel = musicInfo?.appLabel ?: fallbackApp?.label ?: "MUSIC PLAYER"
     val iconBitmap = remember(musicPackage) {
         runCatching {
             musicPackage?.let {
@@ -200,7 +190,11 @@ private fun MusicTileContent(
         Spacer(Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Text(
-                text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
+                text = when {
+                    !hasAccess -> "MUSIC ACCESS NEEDED"
+                    musicInfo != null -> "NOW PLAYING"
+                    else -> "MUSIC PLAYER"
+                },
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = textColor,
@@ -253,21 +247,21 @@ private fun MusicTileContent(
                 "Previous",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
             MusicControlButton(
                 Icons.Default.PlayArrow,
                 "Play or pause",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
             MusicControlButton(
                 Icons.Default.SkipNext,
                 "Next",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
         }
     }
