@@ -721,7 +721,7 @@ private fun HomeScreen(
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
     val palette = remember { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
-        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
+        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
 
     Box(
@@ -802,6 +802,15 @@ private fun HomeScreen(
                         }
                     }
                 }
+            }
+
+            item(key = "home-quote") {
+                NeoQuoteTile(
+                    quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first,
+                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    emphasized = true,
+                    paletteIndex = quoteRotation
+                )
             }
 
             item(key = "clock") {
@@ -963,15 +972,10 @@ private fun HomeScreen(
                             launchableApps.forEachIndexed { index, app ->
                                 val id = "app_" + app.packageName + "_" + app.activityName
                                 val defaultSize = when {
-                                    index == launchableApps.lastIndex -> NeoTileSize.FOUR_BY_ONE
                                     index < 2 -> NeoTileSize.HORIZONTAL
                                     else -> NeoTileSize.SMALL
                                 }
-                                val size = if (index == launchableApps.lastIndex) {
-                                    NeoTileSize.FOUR_BY_ONE
-                                } else {
-                                    tileSizes[id] ?: defaultSize
-                                }
+                                val size = tileSizes[id] ?: defaultSize
                                 val tileColor = palette[index % palette.size]
 
                                 add(
@@ -992,13 +996,68 @@ private fun HomeScreen(
                                     }
                                 )
                             }
+
+                            val shortcutId = "home_app_shortcut"
+                            val shortcutSize = tileSizes[shortcutId] ?: NeoTileSize.SMALL
+                            add(
+                                NeoTileSpec(
+                                    id = shortcutId,
+                                    size = shortcutSize,
+                                    label = shortcutApp?.label?.uppercase() ?: "ADD APP",
+                                    onClick = {
+                                        shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
+                                    }
+                                ) {
+                                    if (shortcutApp != null) {
+                                        AppTile(
+                                            app = shortcutApp,
+                                            background = palette[launchableApps.size % palette.size],
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentMode = appTileContentMode,
+                                            tileSize = shortcutSize,
+                                            variant = launchableApps.size
+                                        )
+                                    } else {
+                                        BrutalBlock(
+                                            modifier = Modifier.fillMaxSize(),
+                                            background = BrutalColors.Pink,
+                                            borderWidth = 3.dp
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "+\nADD APP",
+                                                    fontFamily = BrutalTypography.Display,
+                                                    fontSize = 13.sp,
+                                                    lineHeight = 15.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = BrutalColors.Ink,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            )
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
                         onTileLongPress = { tile ->
-                            selectedTile = tile
+                            if (tile.id == "home_app_shortcut") {
+                                showAppPicker = true
+                            } else {
+                                selectedTile = tile
+                            }
                         },
-                        onTileEdit = { selectedTile = it },
+                        onTileEdit = {
+                            if (it.id == "home_app_shortcut") {
+                                showAppPicker = true
+                            } else {
+                                selectedTile = it
+                            }
+                        },
                         onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
@@ -1007,32 +1066,6 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "footer") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    NeoAddAppTile(
-                        app = shortcutApp,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        onClick = {
-                            shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
-                        },
-                        onLongClick = { showAppPicker = true }
-                    )
-                    val quotePair = NeoQuotes.pairForRotation(quoteRotation, customQuotes)
-                    NeoQuoteTilePlain(
-                        quote = quotePair.first,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        paletteIndex = quoteRotation
-                    )
-                    NeoQuoteTilePlain(
-                        quote = quotePair.second,
-                        modifier = Modifier.weight(2f).aspectRatio(2f),
-                        paletteIndex = quoteRotation + 1
-                    )
-                }
-            }
         }
     }
 
