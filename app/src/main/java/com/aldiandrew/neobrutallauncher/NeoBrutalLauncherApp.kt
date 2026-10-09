@@ -1985,7 +1985,7 @@ private fun SettingsScreen(
                                 )
                                 Text(
                                     text = if (selected) "SELECTED" else "USE",
-                                    fontSize = 8.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     color = if (selected) BrutalColors.Ink else uiOnSurface
                                 )
@@ -2024,7 +2024,7 @@ private fun SettingsScreen(
                                 )
                                 Text(
                                     text = if (selected) "SELECTED" else "USE",
-                                    fontSize = 8.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     color = if (selected) BrutalColors.Ink else uiOnSurface
                                 )
@@ -2099,7 +2099,7 @@ private fun SettingsScreen(
                                         )
                                         Text(
                                             text = if (selected) "SELECTED" else "ADD",
-                                            fontSize = 8.sp,
+                                            fontSize = 10.sp,
                                             fontWeight = FontWeight.Black,
                                             color = uiOnSurface.copy(alpha = if (enabled) 1f else .45f)
                                         )
