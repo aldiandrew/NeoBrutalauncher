@@ -66,12 +66,11 @@ fun LivePage(
     val liveClockTileHeight = 126.dp
 
     val dateText = SimpleDateFormat(
-        "EEEE / d MMMM yyyy",
-        Locale.ENGLISH
+        "EEEE, d MMMM yyyy",
+        Locale.getDefault()
     ).format(now)
 
     val notes = remember { preferences.noteItems().takeLast(3).reversed() }
-    val tasks = remember { preferences.taskItems().takeLast(3).reversed() }
 
     LazyColumn(
         modifier = Modifier
@@ -140,8 +139,8 @@ fun LivePage(
             NeoMusicTile(
                 context = context,
                 modifier = Modifier.fillMaxWidth().height(126.dp),
-                background = BrutalColors.Cyan,
-                textColor = BrutalColors.Ink,
+                background = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (MaterialTheme.colorScheme.background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
             )
         }
 
@@ -156,13 +155,13 @@ fun LivePage(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = "LATEST NOTES / TASKS",
+                        text = "LATEST NOTES",
                         fontFamily = BrutalTypography.Display,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
                         color = pageText
                     )
-                    if (notes.isEmpty() && tasks.isEmpty()) {
+                    if (notes.isEmpty()) {
                         Text(
                             text = "NO LOCAL ACTIVITY YET",
                             fontSize = 10.sp,
@@ -180,17 +179,7 @@ fun LivePage(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        tasks.forEach {
-                            Text(
-                                text = "TASK  /  " +
-                                    if (it.checked) "✓ " + it.text else "□ " + it.text,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = pageText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+
                     }
                 }
             }
