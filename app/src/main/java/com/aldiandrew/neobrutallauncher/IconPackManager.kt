@@ -14,7 +14,6 @@ data class IconPackInfo(
 
 class IconPackManager(private val context: Context) {
     private val packageManager = context.packageManager
-    private val preferences = LauncherPreferences(context)
     private val drawableNameRegex = Regex("[A-Za-z0-9_]+")
     private var cachedPackage: String? = null
     private var cachedMappings: Map<String, String> = emptyMap()
@@ -46,9 +45,10 @@ class IconPackManager(private val context: Context) {
     fun iconFor(
         packageName: String,
         activityName: String,
-        fallback: Drawable
+        fallback: Drawable,
+        packPackage: String?
     ): Drawable {
-        val packPackage = preferences.iconPackPackage() ?: return fallback
+        packPackage ?: return fallback
         ensureCache(packPackage)
         val drawableName = cachedMappings["ComponentInfo{$packageName/$activityName}"]
             ?: return fallback
