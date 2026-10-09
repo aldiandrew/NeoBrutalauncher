@@ -21,10 +21,11 @@ object BrutalColors {
     val Yellow = Color(0xFFFFE500)
     val Pink = Color(0xFFFF5C8A)
     val Cyan = Color(0xFF00D9FF)
-    val DarkPaper = Color(0xFF171717)
-    val DarkTile = Color(0xFF292929)
-    val DarkWhite = Color(0xFFF7F7F7)
+    val DarkPaper = Color(0xFF121212)
+    val DarkTile = Color(0xFF202020)
+    val DarkWhite = Color(0xFFFFFFFF)
     val Red = Color(0xFFE00000)
+    val Lime = Color(0xFFB8FF9F)
 
     fun appPalette(seed: Int = 0): List<Color> {
         // Editorial neo-brutalism uses flat, opaque blocks with a controlled palette.
@@ -54,15 +55,16 @@ private val LightScheme = lightColorScheme(
 private val DarkScheme = darkColorScheme(
     primary = BrutalColors.DarkWhite,
     onPrimary = BrutalColors.Ink,
-    secondary = BrutalColors.Cyan,
+    secondary = BrutalColors.Lime,
     onSecondary = BrutalColors.Ink,
     background = BrutalColors.DarkPaper,
     onBackground = BrutalColors.DarkWhite,
     surface = BrutalColors.DarkTile,
     onSurface = BrutalColors.DarkWhite,
-    surfaceVariant = BrutalColors.Ink,
+    surfaceVariant = Color(0xFF303030),
     onSurfaceVariant = BrutalColors.DarkWhite,
     outline = BrutalColors.DarkWhite,
+    outlineVariant = Color(0xFF707070),
     error = BrutalColors.Red,
     onError = BrutalColors.White
 )
