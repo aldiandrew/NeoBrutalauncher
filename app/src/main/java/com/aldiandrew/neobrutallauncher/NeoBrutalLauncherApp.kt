@@ -813,158 +813,6 @@ private fun HomeScreen(
                 )
             }
 
-            item(key = "clock") {
-                BrutalBlock(
-                    modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                    background = homeClockBackground,
-                    borderWidth = 4.dp,
-                    borderColor = BrutalColors.Ink,
-                    shadowX = 7.dp,
-                    shadowY = 7.dp
-                ) {
-                    BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp)
-                    ) {
-                        val compact = minOf(maxWidth, maxHeight)
-                        val timeSize = when {
-                            compact < 130.dp -> if (use24Hour) 41.sp else 38.sp
-                            compact < 160.dp -> if (use24Hour) 49.sp else 46.sp
-                            else -> if (use24Hour) 59.sp else 56.sp
-                        }
-                        val sideSize = when {
-                            compact < 130.dp -> 10.sp
-                            compact < 160.dp -> 12.sp
-                            else -> 15.sp
-                        }
-
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            BrutalLabel(
-                                text = (if (use24Hour) "24H" else "12H") + " / " + typographyStyle.label,
-                                background = BrutalColors.Pink
-                            )
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = time.format(now),
-                                    modifier = Modifier.weight(1f),
-                                    fontSize = timeSize,
-                                    lineHeight = timeSize,
-                                    fontWeight = FontWeight.Black,
-                                    fontFamily = when (typographyStyle) {
-                                        TypographyStyle.MONO -> BrutalTypography.Mono
-                                        else -> BrutalTypography.Poster
-                                    },
-                                    color = homeClockText,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    overflow = TextOverflow.Clip
-                                )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .width(if (compact < 150.dp) 78.dp else 102.dp)
-                                            .padding(start = 12.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text(
-                                            text = longDay.format(now).uppercase(Locale.ENGLISH),
-                                            fontSize = sideSize,
-                                            lineHeight = sideSize,
-                                            fontWeight = FontWeight.Black,
-                                            fontFamily = BrutalTypography.Display,
-                                            color = BrutalColors.Red,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(2.dp)
-                                                .background(homeClockText)
-                                        )
-                                        Text(
-                                            text = longDate.format(now).uppercase(Locale.ENGLISH),
-                                            fontSize = sideSize,
-                                            lineHeight = sideSize,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = BrutalTypography.Display,
-                                            color = homeClockText,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                            }
-                        }
-                    }
-                }
-            }
-
-            item(key = "status-row") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FixedSmallTile(
-                        modifier = Modifier.weight(1f),
-                        background = BrutalColors.Pink
-                    ) {
-                        BrutalTape(
-                            text = "MANIFESTO",
-                            background = BrutalColors.Yellow
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 6.5.sp,
-                            lineHeight = 7.5.sp,
-                            fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.25.sp,
-                            color = BrutalColors.White,
-                            maxLines = 3
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
-                    ) {
-                        NeoWeatherTile(
-                            context = context,
-                            refreshToken = weatherRefreshToken,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    BatteryTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        background = BrutalColors.Yellow
-                    )
-
-                    NeoNetworkTile(
-                        context = context,
-                        modifier = Modifier.weight(1f).aspectRatio(1f)
-                    )
-                }
-            }
-
-            item(key = "music") {
-                NeoMusicTile(
-                    context = context,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
-                    background = homeMusicBackground,
-                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
-                )
-            }
-
             item(key = "launchable-apps") {
                 if (launchableApps.isNotEmpty()) {
                     NeoTileGrid(
@@ -1064,6 +912,44 @@ private fun HomeScreen(
                         gap = 8.dp
                     )
                 }
+            }
+
+            item(key = "status-row") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    Box(
+                        modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
+                    ) {
+                        NeoWeatherTile(
+                            context = context,
+                            refreshToken = weatherRefreshToken,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    BatteryTile(
+                        context = context,
+                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                        background = BrutalColors.Yellow
+                    )
+
+                    NeoNetworkTile(
+                        context = context,
+                        modifier = Modifier.weight(1f).aspectRatio(1f)
+                    )
+                }
+            }
+
+            item(key = "music") {
+                NeoMusicTile(
+                    context = context,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
+                    background = homeMusicBackground,
+                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
+                )
             }
 
         }
