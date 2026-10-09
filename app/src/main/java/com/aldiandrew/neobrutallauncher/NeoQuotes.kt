@@ -13,27 +13,13 @@ object NeoQuotes {
         "Raw structure is not a flaw. It is the message.",
         "Make the grid visible. Make the interface honest.",
         "Strong borders turn space into architecture.",
-        "A loud interface can still have a clear purpose.",
         "Function first, decoration second, apology never.",
         "Break the polish. Keep the hierarchy.",
-        "Geometry can be expressive without becoming fragile.",
         "Let contrast do the talking.",
         "Every box is a decision. Make it intentional.",
         "Brutal does not mean chaotic. It means unapologetic.",
-        "Expose the structure and the user sees the system.",
-        "Simple shapes become bold when hierarchy is fearless.",
-        "Build less chrome. Show more function.",
-        "A useful interface does not need permission to be loud.",
-        "Good spacing is structure you can feel.",
         "Make every pixel earn its place.",
-        "Clarity survives even when the surface is rough.",
-        "The grid is a tool, not a cage.",
-        "Design the path. Then remove the noise.",
-        "Small controls can carry big intent.",
-        "A strong interface makes the next action obvious.",
-        "Keep the edges sharp and the purpose sharper.",
-        "Order is not minimalism. Order is control.",
-        "Make the system visible, then make it useful."
+        "A strong interface makes the next action obvious."
     )
 
     fun allQuotes(customQuotes: List<String> = emptyList()): List<String> =
