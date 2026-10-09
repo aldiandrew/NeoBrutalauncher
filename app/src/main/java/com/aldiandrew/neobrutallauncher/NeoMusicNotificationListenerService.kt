@@ -1,15 +1,17 @@
 package com.aldiandrew.neobrutallauncher
 
 import android.content.ComponentName
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.service.notification.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.core.graphics.drawable.toBitmap
 
 data class MusicInfo(
     val packageName: String,
@@ -25,8 +27,6 @@ data class MusicInfo(
 )
 
 object NeoSupportedMusicApps {
-    // Only known music-player packages are allowed to own the music tile.
-    // This prevents unrelated media sessions (for example PDF readers) from taking it over.
     val packages = linkedSetOf(
         "com.google.android.apps.youtube.music",
         "com.spotify.music",
@@ -115,20 +115,20 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         NeoChatNotificationStore.onPosted(this, sbn)
+        if (sbn.packageName == currentController?.packageName) publish(currentController)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         NeoChatNotificationStore.onRemoved(sbn)
         refreshChatNotifications()
+        if (sbn.packageName == currentController?.packageName) publish(currentController)
     }
 
     fun refreshChatNotifications() {
         NeoChatNotificationStore.clear()
         runCatching { activeNotifications.orEmpty() }
             .getOrDefault(emptyArray())
-            .forEach { sbn ->
-                NeoChatNotificationStore.onPosted(this, sbn)
-            }
+            .forEach { sbn -> NeoChatNotificationStore.onPosted(this, sbn) }
     }
 
     private fun selectController(controllers: List<MediaController>) {
@@ -140,6 +140,8 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         }
         currentController = supportedControllers.firstOrNull {
             it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
+        } ?: supportedControllers.firstOrNull {
+            !it.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank()
         } ?: supportedControllers.firstOrNull()
 
         currentController?.registerCallback(controllerCallback)
@@ -151,56 +153,75 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         cachedAlbumArt = null
     }
 
-    private fun albumArtFor(metadata: MediaMetadata?): Bitmap? {
+    @Suppress("DEPRECATION")
+    private fun notificationAlbumArt(packageName: String): Bitmap? {
+        val notification = runCatching {
+            activeNotifications.orEmpty()
+                .filter { it.packageName == packageName }
+                .maxByOrNull { it.postTime }
+                ?.notification
+        }.getOrNull() ?: return null
+        val extras = notification.extras
+        val bitmap = sequenceOf(
+            extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON),
+            extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE),
+            extras.getParcelable<Bitmap>(Notification.EXTRA_BIG_PICTURE)
+        ).filterNotNull().firstOrNull()
+        if (bitmap != null) return bitmap
+
+        return runCatching {
+            extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_LARGE_ICON)
+                ?.loadDrawable(this)
+                ?.toBitmap(256, 256)
+        }.getOrNull()
+    }
+
+    private fun albumArtFor(metadata: MediaMetadata?, packageName: String): Bitmap? {
+        val notification = runCatching {
+            activeNotifications.orEmpty()
+                .filter { it.packageName == packageName }
+                .maxByOrNull { it.postTime }
+        }.getOrNull()
         val sourceKey = listOf(
             metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI),
             metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI),
             metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),
             metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
             metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
-            metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM)
+            metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM),
+            notification?.key,
+            notification?.postTime?.toString()
         ).joinToString("|")
 
-        if (sourceKey == cachedAlbumArtKey) {
-            return cachedAlbumArt
-        }
+        if (sourceKey == cachedAlbumArtKey) return cachedAlbumArt
 
         val loaded = runCatching {
             metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
                 ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
                 ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)?.let { uri ->
-                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
-                        BitmapFactory::decodeStream
-                    )
+                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(BitmapFactory::decodeStream)
                 }
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI)?.let { uri ->
-                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
-                        BitmapFactory::decodeStream
-                    )
+                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(BitmapFactory::decodeStream)
                 }
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)?.let { uri ->
-                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(
-                        BitmapFactory::decodeStream
-                    )
+                    contentResolver.openInputStream(android.net.Uri.parse(uri))?.use(BitmapFactory::decodeStream)
                 }
+                ?: notificationAlbumArt(packageName)
         }.getOrNull()
 
         val limited = loaded?.let { bitmap ->
             val largestSide = maxOf(bitmap.width, bitmap.height)
-            if (largestSide <= 256) {
-                bitmap
-            } else {
-                runCatching {
-                    val scale = 256f / largestSide.toFloat()
-                    Bitmap.createScaledBitmap(
-                        bitmap,
-                        (bitmap.width * scale).toInt().coerceAtLeast(1),
-                        (bitmap.height * scale).toInt().coerceAtLeast(1),
-                        true
-                    )
-                }.getOrDefault(bitmap)
-            }
+            if (largestSide <= 256) bitmap else runCatching {
+                val scale = 256f / largestSide.toFloat()
+                Bitmap.createScaledBitmap(
+                    bitmap,
+                    (bitmap.width * scale).toInt().coerceAtLeast(1),
+                    (bitmap.height * scale).toInt().coerceAtLeast(1),
+                    true
+                )
+            }.getOrDefault(bitmap)
         }
 
         cachedAlbumArtKey = sourceKey
@@ -209,8 +230,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     }
 
     fun controlPlayback(action: String) {
-        val controller = currentController
-            ?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+        val controller = currentController?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
         val controls = controller?.transportControls
         if (controls != null) {
             runCatching {
@@ -245,16 +265,12 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
             return
         }
 
-        val appInfo = runCatching {
-            packageManager.getApplicationInfo(controller.packageName, 0)
-        }.getOrNull() ?: return
-
+        val appInfo = runCatching { packageManager.getApplicationInfo(controller.packageName, 0) }.getOrNull()
+            ?: return
         val label = packageManager.getApplicationLabel(appInfo).toString()
         preferences.setLastMusicPackage(controller.packageName)
         val metadata = controller.metadata
         val playbackState = controller.playbackState
-        val positionUpdatedAtMs = System.currentTimeMillis()
-        val albumArt = albumArtFor(metadata)
 
         NeoMusicSessionStore.update(
             MusicInfo(
@@ -262,11 +278,11 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
                 appLabel = label,
                 title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE),
                 artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST),
-                albumArt = albumArt,
+                albumArt = albumArtFor(metadata, controller.packageName),
                 positionMs = (playbackState?.position ?: 0L).coerceAtLeast(0L),
                 durationMs = (metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L).coerceAtLeast(0L),
                 playbackSpeed = (playbackState?.playbackSpeed ?: 1f).coerceAtLeast(0f),
-                positionUpdatedAtMs = positionUpdatedAtMs,
+                positionUpdatedAtMs = System.currentTimeMillis(),
                 isPlaying = playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
             )
         )
