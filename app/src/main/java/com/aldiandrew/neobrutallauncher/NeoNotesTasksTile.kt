@@ -65,6 +65,7 @@ fun NeoNotesTasksTile(
                 title = "NOTES",
                 inputHint = "TYPE NOTE…",
                 items = notes,
+                textColor = textColor,
                 draft = noteDraft,
                 modifier = Modifier
                     .fillMaxSize()
@@ -90,6 +91,7 @@ private fun NotesTasksColumn(
     inputHint: String,
     items: List<NeoListItem>,
     draft: String,
+    textColor: Color,
     modifier: Modifier,
     isTasks: Boolean,
     onDraftChange: (String) -> Unit,
@@ -98,7 +100,6 @@ private fun NotesTasksColumn(
     onToggleItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit = {}
 ) {
-    val textColor = MaterialTheme.colorScheme.onBackground
     val visibleItems = items.takeLast(3)
     val firstIndex = (items.size - visibleItems.size).coerceAtLeast(0)
 
@@ -262,6 +263,7 @@ fun NeoTasksTile(
             inputHint = "TYPE TASK…",
             items = tasks,
             draft = taskDraft,
+            textColor = textColor,
             modifier = Modifier.fillMaxSize().padding(8.dp),
             isTasks = true,
             onDraftChange = { taskDraft = it },
