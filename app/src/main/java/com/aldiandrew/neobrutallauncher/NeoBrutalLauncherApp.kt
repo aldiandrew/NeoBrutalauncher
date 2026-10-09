@@ -620,8 +620,7 @@ private fun LauncherPageHost(
             repeat(3) { index ->
                 Box(
                     modifier = Modifier
-                        .width(10.dp)
-                        .height(10.dp)
+                        .size(32.dp)
                         .clickable(
                             onClickLabel = when (index) {
                                 0 -> "Open Home"
@@ -629,15 +628,21 @@ private fun LauncherPageHost(
                                 else -> "Open Live"
                             },
                             onClick = { onPageChange(index) }
-                        )
-                        .background(
-                            if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = BrutalColors.Yellow
-                        )
-                )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .background(
+                                if (pagerState.currentPage == index) BrutalColors.Yellow else Color.Transparent
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = BrutalColors.Yellow
+                            )
+                    )
+                }
             }
             Text(
                 text = when (pagerState.currentPage) {
