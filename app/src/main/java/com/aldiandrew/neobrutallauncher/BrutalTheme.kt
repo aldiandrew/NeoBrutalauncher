@@ -26,7 +26,6 @@ object BrutalColors {
     val DarkWhite = Color(0xFFFFFFFF)
     val Red = Color(0xFFE00000)
     val Lime = Color(0xFFB8FF9F)
-    val Lime = Color(0xFFB8FF9F)
 
     fun appPalette(seed: Int = 0): List<Color> {
         // Editorial neo-brutalism uses flat, opaque blocks with a controlled palette.
