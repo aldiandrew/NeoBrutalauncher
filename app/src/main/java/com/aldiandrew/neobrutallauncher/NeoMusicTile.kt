@@ -252,21 +252,21 @@ private fun MusicTileContent(
                 "Previous",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
             MusicControlButton(
                 Icons.Default.PlayArrow,
                 "Play or pause",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
             MusicControlButton(
                 Icons.Default.SkipNext,
                 "Next",
                 textColor,
                 context,
-                enabled = hasAccess
+                enabled = hasAccess && musicInfo != null
             )
         }
     }
