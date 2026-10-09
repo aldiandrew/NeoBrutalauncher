@@ -27,8 +27,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalDensity
 
 enum class NeoTileSize(
@@ -178,15 +180,23 @@ fun NeoTileGrid(
         ) {
             placements.forEach { placement ->
                 val isDragging = placement.tile.id == draggedId
-                val deltaX = if (isDragging) with(density) { dragDelta.x.toDp() } else 0.dp
-                val deltaY = if (isDragging) with(density) { dragDelta.y.toDp() } else 0.dp
+                val baseOffsetX = with(density) {
+                    (cellWidth * placement.column + gap * placement.column).roundToPx()
+                }
+                val baseOffsetY = with(density) {
+                    (cellHeight * placement.row + gap * placement.row).roundToPx()
+                }
 
                 Box(
                     modifier = Modifier
-                        .offset(
-                            x = cellWidth * placement.column + gap * placement.column + deltaX,
-                            y = cellHeight * placement.row + gap * placement.row + deltaY
-                        )
+                        .offset {
+                            // Read dragDelta during layout, not composition, so pointer-move
+                            // updates reposition the dragged tile without recomposing the grid.
+                            IntOffset(
+                                x = baseOffsetX + if (isDragging) dragDelta.x.roundToInt() else 0,
+                                y = baseOffsetY + if (isDragging) dragDelta.y.roundToInt() else 0
+                            )
+                        }
                         .width(placement.width)
                         .height(placement.height)
                         .combinedClickable(
