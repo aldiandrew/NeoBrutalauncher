@@ -2301,15 +2301,37 @@ private fun SettingsScreen(
 
 @Composable
 private fun SettingsSectionTitle(title: String) {
-    Text(
-        text = title,
-        modifier = Modifier.padding(horizontal = 2.dp),
-        fontFamily = BrutalTypography.Display,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        letterSpacing = 1.5.sp,
-        color = MaterialTheme.colorScheme.onBackground
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BrutalBlock(
+            background = BrutalColors.Yellow,
+            borderWidth = 2.dp,
+            shadowX = 0.dp,
+            shadowY = 0.dp
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                fontFamily = BrutalTypography.Display,
+                fontSize = 13.sp,
+                lineHeight = 15.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.1.sp,
+                color = BrutalColors.Ink
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.onBackground)
+        )
+    }
 }
 
 @Composable
