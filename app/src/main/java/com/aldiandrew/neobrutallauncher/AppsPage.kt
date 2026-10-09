@@ -72,7 +72,7 @@ fun AppsPage(
     val sortedApps = remember(apps, searchQuery) {
         apps.filter { searchQuery.isBlank() || it.label.contains(searchQuery, ignoreCase = true) }
     }
-    val appPalette = remember { BrutalColors.appPalette(0) }
+    val appPalette = remember(BrutalColors.activePreset) { BrutalColors.appPalette(0) }
     val listState = rememberLazyListState()
     var scrubLetter by remember { mutableStateOf<Char?>(null) }
     var contextApp by remember { mutableStateOf<AppInfo?>(null) }
