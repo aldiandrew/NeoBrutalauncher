@@ -390,6 +390,7 @@ class LauncherPreferences(context: Context) {
             .put("schemaVersion", 1)
             .put("theme", theme().name)
             .put("designPreset", designPreset().name)
+            .put("hideStatusBar", hideStatusBar())
             .put("transparentStatusBar", transparentStatusBar())
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
