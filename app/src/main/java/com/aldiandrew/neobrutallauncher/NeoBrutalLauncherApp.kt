@@ -107,6 +107,7 @@ fun NeoBrutalLauncherApp() {
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var hideStatusBar by remember { mutableStateOf(preferences.hideStatusBar()) }
+    var transparentStatusBar by remember { mutableStateOf(preferences.transparentStatusBar()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -260,7 +261,8 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 NeoOnboardingScreen(
                     apps = apps,
@@ -307,7 +309,8 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     SettingsScreen(
@@ -327,6 +330,7 @@ fun NeoBrutalLauncherApp() {
                     favorites = favorites,
                     favoritesCount = favorites.size,
                     hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
                     chatNotificationPackages = selectedChatPackages,
@@ -441,6 +445,10 @@ fun NeoBrutalLauncherApp() {
                         hideStatusBar = it
                         preferences.setHideStatusBar(it)
                     },
+                    onTransparentStatusBarChange = {
+                        transparentStatusBar = it
+                        preferences.setTransparentStatusBar(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -468,7 +476,8 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar
+                hideStatusBar = hideStatusBar,
+                transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
                     LauncherPageHost(
@@ -1651,6 +1660,7 @@ private fun SettingsScreen(
     favorites: Set<String>,
     favoritesCount: Int,
     hideStatusBar: Boolean,
+    transparentStatusBar: Boolean,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
     onChatNotificationPackagesChange: (List<String>) -> Unit,
@@ -1671,6 +1681,7 @@ private fun SettingsScreen(
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
     onHideStatusBarChange: (Boolean) -> Unit,
+    onTransparentStatusBarChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1816,6 +1827,14 @@ private fun SettingsScreen(
             hideStatusBar,
             BrutalColors.Yellow,
             onHideStatusBarChange
+        )
+
+        SettingsSwitch(
+            "TRANSPARENT STATUS BAR",
+            "Use a transparent Android status bar background without hiding its icons.",
+            transparentStatusBar,
+            BrutalColors.Cyan,
+            onTransparentStatusBarChange
         )
 
         SettingsSectionTitle("QUOTES")
