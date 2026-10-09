@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -59,6 +60,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
@@ -199,7 +201,11 @@ fun NeoBrutalLauncherApp() {
         refreshScope.launch(Dispatchers.Default) {
             val loadedApps = repository.loadApps()
             withContext(Dispatchers.Main.immediate) {
-                apps = loadedApps
+                // AppRepository returns the same list instance while its cache is valid.
+                // Avoid a structural list equality check on cache-hit refreshes.
+                if (apps !== loadedApps) {
+                    apps = loadedApps
+                }
                 if (preferences.onboardingCompleted() &&
                     !preferences.homeAppsInitialized() &&
                     favorites.isEmpty()
@@ -484,6 +490,12 @@ fun NeoBrutalLauncherApp() {
                                 homeAppCount = updated
                                 preferences.setHomeAppCount(updated)
                             },
+                            onRemovePinnedApp = { app ->
+                                val key = app.packageName + "/" + app.activityName
+                                val updated = favorites - key
+                                favorites = updated
+                                preferences.setFavorites(updated)
+                            },
                             tilePositions = tilePositions,
                             onTilePositionsChange = { updated ->
                                 tilePositions = updated
@@ -632,6 +644,7 @@ private fun HomeScreen(
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
     onHomeAppCountChange: (Int) -> Unit,
+    onRemovePinnedApp: (AppInfo) -> Unit,
     tilePositions: Map<String, NeoTilePosition>,
     onTilePositionsChange: (Map<String, NeoTilePosition>) -> Unit,
     tileSizes: Map<String, NeoTileSize>,
@@ -671,7 +684,9 @@ private fun HomeScreen(
     val longDay = remember { SimpleDateFormat("EEEE", Locale.ENGLISH) }
     val longDate = remember { SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH) }
 
-    val appKeys = apps.map { it.packageName + "/" + it.activityName }
+    val appKeys = remember(apps) {
+        apps.map { it.packageName + "/" + it.activityName }
+    }
     val storedHomeOrder = remember(appKeys) { preferences.homeAppOrder() }
     var stableHomeOrder by remember(appKeys, storedHomeOrder) {
         mutableStateOf(
@@ -704,24 +719,33 @@ private fun HomeScreen(
     val appsByKey = remember(apps) {
         apps.associateBy { it.packageName + "/" + it.activityName }
     }
-    val launchableApps = stableHomeOrder
-        .filterNot { excludedHomeApps.contains(it) }
-        .sortedWith(
-            compareByDescending<String> { favorites.contains(it) }
-        )
-        .mapNotNull { appsByKey[it] }
-        .take(homeAppCount.coerceIn(2, 8))
-        .sortedWith(
-            compareBy<AppInfo> {
-                tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
-                    ?: Int.MAX_VALUE
-            }
-        )
+    val launchableApps = remember(
+        stableHomeOrder,
+        excludedHomeApps,
+        favorites,
+        appsByKey,
+        homeAppCount,
+        tilePositions
+    ) {
+        stableHomeOrder
+            .filterNot { excludedHomeApps.contains(it) }
+            .sortedWith(
+                compareByDescending<String> { favorites.contains(it) }
+            )
+            .mapNotNull { appsByKey[it] }
+            .take(homeAppCount.coerceIn(2, 8))
+            .sortedWith(
+                compareBy<AppInfo> {
+                    tilePositions["app_" + it.packageName + "_" + it.activityName]?.row
+                        ?: Int.MAX_VALUE
+                }
+            )
+    }
 
     val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
     val palette = remember { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
-        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet()
+        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
 
     Box(
@@ -749,7 +773,7 @@ private fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BrutalBlock(
-                        modifier = Modifier.width(150.dp),
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
                         background = BrutalColors.Cyan,
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
@@ -804,97 +828,113 @@ private fun HomeScreen(
                 }
             }
 
-            item(key = "clock") {
-                BrutalBlock(
-                    modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                    background = homeClockBackground,
-                    borderWidth = 4.dp,
-                    borderColor = BrutalColors.Ink,
-                    shadowX = 7.dp,
-                    shadowY = 7.dp
-                ) {
-                    BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize().padding(13.dp)
-                    ) {
-                        val compact = minOf(maxWidth, maxHeight)
-                        val timeSize = when {
-                            compact < 130.dp -> if (use24Hour) 41.sp else 38.sp
-                            compact < 160.dp -> if (use24Hour) 49.sp else 46.sp
-                            else -> if (use24Hour) 59.sp else 56.sp
-                        }
-                        val sideSize = when {
-                            compact < 130.dp -> 10.sp
-                            compact < 160.dp -> 12.sp
-                            else -> 15.sp
-                        }
+            item(key = "home-quote") {
+                NeoQuoteTile(
+                    quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first,
+                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    emphasized = true,
+                    paletteIndex = quoteRotation
+                )
+            }
 
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            BrutalLabel(
-                                text = (if (use24Hour) "24H" else "12H") + " / " + typographyStyle.label,
-                                background = BrutalColors.Pink
-                            )
+            item(key = "launchable-apps") {
+                if (launchableApps.isNotEmpty()) {
+                    NeoTileGrid(
+                        tiles = buildList {
+                            launchableApps.forEachIndexed { index, app ->
+                                val id = "app_" + app.packageName + "_" + app.activityName
+                                val defaultSize = when {
+                                    index < 2 -> NeoTileSize.HORIZONTAL
+                                    else -> NeoTileSize.SMALL
+                                }
+                                val size = tileSizes[id] ?: defaultSize
+                                val tileColor = palette[index % palette.size]
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = time.format(now),
-                                    modifier = Modifier.weight(1f),
-                                    fontSize = timeSize,
-                                    lineHeight = timeSize,
-                                    fontWeight = FontWeight.Black,
-                                    fontFamily = when (typographyStyle) {
-                                        TypographyStyle.MONO -> BrutalTypography.Mono
-                                        else -> BrutalTypography.Poster
-                                    },
-                                    color = homeClockText,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    overflow = TextOverflow.Clip
-                                )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .width(if (compact < 150.dp) 78.dp else 102.dp)
-                                            .padding(start = 12.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                add(
+                                    NeoTileSpec(
+                                        id = id,
+                                        size = size,
+                                        label = app.label.uppercase(),
+                                        onClick = { onLaunch(app) }
                                     ) {
-                                        Text(
-                                            text = longDay.format(now).uppercase(Locale.ENGLISH),
-                                            fontSize = sideSize,
-                                            lineHeight = sideSize,
-                                            fontWeight = FontWeight.Black,
-                                            fontFamily = BrutalTypography.Display,
-                                            color = BrutalColors.Red,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(2.dp)
-                                                .background(homeClockText)
-                                        )
-                                        Text(
-                                            text = longDate.format(now).uppercase(Locale.ENGLISH),
-                                            fontSize = sideSize,
-                                            lineHeight = sideSize,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = BrutalTypography.Display,
-                                            color = homeClockText,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
+                                        AppTile(
+                                            app = app,
+                                            background = tileColor,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentMode = appTileContentMode,
+                                            tileSize = size,
+                                            variant = index
                                         )
                                     }
+                                )
                             }
-                        }
-                    }
+
+                            val shortcutId = "home_app_shortcut"
+                            val shortcutSize = tileSizes[shortcutId] ?: NeoTileSize.SMALL
+                            add(
+                                NeoTileSpec(
+                                    id = shortcutId,
+                                    size = shortcutSize,
+                                    label = shortcutApp?.label?.uppercase() ?: "ADD APP",
+                                    onClick = {
+                                        shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
+                                    }
+                                ) {
+                                    if (shortcutApp != null) {
+                                        AppTile(
+                                            app = shortcutApp,
+                                            background = palette[launchableApps.size % palette.size],
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentMode = appTileContentMode,
+                                            tileSize = shortcutSize,
+                                            variant = launchableApps.size
+                                        )
+                                    } else {
+                                        BrutalBlock(
+                                            modifier = Modifier.fillMaxSize(),
+                                            background = BrutalColors.Pink,
+                                            borderWidth = 3.dp
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "+\nADD APP",
+                                                    fontFamily = BrutalTypography.Display,
+                                                    fontSize = 13.sp,
+                                                    lineHeight = 15.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = BrutalColors.Ink,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                        positions = tilePositions.filterKeys { appTileIds.contains(it) },
+                        onPositionsChange = onTilePositionsChange,
+                        onTileLongPress = { tile ->
+                            if (tile.id == "home_app_shortcut") {
+                                showAppPicker = true
+                            } else {
+                                selectedTile = tile
+                            }
+                        },
+                        onTileEdit = {
+                            if (it.id == "home_app_shortcut") {
+                                showAppPicker = true
+                            } else {
+                                selectedTile = it
+                            }
+                        },
+                        onTileMoveFinished = { tileEditMode = false },
+                        editMode = tileEditMode,
+                        modifier = Modifier.fillMaxWidth(),
+                        gap = 8.dp
+                    )
                 }
             }
 
@@ -903,26 +943,6 @@ private fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FixedSmallTile(
-                        modifier = Modifier.weight(1f),
-                        background = BrutalColors.Pink
-                    ) {
-                        BrutalTape(
-                            text = "MANIFESTO",
-                            background = BrutalColors.Yellow
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "YOUR PHONE\nDOESN'T NEED\nTO LOOK CALM.",
-                            fontFamily = BrutalTypography.Display,
-                            fontSize = 6.5.sp,
-                            lineHeight = 7.5.sp,
-                            fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.25.sp,
-                            color = BrutalColors.White,
-                            maxLines = 3
-                        )
-                    }
 
                     Box(
                         modifier = Modifier.weight(1f).aspectRatio(1f).clickable { weatherRefreshToken++ }
@@ -956,88 +976,13 @@ private fun HomeScreen(
                 )
             }
 
-            item(key = "launchable-apps") {
-                if (launchableApps.isNotEmpty()) {
-                    NeoTileGrid(
-                        tiles = buildList {
-                            launchableApps.forEachIndexed { index, app ->
-                                val id = "app_" + app.packageName + "_" + app.activityName
-                                val defaultSize = when {
-                                    index == launchableApps.lastIndex -> NeoTileSize.FOUR_BY_ONE
-                                    index < 2 -> NeoTileSize.HORIZONTAL
-                                    else -> NeoTileSize.SMALL
-                                }
-                                val size = if (index == launchableApps.lastIndex) {
-                                    NeoTileSize.FOUR_BY_ONE
-                                } else {
-                                    tileSizes[id] ?: defaultSize
-                                }
-                                val tileColor = palette[index % palette.size]
-
-                                add(
-                                    NeoTileSpec(
-                                        id = id,
-                                        size = size,
-                                        label = app.label.uppercase(),
-                                        onClick = { onLaunch(app) }
-                                    ) {
-                                        AppTile(
-                                            app = app,
-                                            background = tileColor,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentMode = appTileContentMode,
-                                            tileSize = size,
-                                            variant = index
-                                        )
-                                    }
-                                )
-                            }
-                        },
-                        positions = tilePositions.filterKeys { appTileIds.contains(it) },
-                        onPositionsChange = onTilePositionsChange,
-                        onTileLongPress = { tile ->
-                            selectedTile = tile
-                        },
-                        onTileEdit = { selectedTile = it },
-                        onTileMoveFinished = { tileEditMode = false },
-                        editMode = tileEditMode,
-                        modifier = Modifier.fillMaxWidth(),
-                        gap = 8.dp
-                    )
-                }
-            }
-
-            item(key = "footer") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    NeoAddAppTile(
-                        app = shortcutApp,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        onClick = {
-                            shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
-                        },
-                        onLongClick = { showAppPicker = true }
-                    )
-                    val quotePair = NeoQuotes.pairForRotation(quoteRotation, customQuotes)
-                    NeoQuoteTilePlain(
-                        quote = quotePair.first,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
-                        paletteIndex = quoteRotation
-                    )
-                    NeoQuoteTilePlain(
-                        quote = quotePair.second,
-                        modifier = Modifier.weight(2f).aspectRatio(2f),
-                        paletteIndex = quoteRotation + 1
-                    )
-                }
-            }
         }
     }
 
     if (showAppPicker) {
-        val sortedPickerApps = apps.sortedBy { it.label.lowercase() }
+        // AppRepository already sorts apps by case-insensitive label.
+        // Reuse that order instead of sorting again whenever this dialog recomposes.
+        val sortedPickerApps = apps
 
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showAppPicker = false },
@@ -1062,7 +1007,7 @@ private fun HomeScreen(
                         )
                     } else {
                         LazyColumn(
-                            modifier = Modifier.height(420.dp),
+                            modifier = Modifier.heightIn(max = minOf(420.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             items(
@@ -1140,10 +1085,12 @@ private fun HomeScreen(
     }
 
     selectedTile?.let { tile ->
-        val lastId = launchableApps.lastOrNull()?.let {
-            "app_" + it.packageName + "_" + it.activityName
+        val tileApp = launchableApps.firstOrNull {
+            ("app_" + it.packageName + "_" + it.activityName) == tile.id
         }
-        val locked = tile.id == lastId
+        val isPinnedApp = tileApp?.let {
+            favorites.contains(it.packageName + "/" + it.activityName)
+        } == true
 
         AlertDialog(
             onDismissRequest = {
@@ -1161,38 +1108,42 @@ private fun HomeScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = if (locked) {
-                            "FIXED 4x1 / LAST HOME APP"
-                        } else {
-                            "CURRENT SIZE: " + tile.size.label
-                        },
+                        text = "CURRENT SIZE: " + tile.size.label,
                         fontWeight = FontWeight.Black
                     )
 
-                    if (!locked) {
-                        listOf(
-                            NeoTileSize.SMALL,
-                            NeoTileSize.HORIZONTAL,
-                            NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE
-                        ).forEach { option ->
-                            BrutalActionButton(
-                                title = "SET ${option.label}",
-                                background = BrutalColors.White
-                            ) {
-                                onTileSizeChange(tile.id, option)
-                                selectedTile = null
-                                tileEditMode = false
-                            }
-                        }
-
-
+                    listOf(
+                        NeoTileSize.SMALL,
+                        NeoTileSize.HORIZONTAL,
+                        NeoTileSize.THREE_BY_ONE,
+                        NeoTileSize.FOUR_BY_ONE
+                    ).forEach { option ->
                         BrutalActionButton(
-                            title = "MOVE TILE",
-                            background = BrutalColors.Cyan
+                            title = "SET ${option.label}",
+                            background = if (tile.size == option) BrutalColors.Yellow else BrutalColors.White
                         ) {
+                            onTileSizeChange(tile.id, option)
                             selectedTile = null
-                            tileEditMode = true
+                            tileEditMode = false
+                        }
+                    }
+
+                    BrutalActionButton(
+                        title = "MOVE TILE",
+                        background = BrutalColors.Cyan
+                    ) {
+                        selectedTile = null
+                        tileEditMode = true
+                    }
+
+                    if (isPinnedApp && tileApp != null) {
+                        BrutalActionButton(
+                            title = "REMOVE PIN",
+                            background = BrutalColors.Pink
+                        ) {
+                            onRemovePinnedApp(tileApp)
+                            selectedTile = null
+                            tileEditMode = false
                         }
                     }
                 }
@@ -2001,7 +1952,7 @@ private fun SettingsScreen(
             },
             text = {
                 LazyColumn(
-                    modifier = Modifier.height(360.dp),
+                    modifier = Modifier.heightIn(max = minOf(360.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     item {
@@ -2110,7 +2061,7 @@ private fun SettingsScreen(
                         )
                     } else {
                         LazyColumn(
-                            modifier = Modifier.height(360.dp),
+                            modifier = Modifier.heightIn(max = minOf(360.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             items(
@@ -2164,7 +2115,7 @@ private fun SettingsScreen(
 
     if (showChatAppPicker) {
         AlertDialog(onDismissRequest = { showChatAppPicker = false }, title = { Text("CHOOSE CHAT APP", fontFamily = BrutalTypography.Display, fontWeight = FontWeight.Normal) }, text = {
-            LazyColumn(modifier = Modifier.height(360.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            LazyColumn(modifier = Modifier.heightIn(max = minOf(360.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 items(chatCandidates, key = { it.packageName + "/" + it.activityName }) { app ->
                     BrutalBlock(Modifier.fillMaxWidth().clickable { onChatNotificationPackagesChange(listOf(app.packageName)); showChatAppPicker = false }, background = if(app.packageName == chatNotificationPackages.firstOrNull()) BrutalColors.Yellow else uiSurface, borderWidth = 3.dp, shadowX = 3.dp, shadowY = 3.dp) {
                         Text(app.label.uppercase(Locale.ENGLISH), fontSize = 11.sp, fontWeight = FontWeight.Black, color = if(app.packageName == chatNotificationPackages.firstOrNull()) BrutalColors.Ink else uiOnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)

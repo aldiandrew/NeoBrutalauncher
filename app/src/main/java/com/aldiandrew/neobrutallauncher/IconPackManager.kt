@@ -14,11 +14,12 @@ data class IconPackInfo(
 
 class IconPackManager(private val context: Context) {
     private val packageManager = context.packageManager
-    private val preferences = LauncherPreferences(context)
     private val drawableNameRegex = Regex("[A-Za-z0-9_]+")
     private var cachedPackage: String? = null
     private var cachedMappings: Map<String, String> = emptyMap()
     private var cachedResources: Resources? = null
+    // Resource-name lookup is stable for the selected pack; cache both found and missing IDs.
+    private val cachedDrawableIds = HashMap<String, Int>()
 
     fun installedIconPacks(): List<IconPackInfo> {
         val actions = listOf(
@@ -46,9 +47,10 @@ class IconPackManager(private val context: Context) {
     fun iconFor(
         packageName: String,
         activityName: String,
-        fallback: Drawable
+        fallback: Drawable,
+        packPackage: String?
     ): Drawable {
-        val packPackage = preferences.iconPackPackage() ?: return fallback
+        packPackage ?: return fallback
         ensureCache(packPackage)
         val drawableName = cachedMappings["ComponentInfo{$packageName/$activityName}"]
             ?: return fallback
@@ -57,9 +59,11 @@ class IconPackManager(private val context: Context) {
             val resources = cachedResources ?: return@runCatching fallback
             val safeName = drawableName.takeIf(drawableNameRegex::matches)
                 ?: return@runCatching fallback
-            val drawableId = resources.getIdentifier(safeName, "drawable", packPackage)
-                .takeIf { it != 0 }
-                ?: resources.getIdentifier(safeName, "mipmap", packPackage)
+            val drawableId = cachedDrawableIds.getOrPut(safeName) {
+                resources.getIdentifier(safeName, "drawable", packPackage)
+                    .takeIf { it != 0 }
+                    ?: resources.getIdentifier(safeName, "mipmap", packPackage)
+            }
             if (drawableId == 0) fallback
             else resources.getDrawable(drawableId, context.theme)
         }.getOrDefault(fallback)
@@ -98,6 +102,7 @@ class IconPackManager(private val context: Context) {
         cachedPackage = packPackage
         cachedResources = result?.first
         cachedMappings = result?.second.orEmpty()
+        cachedDrawableIds.clear()
     }
 
 }

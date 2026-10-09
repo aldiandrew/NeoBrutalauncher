@@ -53,7 +53,8 @@ class AppRepository(private val context: Context) {
                     icon = iconPackManager.iconFor(
                         activityInfo.packageName,
                         activityInfo.name,
-                        baseIcon
+                        baseIcon,
+                        iconPackPackage
                     )
                 )
             }
