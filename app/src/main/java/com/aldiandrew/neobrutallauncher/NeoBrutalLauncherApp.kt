@@ -2132,15 +2132,37 @@ private fun SettingsScreen(
 
 @Composable
 private fun SettingsSectionTitle(title: String) {
-    Text(
-        text = title,
-        modifier = Modifier.padding(horizontal = 2.dp),
-        fontFamily = BrutalTypography.Display,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        letterSpacing = 1.5.sp,
-        color = MaterialTheme.colorScheme.onBackground
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, bottom = 1.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(9.dp)
+    ) {
+        BrutalBlock(
+            background = BrutalColors.Yellow,
+            borderWidth = 2.dp,
+            shadowX = 3.dp,
+            shadowY = 3.dp
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                fontFamily = BrutalTypography.Display,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                letterSpacing = 1.1.sp,
+                color = BrutalColors.Ink,
+                maxLines = 1
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.72f))
+        )
+    }
 }
 
 @Composable
