@@ -74,6 +74,16 @@ private fun resolveMusicApp(context: Context): MusicApp? {
 private fun hasMusicAccess(context: Context): Boolean =
     NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
 
+private fun openMusicPlayer(context: Context, packageName: String?) {
+    val launchIntent = packageName?.let {
+        runCatching { context.packageManager.getLaunchIntentForPackage(it) }.getOrNull()
+    }
+    if (launchIntent != null) {
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(launchIntent) }
+    }
+}
+
 @Composable
 fun NeoMusicTile(
     context: Context,
@@ -93,7 +103,6 @@ fun NeoMusicTile(
     }
 
     val musicInfo by NeoMusicSessionStore.state.collectAsState()
-
     val preferences = remember { LauncherPreferences(context) }
     val fallbackApp = remember { resolveMusicApp(context) }
     val lastMusicPackage = remember(musicInfo?.packageName) {
@@ -111,9 +120,8 @@ fun NeoMusicTile(
             }.getOrNull()
         }
     }
-    val musicLabel = musicInfo
-        ?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
-        ?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SELECTED MUSIC PLAYER"
+    val supportedInfo = musicInfo?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+    val musicLabel = supportedInfo?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SELECT MUSIC PLAYER"
     val iconBitmap = remember(musicPackage) {
         runCatching {
             musicPackage?.let {
@@ -123,14 +131,16 @@ fun NeoMusicTile(
     }
 
     BrutalBlock(
-        modifier = modifier.then(
-            if (!hasAccess) Modifier.clickable {
+        modifier = modifier.clickable {
+            if (!hasAccess) {
                 context.startActivity(
                     Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
-            } else Modifier
-        ),
+            } else {
+                openMusicPlayer(context, musicPackage)
+            }
+        },
         background = background,
         borderWidth = 4.dp,
         borderColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
@@ -141,7 +151,7 @@ fun NeoMusicTile(
         MusicTileContent(
             hasAccess = hasAccess,
             musicLabel = musicLabel,
-            musicInfo = musicInfo?.takeIf { NeoSupportedMusicApps.supports(it.packageName) },
+            musicInfo = supportedInfo,
             iconBitmap = iconBitmap,
             textColor = textColor,
             context = context,
@@ -169,7 +179,7 @@ private fun MusicTileContent(
             contentAlignment = Alignment.Center
         ) {
             val albumArt = musicInfo?.albumArt
-            if (albumArt != null) {
+            if (albumArt != null && !albumArt.isRecycled) {
                 Image(
                     bitmap = albumArt.asImageBitmap(),
                     contentDescription = "Album art",
@@ -180,7 +190,8 @@ private fun MusicTileContent(
                 Image(
                     bitmap = iconBitmap,
                     contentDescription = musicLabel,
-                    modifier = Modifier.size(52.dp)
+                    modifier = Modifier.size(52.dp),
+                    contentScale = ContentScale.Fit
                 )
             } else {
                 Icon(
@@ -201,7 +212,7 @@ private fun MusicTileContent(
                 maxLines = 1
             )
             Text(
-                text = musicLabel.uppercase(),
+                text = musicLabel.uppercase(Locale.getDefault()),
                 fontSize = 12.sp,
                 lineHeight = 13.sp,
                 fontWeight = FontWeight.Black,
@@ -222,10 +233,7 @@ private fun MusicTileContent(
                 )
             }
             musicInfo?.takeIf { it.durationMs > 0L }?.let { info ->
-                MusicProgressIndicator(
-                    musicInfo = info,
-                    textColor = textColor
-                )
+                MusicProgressIndicator(musicInfo = info, textColor = textColor)
             }
             if (!hasAccess) {
                 Text(
@@ -246,22 +254,17 @@ private fun MusicTileContent(
                 Icons.Default.SkipPrevious,
                 "Previous",
                 textColor,
-                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                enabled = hasAccess && musicInfo != null,
                 onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("previous") }
             )
             MusicControlButton(
                 if (musicInfo?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
                 if (musicInfo?.isPlaying == true) "Pause" else "Play",
                 textColor,
-                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                enabled = hasAccess && musicPackage != null,
                 onClick = {
-                    if (musicInfo == null && musicPackage != null) {
-                        runCatching {
-                            context.packageManager.getLaunchIntentForPackage(musicPackage)?.let { intent ->
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            }
-                        }
+                    if (musicInfo == null) {
+                        openMusicPlayer(context, musicPackage)
                     } else {
                         NeoNotificationServiceRegistry.service?.controlPlayback("toggle")
                     }
@@ -271,7 +274,7 @@ private fun MusicTileContent(
                 Icons.Default.SkipNext,
                 "Next",
                 textColor,
-                enabled = hasAccess && (musicInfo != null || musicPackage != null),
+                enabled = hasAccess && musicInfo != null,
                 onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("next") }
             )
         }
@@ -322,10 +325,8 @@ private fun MusicProgressIndicator(
 
     BrutalProgress(
         progress = progress,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp),
-        fillColor = textColor,
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        fillColor = if (textColor == BrutalColors.DarkWhite) BrutalColors.Lime else textColor,
         trackColor = textColor.copy(alpha = 0.18f)
     )
 }
