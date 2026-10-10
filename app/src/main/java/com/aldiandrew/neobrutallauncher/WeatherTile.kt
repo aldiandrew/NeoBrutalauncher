@@ -151,6 +151,15 @@ fun NeoWeatherTile(
                         maxLines = 1,
                         softWrap = false
                     )
+                    Text(
+                        text = currentWeather.description.uppercase(java.util.Locale.getDefault()),
+                        fontSize = 7.sp,
+                        lineHeight = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = BrutalColors.Ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             } else {
                 Column(
