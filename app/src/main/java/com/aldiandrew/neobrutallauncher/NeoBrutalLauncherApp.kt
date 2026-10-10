@@ -783,10 +783,10 @@ private fun HomeScreen(
     }
     val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
     val homeQuoteHeight = when {
-        homeQuote.length > 135 -> 120.dp
-        homeQuote.length > 90 -> 108.dp
-        homeQuote.length > 50 -> 96.dp
-        else -> 88.dp
+        homeQuote.length > 135 -> 112.dp
+        homeQuote.length > 90 -> 96.dp
+        homeQuote.length > 50 -> 84.dp
+        else -> 76.dp
     }
 
     Box(
@@ -801,7 +801,7 @@ private fun HomeScreen(
                 .fillMaxSize()
                 .padding(
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
-                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 56.dp,
+                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp,
                     start = 16.dp,
                     end = 16.dp
                 ),
@@ -1403,11 +1403,12 @@ fun NeoQuoteTile(
                 val compact = minOf(maxWidth, maxHeight)
                 val availableHeight = (
                     maxHeight.value -
-                        (if (emphasized) 43f else 30f) -
+                        (if (emphasized) 20f else 30f) -
                         if (showLabel) 12f else 0f
                     ).coerceAtLeast(18f)
                 var quoteSize = if (emphasized) {
-                    minOf(34f, maxWidth.value * 0.11f, availableHeight * 0.34f)
+                    val heightFactor = if (quote.length <= 55) 0.58f else 0.43f
+                    minOf(34f, maxWidth.value * 0.11f, availableHeight * heightFactor)
                 } else {
                     when {
                         compact < 78.dp -> 7f
@@ -1748,7 +1749,7 @@ private fun AppTile(
                                             1 -> {
                                                 appTitle(
                                                     Modifier.align(Alignment.CenterStart)
-                                                        .fillMaxWidth(0.76f)
+                                                        .fillMaxWidth()
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1759,7 +1760,7 @@ private fun AppTile(
                                                 appIcon(Modifier.align(Alignment.TopEnd))
                                                 appTitle(
                                                     Modifier.align(Alignment.BottomStart)
-                                                        .fillMaxWidth(0.82f)
+                                                        .fillMaxWidth()
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1768,7 +1769,7 @@ private fun AppTile(
                                             3 -> {
                                                 appTitle(
                                                     Modifier.align(Alignment.TopStart)
-                                                        .fillMaxWidth(0.82f)
+                                                        .fillMaxWidth()
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1779,7 +1780,7 @@ private fun AppTile(
                                                 appIcon(Modifier.align(Alignment.BottomStart))
                                                 appTitle(
                                                     Modifier.align(Alignment.TopEnd)
-                                                        .fillMaxWidth(0.78f)
+                                                        .fillMaxWidth()
                                                         .padding(start = iconSize + 8.dp),
                                                     TextAlign.End,
                                                     2
