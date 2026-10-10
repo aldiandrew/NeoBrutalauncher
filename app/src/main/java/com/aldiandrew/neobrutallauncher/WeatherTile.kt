@@ -116,24 +116,35 @@ fun NeoWeatherTile(
                         tint = BrutalColors.Ink,
                         modifier = Modifier.size(
                             when {
-                                compact < 90.dp -> 22.dp
-                                compact < 155.dp -> 30.dp
-                                else -> 36.dp
+                                compact < 90.dp -> 18.dp
+                                compact < 155.dp -> 23.dp
+                                else -> 28.dp
                             }
                         )
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = currentWeather.locationName.uppercase(java.util.Locale.getDefault()),
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 7.sp,
+                        lineHeight = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BrutalColors.Ink,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(1.dp))
                     Text(
                         text = currentWeather.temperatureC.toInt().toString() + "°",
                         fontSize = when {
-                            compact < 90.dp -> 20.sp
-                            compact < 155.dp -> 26.sp
-                            else -> 34.sp
+                            compact < 90.dp -> 17.sp
+                            compact < 155.dp -> 21.sp
+                            else -> 25.sp
                         },
                         lineHeight = when {
-                            compact < 90.dp -> 21.sp
-                            compact < 155.dp -> 27.sp
-                            else -> 35.sp
+                            compact < 90.dp -> 18.sp
+                            compact < 155.dp -> 22.sp
+                            else -> 26.sp
                         },
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
