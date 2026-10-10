@@ -39,7 +39,7 @@ fun NeoWeatherTile(
     modifier: Modifier = Modifier
 ) {
     var weather by remember {
-        mutableStateOf(WeatherRepository.cachedWeather())
+        mutableStateOf(WeatherRepository.cachedWeather(context))
     }
     var loading by remember { mutableStateOf(weather == null) }
     var error by remember { mutableStateOf<Throwable?>(null) }
@@ -48,10 +48,10 @@ fun NeoWeatherTile(
             android.content.pm.PackageManager.PERMISSION_GRANTED
 
     LaunchedEffect(refreshToken, locationGranted) {
-        val cached = WeatherRepository.cachedWeather()
+        val cached = WeatherRepository.cachedWeather(context)
 
         if (!locationGranted) {
-            weather = null
+            weather = cached ?: weather
             loading = false
             error = null
             return@LaunchedEffect
@@ -72,6 +72,7 @@ fun NeoWeatherTile(
         }.onSuccess {
             weather = it
         }.onFailure {
+            weather = cached ?: weather
             error = it
         }
 
