@@ -1227,19 +1227,19 @@ fun NeoQuoteTile(
                     }.coerceAtLeast(7f)
 
                     fun estimateLines(size: Float): Int {
-                        val charsPerLine = (maxWidth.value / (size * 0.62f)).toInt().coerceAtLeast(8)
-                        return ((quote.length + charsPerLine - 1) / charsPerLine)
+                        val charsPerLine = (maxWidth.value / (size * 0.52f)).toInt().coerceAtLeast(8)
+                        return ((quote.length + 2 + charsPerLine - 1) / charsPerLine)
                             .coerceAtLeast(1)
-                            .coerceAtMost(if (emphasized) 2 else 7)
                     }
 
-                    while (resolvedSize > 7f) {
+                    val maxQuoteLines = if (emphasized) 2 else 7
+                    while (resolvedSize > 4.5f) {
                         val lines = estimateLines(resolvedSize)
-                        val neededHeight = lines * resolvedSize * 1.08f
-                        if (neededHeight <= availableHeight) break
+                        val neededHeight = lines.coerceAtMost(maxQuoteLines) * resolvedSize * 1.08f
+                        if (lines <= maxQuoteLines && neededHeight <= availableHeight) break
                         resolvedSize -= 0.5f
                     }
-                    resolvedSize to estimateLines(resolvedSize)
+                    resolvedSize to estimateLines(resolvedSize).coerceAtMost(maxQuoteLines)
                 }
                         
 
