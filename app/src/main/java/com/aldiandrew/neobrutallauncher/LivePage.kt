@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -40,6 +39,8 @@ fun LivePage(
     customQuotes: List<String>,
     selectedChatPackages: List<String>,
     showWeather: Boolean,
+    weatherRefreshToken: Int,
+    onRefreshWeather: () -> Unit,
     use24Hour: Boolean,
     showAmPm: Boolean,
     onSelectChatPackage: (String) -> Unit,
@@ -67,8 +68,6 @@ fun LivePage(
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val headerText = BrutalColors.Ink
     val liveClockTileHeight = 128.dp
-    var weatherRefreshToken by remember { mutableIntStateOf(0) }
-
     val timePattern = when {
         use24Hour -> "HH:mm"
         showAmPm -> "hh:mm a"
@@ -141,7 +140,7 @@ fun LivePage(
                 ) {
                     NeoQuoteTile(
                         quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                        modifier = Modifier.weight(1f).height(148.dp),
+                        modifier = Modifier.weight(1f).height(164.dp),
                         emphasized = false,
                         paletteIndex = quoteRotation + 1,
                         showLabel = true
@@ -152,13 +151,13 @@ fun LivePage(
                         modifier = Modifier
                             .weight(1f)
                             .height(148.dp)
-                            .clickable { weatherRefreshToken++ }
+                            .clickable(onClick = onRefreshWeather)
                     )
                 }
             } else {
                 NeoQuoteTile(
                     quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                    modifier = Modifier.fillMaxWidth().height(132.dp),
                     emphasized = true,
                     paletteIndex = quoteRotation + 1,
                     showLabel = true
@@ -189,7 +188,7 @@ fun LivePage(
         item(key = "live-calendar") {
             NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(252.dp),
+                modifier = Modifier.fillMaxWidth().height(264.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )

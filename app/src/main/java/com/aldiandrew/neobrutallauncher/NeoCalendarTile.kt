@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -157,12 +158,12 @@ fun NeoCalendarTile(
             }
 
             Column(
-                modifier = Modifier.height(107.dp),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 for (week in 0 until 6) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         for (dayOfWeek in 0 until 7) {
@@ -177,7 +178,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(17.dp)
+                                    .fillMaxHeight()
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -208,11 +209,11 @@ fun NeoCalendarTile(
             }
 
             Text(
-                text = "TODAY  /  " +
-                    SimpleDateFormat("EEE, d MMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH),
+                text = "TODAY  ·  " +
+                    SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(today.time).uppercase(Locale.getDefault()),
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 8.sp,
-                lineHeight = 10.sp,
+                fontSize = 9.sp,
+                lineHeight = 11.sp,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Start,
                 color = textColor,
