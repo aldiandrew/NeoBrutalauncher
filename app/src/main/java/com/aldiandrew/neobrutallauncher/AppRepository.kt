@@ -95,7 +95,7 @@ class AppRepository(private val context: Context) {
             .distinct()
             .sorted()
         val packageSignature = packages.joinToString("|").hashCode().toString()
-        val now = SystemClock.elapsedRealtime()
+        val now = System.currentTimeMillis()
         val lastRefresh = shortcutCache.getLong(KEY_SHORTCUT_REFRESHED_AT, 0L)
         val oldSignature = shortcutCache.getString(KEY_SHORTCUT_PACKAGE_SIGNATURE, null)
         if (
