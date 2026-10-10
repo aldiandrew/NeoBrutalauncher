@@ -66,7 +66,7 @@ fun LivePage(
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val headerText = BrutalColors.Ink
-    val liveClockTileHeight = 112.dp
+    val liveClockTileHeight = 128.dp
     var weatherRefreshToken by remember { mutableIntStateOf(0) }
 
     val timePattern = when {
@@ -76,7 +76,7 @@ fun LivePage(
     }
     val timeText = SimpleDateFormat(timePattern, Locale.getDefault()).format(now)
     val dateText = SimpleDateFormat(
-        "EEE, d MMM yyyy",
+        "EEEE, d MMMM yyyy",
         Locale.getDefault()
     ).format(now).uppercase(Locale.getDefault())
 
@@ -123,8 +123,8 @@ fun LivePage(
                         lineHeight = 12.sp,
                         fontWeight = FontWeight.Black,
                         color = headerText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        overflow = TextOverflow.Clip
                     )
                 }
             }
@@ -186,7 +186,7 @@ fun LivePage(
         item(key = "live-calendar") {
             NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(194.dp),
+                modifier = Modifier.fillMaxWidth().height(224.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
