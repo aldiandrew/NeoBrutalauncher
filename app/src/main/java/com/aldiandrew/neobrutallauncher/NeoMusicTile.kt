@@ -90,7 +90,8 @@ fun NeoMusicTile(
     context: Context,
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    liveLayout: Boolean = false
 ) {
     var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -156,7 +157,8 @@ fun NeoMusicTile(
             iconBitmap = iconBitmap,
             textColor = textColor,
             context = context,
-            musicPackage = musicPackage
+            musicPackage = musicPackage,
+            liveLayout = liveLayout
         )
     }
 }
@@ -169,14 +171,64 @@ private fun MusicTileContent(
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
     context: Context,
+    musicPackage: String?,
+    liveLayout: Boolean
+) {
+    if (liveLayout) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            MusicTileMainRow(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                hasAccess = hasAccess,
+                musicLabel = musicLabel,
+                musicInfo = musicInfo,
+                iconBitmap = iconBitmap,
+                textColor = textColor,
+                context = context,
+                musicPackage = musicPackage
+            )
+            Text(
+                text = "MUSIC",
+                modifier = Modifier.align(Alignment.Start),
+                fontSize = 8.sp,
+                lineHeight = 9.sp,
+                fontWeight = FontWeight.Black,
+                color = textColor,
+                maxLines = 1
+            )
+        }
+    } else {
+        MusicTileMainRow(
+            modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
+            hasAccess = hasAccess,
+            musicLabel = musicLabel,
+            musicInfo = musicInfo,
+            iconBitmap = iconBitmap,
+            textColor = textColor,
+            context = context,
+            musicPackage = musicPackage
+        )
+    }
+}
+
+@Composable
+private fun MusicTileMainRow(
+    modifier: Modifier,
+    hasAccess: Boolean,
+    musicLabel: String,
+    musicInfo: MusicInfo?,
+    iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
+    textColor: Color,
+    context: Context,
     musicPackage: String?
 ) {
     Row(
-        modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         androidx.compose.foundation.layout.Box(
-            modifier = Modifier.size(58.dp),
+            modifier = Modifier.size(52.dp),
             contentAlignment = Alignment.Center
         ) {
             val albumArt = musicInfo?.albumArt
@@ -184,14 +236,14 @@ private fun MusicTileContent(
                 Image(
                     bitmap = albumArt.asImageBitmap(),
                     contentDescription = "Album art",
-                    modifier = Modifier.size(52.dp),
+                    modifier = Modifier.size(48.dp),
                     contentScale = ContentScale.Crop
                 )
             } else if (iconBitmap != null) {
                 Image(
                     bitmap = iconBitmap,
                     contentDescription = musicLabel,
-                    modifier = Modifier.size(52.dp),
+                    modifier = Modifier.size(48.dp),
                     contentScale = ContentScale.Fit
                 )
             } else {
@@ -199,11 +251,11 @@ private fun MusicTileContent(
                     Icons.Default.MusicNote,
                     "Music",
                     tint = textColor,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(7.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Text(
                 text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
@@ -214,8 +266,8 @@ private fun MusicTileContent(
             )
             Text(
                 text = musicLabel.uppercase(Locale.getDefault()),
-                fontSize = 12.sp,
-                lineHeight = 13.sp,
+                fontSize = 11.sp,
+                lineHeight = 12.sp,
                 fontWeight = FontWeight.Black,
                 color = textColor,
                 maxLines = 1,
@@ -248,7 +300,7 @@ private fun MusicTileContent(
             }
         }
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             MusicControlButton(
