@@ -6,6 +6,7 @@ import android.content.Intent
 import android.service.notification.StatusBarNotification
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -138,7 +139,8 @@ fun NeoChatNotificationTile(
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
-    onChooseApp: () -> Unit = {}
+    onChooseApp: () -> Unit = {},
+    onLongClick: () -> Unit = onChooseApp
 ) {
     val notifications by NeoChatNotificationStore.state.collectAsState()
     val item = notifications.firstOrNull { it.packageName == packageName }
@@ -159,15 +161,18 @@ fun NeoChatNotificationTile(
     }
 
     BrutalBlock(
-        modifier = modifier.clickable {
-            val launchIntent = packageName?.let { packageManager.getLaunchIntentForPackage(it) }
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(launchIntent)
-            } else {
-                onChooseApp()
-            }
-        },
+        modifier = modifier.combinedClickable(
+            onClick = {
+                val launchIntent = packageName?.let { packageManager.getLaunchIntentForPackage(it) }
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(launchIntent)
+                } else {
+                    onChooseApp()
+                }
+            },
+            onLongClick = onLongClick
+        ),
         background = background,
         borderWidth = 4.dp,
         borderColor = if (
