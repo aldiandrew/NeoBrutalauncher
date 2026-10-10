@@ -112,6 +112,30 @@ fun BatteryTile(
                         imageVector = if (battery.charging) {
                             Icons.Default.BatteryChargingFull
                         } else {
+                            Icons.Default.BatteryFull
+                        },
+                        contentDescription = "Battery",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "${battery.percentage}%",
+                        fontSize = 7.sp,
+                        lineHeight = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = if (battery.charging) "CHARGING" else "BATTERY",
+                        fontSize = 6.sp,
+                        lineHeight = 7.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1
+                    )
+                }
+            } else {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center
