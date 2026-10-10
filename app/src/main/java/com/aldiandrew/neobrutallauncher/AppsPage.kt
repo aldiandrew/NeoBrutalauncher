@@ -105,10 +105,11 @@ fun AppsPage(
             .fillMaxSize()
              .background(Color.Transparent)
             .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp,
+                start = 16.dp,
+                end = 16.dp
             )
-            .padding(horizontal = NeoBrutalTokens.Spacing.Medium, vertical = NeoBrutalTokens.Spacing.Medium)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             BrutalBlock(
@@ -245,7 +246,7 @@ fun AppsPage(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(end = 34.dp),
-                        verticalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Small)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         itemsIndexed(
                             items = sortedApps,
