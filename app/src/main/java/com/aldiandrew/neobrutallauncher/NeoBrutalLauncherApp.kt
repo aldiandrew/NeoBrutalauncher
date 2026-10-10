@@ -932,7 +932,6 @@ private fun HomeScreen(
                                     )
                                 }
                             )
-                            )
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
