@@ -44,6 +44,7 @@ fun BrutalBlock(
     shadowY: Dp = NeoBrutalTokens.Shadow.Medium,
     borderColor: Color? = null,
     shadowColor: Color? = null,
+    contentPadding: Dp = NeoBrutalTokens.Spacing.Small,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val style = LocalBrutalMetrics.current
@@ -78,7 +79,7 @@ fun BrutalBlock(
                         .fillMaxWidth()
                         .border(actualBorderWidth, resolvedBorderColor, shape)
                         .background(background, shape)
-                        .padding(NeoBrutalTokens.Spacing.Small),
+                        .padding(contentPadding),
                     content = content
                 )
             }
