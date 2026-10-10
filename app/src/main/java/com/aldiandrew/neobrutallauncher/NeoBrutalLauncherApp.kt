@@ -885,11 +885,8 @@ private fun HomeScreen(
                         tiles = buildList {
                             launchableApps.forEachIndexed { index, app ->
                                 val id = "app_" + app.packageName + "_" + app.activityName
-                                val defaultSize = when (index) {
-                                    0, 1 -> NeoTileSize.HORIZONTAL
-                                    2, 7 -> NeoTileSize.FOUR_BY_ONE
-                                    3, 6 -> NeoTileSize.THREE_BY_ONE
-                                    4, 5 -> NeoTileSize.SMALL
+                                val defaultSize = when {
+                                    index < 2 -> NeoTileSize.HORIZONTAL
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = tileSizes[id] ?: defaultSize
@@ -1859,14 +1856,13 @@ private fun SettingsScreen(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf(3, 5, 7, 8).forEach { count ->
+                    listOf(3, 5, 7).forEach { count ->
                         ThemeButton(
                             count.toString(),
                             homeAppCount == count,
                             if (count == 3) BrutalColors.Cyan
                             else if (count == 5) BrutalColors.Yellow
-                            else if (count == 7) BrutalColors.Pink
-                            else BrutalColors.Cyan,
+                            else BrutalColors.Pink,
                             Modifier.weight(1f)
                         ) {
                             onHomeAppCountChange(count)
