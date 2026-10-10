@@ -104,7 +104,6 @@ fun NeoBrutalLauncherApp() {
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
-    var quoteImageUri by remember { mutableStateOf(preferences.quoteImageUri()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
@@ -137,21 +136,6 @@ fun NeoBrutalLauncherApp() {
             }
             wallpaperUri = uri.toString()
             preferences.setWallpaperUri(uri.toString())
-        }
-    }
-
-    val quoteImagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri != null) {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            }
-            quoteImageUri = uri.toString()
-            preferences.setQuoteImageUri(uri.toString())
         }
     }
 
@@ -465,13 +449,6 @@ fun NeoBrutalLauncherApp() {
                         wallpaperUri = null
                         preferences.setWallpaperUri(null)
                     },
-                    onChooseQuoteImage = {
-                        quoteImagePickerLauncher.launch(arrayOf("image/*"))
-                    },
-                    onClearQuoteImage = {
-                        quoteImageUri = null
-                        preferences.setQuoteImageUri(null)
-                    },
                     onClearFavorites = {
                         favorites = emptySet()
                         preferences.clearFavorites()
@@ -511,8 +488,6 @@ fun NeoBrutalLauncherApp() {
                             appTileContentMode = appTileContentMode,
                             typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
-                            quoteImageUri = quoteImageUri,
-                            onChooseQuoteImage = { quoteImagePickerLauncher.launch(arrayOf("image/*")) },
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = ::requestLaunch,
@@ -690,8 +665,6 @@ private fun HomeScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     wallpaperUri: String?,
-    quoteImageUri: String?,
-    onChooseQuoteImage: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
@@ -839,7 +812,7 @@ private fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(1.dp)
                         ) {
                             Text(
-                                text = "NEO",
+                                text = time.format(now),
                                 fontFamily = BrutalTypography.Display,
                                 fontSize = 23.sp,
                                 lineHeight = 24.sp,
@@ -848,11 +821,13 @@ private fun HomeScreen(
                                 color = BrutalColors.Ink
                             )
                             Text(
-                                text = "BRUTAL LAUNCHER / 01",
+                                text = (longDay.format(now) + " / " + longDate.format(now)).uppercase(Locale.getDefault()),
                                 fontSize = 8.sp,
                                 lineHeight = 9.sp,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = 0.7.sp,
+                                letterSpacing = 0.4.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 color = BrutalColors.Ink
                             )
                         }
@@ -948,21 +923,16 @@ private fun HomeScreen(
                                         modifier = Modifier.fillMaxSize(),
                                         background = homeMusicBackground,
                                         textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
+                                        onLongClick = {
+                                            selectedTile = NeoTileSpec(
+                                                id = "home_music",
+                                                size = tileSizes["home_music"] ?: NeoTileSize.FOUR_BY_ONE,
+                                                label = "MUSIC"
+                                            ) {}
+                                        }
                                     )
                                 }
                             )
-                            add(
-                                NeoTileSpec(
-                                    id = "home_quote_image",
-                                    size = NeoTileSize.FOUR_BY_TWO,
-                                    label = "QUOTE + IMAGE"
-                                ) {
-                                    NeoQuoteImageTile(
-                                        quote = homeQuote,
-                                        imageUri = quoteImageUri,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
                             )
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
@@ -1021,6 +991,28 @@ private fun HomeScreen(
                             )
                         }
                     },
+                    positions = emptyMap(),
+                    onPositionsChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    gap = 10.dp
+                )
+            }
+
+            item(key = "home-quote-image") {
+                NeoTileGrid(
+                    tiles = listOf(
+                        NeoTileSpec(
+                            id = "home_quote_image",
+                            size = NeoTileSize.FOUR_BY_TWO,
+                            label = "QUOTE + IMAGE"
+                        ) {
+                            NeoQuoteImageTile(
+                                quote = homeQuote,
+                                imageUri = wallpaperUri,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    ),
                     positions = emptyMap(),
                     onPositionsChange = {},
                     modifier = Modifier.fillMaxWidth(),
@@ -1549,7 +1541,6 @@ private fun SettingsScreen(
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
-    quoteImageUri: String?,
     favorites: Set<String>,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
@@ -1573,8 +1564,6 @@ private fun SettingsScreen(
     onReduceMotionChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
-    onChooseQuoteImage: () -> Unit,
-    onClearQuoteImage: () -> Unit,
     onClearFavorites: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
@@ -1640,8 +1629,8 @@ private fun SettingsScreen(
         SettingsSectionTitle("APPEARANCE")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Color mode", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = uiOnSurface)
-                Text("Choose whether the launcher follows your device theme or stays light or dark.", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Normal, color = uiOnSurface.copy(alpha = .75f))
+                Text("Theme", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = uiOnSurface)
+                Text("Choose your theme mode.", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Normal, color = uiOnSurface.copy(alpha = .75f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsOptionButton("SYSTEM", themePreference == ThemePreference.SYSTEM, BrutalColors.Cyan, Modifier.weight(1f)) { onThemeChange(ThemePreference.SYSTEM) }
                     SettingsOptionButton("LIGHT", themePreference == ThemePreference.LIGHT, BrutalColors.Yellow, Modifier.weight(1f)) { onThemeChange(ThemePreference.LIGHT) }
@@ -1669,6 +1658,10 @@ private fun SettingsScreen(
                                 DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
                                 DesignPreset.COBALT_POP -> Color(0xFF9CB4FF)
                                 DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
+                                DesignPreset.SUNSET_POP -> Color(0xFFFF9B54)
+                                DesignPreset.FOREST_ACID -> Color(0xFFB8E986)
+                                DesignPreset.VIOLET_GRID -> Color(0xFFB69CFF)
+                                DesignPreset.REDLINE -> Color(0xFFFF4545)
                             }
                             SettingsOptionButton(
                                 preset.label,
@@ -1711,9 +1704,9 @@ private fun SettingsScreen(
                     color = uiOnSurface.copy(alpha = .75f)
                 )
                 Text(
-                    text = if (wallpaperUri == null) "No wallpaper selected" else "Custom image selected",
+                    text = if (wallpaperUri == null) "Wallpaper" else "Wallpaper selected",
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     color = uiOnSurface
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1747,7 +1740,7 @@ private fun SettingsScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("Built-in quotes", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface)
-                NeoQuotes.builtInQuotes().forEachIndexed { index, quote ->
+                NeoQuotes.builtInQuotes().take(5).forEachIndexed { index, quote ->
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                         Text(
                             text = "${index + 1}.",
@@ -1863,7 +1856,7 @@ private fun SettingsScreen(
         SettingsSectionTitle("CLOCK")
         SettingsSwitch("24-HOUR TIME", "Use a 24-hour clock on Home and Live.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("AM / PM", "Show AM or PM when using the 12-hour clock on Home and Live.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
-        SettingsSectionTitle("MOTION")
+        SettingsSectionTitle("ANIMATION")
         BrutalBlock(
             Modifier.fillMaxWidth(),
             background = uiSurface,
@@ -1873,7 +1866,7 @@ private fun SettingsScreen(
             shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Animation smoothness", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("Animation", fontFamily = BrutalTypography.Display, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 Text("Controls how quickly launcher movement settles.", fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MotionSmoothness.values().forEach { smoothness ->
@@ -1997,40 +1990,11 @@ private fun SettingsScreen(
             }
         }
 
-        SettingsSectionTitle("Home quote + image tile")
-        BrutalBlock(
-            modifier = Modifier.fillMaxWidth(),
-            background = uiSurface,
-            borderWidth = 2.dp,
-            shadowX = 0.dp,
-            shadowY = 0.dp
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = if (quoteImageUri == null) "No image selected" else "Custom image selected",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = uiOnSurface
-                )
-                Text(
-                    text = "Choose the image shown in the right half of the 4×2 Home tile. It is displayed in black and white.",
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp,
-                    color = uiOnSurface.copy(alpha = 0.78f)
-                )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SettingsActionButton("Choose image", BrutalColors.Yellow, Modifier.weight(1f), onChooseQuoteImage)
-                    if (quoteImageUri != null) {
-                        SettingsActionButton("Clear", uiSurface, Modifier.weight(0.6f), onClearQuoteImage)
-                    }
-                }
-            }
-        }
 
 
             }
             "Apps" -> {
-        SettingsSectionTitle("App icons")
+        SettingsSectionTitle("Icon")
         BrutalBlock(
             Modifier.fillMaxWidth(),
             background = uiSurface,
