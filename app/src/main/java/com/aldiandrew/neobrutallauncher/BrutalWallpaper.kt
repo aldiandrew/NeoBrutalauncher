@@ -42,14 +42,15 @@ fun BrutalWallpaper(
     }
 }
 
-private fun loadCustomWallpaper(
+internal fun loadCustomWallpaper(
     context: android.content.Context,
-    uriString: String
+    uriString: String,
+    maxDimensionOverride: Int? = null
 ): Bitmap? =
     runCatching {
         val targetWidth = context.resources.displayMetrics.widthPixels.coerceAtLeast(1)
         val targetHeight = context.resources.displayMetrics.heightPixels.coerceAtLeast(1)
-        val maxDimension = max(targetWidth, targetHeight)
+        val maxDimension = maxDimensionOverride ?: max(targetWidth, targetHeight)
 
         val bounds = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
