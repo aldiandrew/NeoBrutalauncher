@@ -10,6 +10,7 @@ on:
       - fixes/after-stable-598
       - fixes/after-stable-603
       - fixes/after-stable-605
+      - test/automated-quality-gates
   pull_request:
     branches:
       - main
@@ -33,6 +34,22 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
+
+      - name: Run automated unit tests and Android Lint
+        run: gradle testDebugUnitTest lintDebug
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automated-test-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/**
+            app/build/test-results/testDebugUnitTest/**
+            app/build/reports/lint-results-debug.html
+            app/build/reports/lint-results-debug.xml
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Build signed release APK
         run: gradle assembleRelease --rerun-tasks
