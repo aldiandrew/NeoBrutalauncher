@@ -2332,7 +2332,15 @@ private fun SettingsOptionButton(
 ) {
     BrutalPressableBlock(
         modifier = modifier,
-        background = if (selected) background else MaterialTheme.colorScheme.surface,
+        background = if (selected) {
+            if (label in setOf("NEO-BRUTAL CLASSIC", "ACID DARK", "COBALT POP", "MONOCHROME")) {
+                background
+            } else {
+                BrutalColors.Yellow
+            }
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
         borderWidth = 2.dp,
         shadowX = 0.dp,
         shadowY = 0.dp,
