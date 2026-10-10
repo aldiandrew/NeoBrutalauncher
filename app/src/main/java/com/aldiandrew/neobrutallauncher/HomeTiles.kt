@@ -40,13 +40,14 @@ enum class NeoTileSize(
     SMALL(1, 1, "1x1"),
     HORIZONTAL(2, 1, "2x1"),
     THREE_BY_ONE(3, 1, "3x1"),
-    FOUR_BY_ONE(4, 1, "4x1");
+    FOUR_BY_ONE(4, 1, "4x1"),
+    FOUR_BY_TWO(4, 2, "4x2");
 
     fun next(): NeoTileSize = when (this) {
         SMALL -> HORIZONTAL
         HORIZONTAL -> THREE_BY_ONE
         THREE_BY_ONE -> FOUR_BY_ONE
-        FOUR_BY_ONE -> SMALL
+        FOUR_BY_ONE, FOUR_BY_TWO -> SMALL
     }
 }
 
