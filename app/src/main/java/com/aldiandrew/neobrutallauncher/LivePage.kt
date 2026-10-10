@@ -172,7 +172,8 @@ fun LivePage(
                 modifier = Modifier.fillMaxWidth().height(116.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
-                onChooseApp = { showChatAppPicker = true }
+                onChooseApp = { showChatAppPicker = true },
+                onLongClick = { showChatAppPicker = true }
             )
         }
 
