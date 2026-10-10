@@ -127,7 +127,7 @@ fun LivePage(
                         fontWeight = FontWeight.Black,
                         color = headerText,
                         maxLines = 2,
-                        overflow = TextOverflow.Clip
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -189,7 +189,7 @@ fun LivePage(
         item(key = "live-calendar") {
             NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(224.dp),
+                modifier = Modifier.fillMaxWidth().height(252.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
