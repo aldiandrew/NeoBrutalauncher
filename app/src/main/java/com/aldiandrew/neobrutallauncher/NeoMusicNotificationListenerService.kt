@@ -135,14 +135,21 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
         currentController?.unregisterCallback(controllerCallback)
         clearAlbumArtCache()
 
-        val supportedControllers = controllers.filter {
-            NeoSupportedMusicApps.supports(it.packageName)
-        }
-        currentController = supportedControllers.firstOrNull {
+        // Prefer an actively playing supported player, but do not ignore other media apps.
+        // The current player can be YouTube, a browser, or an OEM player not in our legacy list.
+        currentController = controllers.firstOrNull {
+            NeoSupportedMusicApps.supports(it.packageName) &&
+                it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
+        } ?: controllers.firstOrNull {
             it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
-        } ?: supportedControllers.firstOrNull {
+        } ?: controllers.firstOrNull {
+            NeoSupportedMusicApps.supports(it.packageName) &&
+                !it.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank()
+        } ?: controllers.firstOrNull {
             !it.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank()
-        } ?: supportedControllers.firstOrNull()
+        } ?: controllers.firstOrNull {
+            NeoSupportedMusicApps.supports(it.packageName)
+        } ?: controllers.firstOrNull()
 
         currentController?.registerCallback(controllerCallback)
         publish(currentController)
@@ -229,7 +236,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     }
 
     fun controlPlayback(action: String) {
-        val controller = currentController?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+        val controller = currentController
         val controls = controller?.transportControls
         if (controls != null) {
             runCatching {
@@ -258,7 +265,7 @@ class NeoMusicNotificationListenerService : NotificationListenerService() {
     }
 
     private fun publish(controller: MediaController?) {
-        if (controller == null || !NeoSupportedMusicApps.supports(controller.packageName)) {
+        if (controller == null) {
             clearAlbumArtCache()
             NeoMusicSessionStore.update(null)
             return
