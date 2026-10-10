@@ -12,6 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -61,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +81,7 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 @Composable
 fun NeoBrutalLauncherApp() {
@@ -106,6 +110,9 @@ fun NeoBrutalLauncherApp() {
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
+    var settingsSwipeEnabled by remember { mutableStateOf(preferences.settingsSwipeEnabled()) }
+    var homeClockDoubleTapEnabled by remember { mutableStateOf(preferences.homeClockDoubleTapEnabled()) }
+    var homeClockLongPressEnabled by remember { mutableStateOf(preferences.homeClockLongPressEnabled()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var locationPermissionGranted by remember {
         mutableStateOf(
@@ -321,6 +328,9 @@ fun NeoBrutalLauncherApp() {
                     iconPackPackage = iconPackPackage,
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
+                    settingsSwipeEnabled = settingsSwipeEnabled,
+                    homeClockDoubleTapEnabled = homeClockDoubleTapEnabled,
+                    homeClockLongPressEnabled = homeClockLongPressEnabled,
                     wallpaperUri = wallpaperUri,
                     favorites = favorites,
                     favoritesCount = favorites.size,
@@ -435,6 +445,18 @@ fun NeoBrutalLauncherApp() {
                         reduceMotion = it
                         preferences.setReduceMotion(it)
                     },
+                    onSettingsSwipeChange = {
+                        settingsSwipeEnabled = it
+                        preferences.setSettingsSwipeEnabled(it)
+                    },
+                    onHomeClockDoubleTapChange = {
+                        homeClockDoubleTapEnabled = it
+                        preferences.setHomeClockDoubleTapEnabled(it)
+                    },
+                    onHomeClockLongPressChange = {
+                        homeClockLongPressEnabled = it
+                        preferences.setHomeClockLongPressEnabled(it)
+                    },
                     onBackup = { backupFileLauncher.launch("neo-brutal-launcher-backup.json") },
                     onRestore = { restoreFileLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
                     onResetAll = {
@@ -487,6 +509,8 @@ fun NeoBrutalLauncherApp() {
                             appTileContentMode = appTileContentMode,
                             typographyStyle = typographyStyle,
                             wallpaperUri = wallpaperUri,
+                            homeClockDoubleTapEnabled = homeClockDoubleTapEnabled,
+                            homeClockLongPressEnabled = homeClockLongPressEnabled,
                             onOpenSettings = { settingsOpen = true },
                             onOpenApps = { currentPage = 1 },
                             onLaunch = ::requestLaunch,
@@ -664,6 +688,8 @@ private fun HomeScreen(
     appTileContentMode: TileContentMode,
     typographyStyle: TypographyStyle,
     wallpaperUri: String?,
+    homeClockDoubleTapEnabled: Boolean,
+    homeClockLongPressEnabled: Boolean,
     onOpenSettings: () -> Unit,
     onOpenApps: () -> Unit,
     onLaunch: (AppInfo) -> Unit,
@@ -768,7 +794,10 @@ private fun HomeScreen(
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() +
             setOf("home_music", "home_quote_image")
     }
-    val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
+    val homeQuotePair = remember(quoteRotation, customQuotes) {
+        NeoQuotes.pairForRotation(quoteRotation, customQuotes)
+    }
+    val homeQuote = homeQuotePair.first
     val homeQuoteHeight = when {
         homeQuote.length > 135 -> 112.dp
         homeQuote.length > 90 -> 96.dp
@@ -801,7 +830,11 @@ private fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BrutalBlock(
-                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        modifier = Modifier.weight(1f).padding(end = 8.dp).combinedClickable(
+                            onClick = {},
+                            onDoubleClick = if (homeClockDoubleTapEnabled) onOpenSettings else null,
+                            onLongClick = if (homeClockLongPressEnabled) onOpenApps else null
+                        ),
                         background = BrutalColors.Cyan,
                         borderWidth = 3.dp,
                         shadowX = 4.dp,
@@ -1001,12 +1034,11 @@ private fun HomeScreen(
                     tiles = listOf(
                         NeoTileSpec(
                             id = "home_quote_image",
-                            size = NeoTileSize.FOUR_BY_TWO,
-                            label = "QUOTE + IMAGE"
+                            size = NeoTileSize.FOUR_BY_ONE,
+                            label = "QUOTE"
                         ) {
                             NeoQuoteImageTile(
-                                quote = homeQuote,
-                                imageUri = wallpaperUri,
+                                quote = homeQuotePair.second,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -1177,38 +1209,38 @@ fun NeoQuoteTile(
                 .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 10.dp)
         ) {
                 val compact = minOf(maxWidth, maxHeight)
-                val availableHeight = (
-                    maxHeight.value -
-                        (if (emphasized) 20f else 30f) -
-                        if (showLabel) 12f else 0f
-                    ).coerceAtLeast(18f)
-                var quoteSize = if (emphasized) {
-                    val heightFactor = if (quote.length <= 55) 0.58f else 0.43f
-                    minOf(34f, maxWidth.value * 0.11f, availableHeight * heightFactor)
-                } else {
-                    when {
-                        compact < 78.dp -> 7f
-                        compact < 155.dp -> 12f
-                        else -> 17f
-                    }
-                }.coerceAtLeast(7f)
+                val (quoteSize, estimatedLines) = remember(quote, emphasized, maxWidth, maxHeight, showLabel) {
+                    val availableHeight = (
+                        maxHeight.value -
+                            (if (emphasized) 20f else 30f) -
+                            if (showLabel) 12f else 0f
+                        ).coerceAtLeast(18f)
+                    var resolvedSize = if (emphasized) {
+                        val heightFactor = if (quote.length <= 55) 0.58f else 0.43f
+                        minOf(34f, maxWidth.value * 0.11f, availableHeight * heightFactor)
+                    } else {
+                        when {
+                            compact < 78.dp -> 7f
+                            compact < 155.dp -> 12f
+                            else -> 17f
+                        }
+                    }.coerceAtLeast(7f)
 
-                while (quoteSize > 7f) {
-                    val estimatedCharsPerLine =
-                        (maxWidth.value / (quoteSize * 0.62f)).toInt().coerceAtLeast(8)
-                    val estimatedLines =
-                        ((quote.length + estimatedCharsPerLine - 1) / estimatedCharsPerLine)
+                    fun estimateLines(size: Float): Int {
+                        val charsPerLine = (maxWidth.value / (size * 0.62f)).toInt().coerceAtLeast(8)
+                        return ((quote.length + charsPerLine - 1) / charsPerLine)
                             .coerceAtLeast(1)
-                    val neededHeight = estimatedLines * quoteSize * 1.08f
-                    if (neededHeight <= availableHeight) break
-                    quoteSize -= 0.5f
-                }
+                            .coerceAtMost(if (emphasized) 2 else 7)
+                    }
 
-                val charsPerLine =
-                    (maxWidth.value / (quoteSize * 0.62f)).toInt().coerceAtLeast(8)
-                val estimatedLines =
-                    ((quote.length + charsPerLine - 1) / charsPerLine)
-                        .coerceAtLeast(1)
+                    while (resolvedSize > 7f) {
+                        val lines = estimateLines(resolvedSize)
+                        val neededHeight = lines * resolvedSize * 1.08f
+                        if (neededHeight <= availableHeight) break
+                        resolvedSize -= 0.5f
+                    }
+                    resolvedSize to estimateLines(resolvedSize)
+                }
                         
 
                 Column(
@@ -1526,6 +1558,9 @@ private fun SettingsScreen(
     iconPackPackage: String?,
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
+    settingsSwipeEnabled: Boolean,
+    homeClockDoubleTapEnabled: Boolean,
+    homeClockLongPressEnabled: Boolean,
     wallpaperUri: String?,
     favorites: Set<String>,
     favoritesCount: Int,
@@ -1548,6 +1583,9 @@ private fun SettingsScreen(
     onCustomQuotesChange: (List<String>) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
+    onSettingsSwipeChange: (Boolean) -> Unit,
+    onHomeClockDoubleTapChange: (Boolean) -> Unit,
+    onHomeClockLongPressChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
     onClearFavorites: () -> Unit,
@@ -1589,7 +1627,25 @@ private fun SettingsScreen(
             horizontal = NeoBrutalTokens.Spacing.Medium,
             vertical = NeoBrutalTokens.Spacing.Medium
         )
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .pointerInput(settingsSwipeEnabled, selectedCategory) {
+                if (settingsSwipeEnabled) {
+                    val categories = listOf("General", "Home", "Icon", "Live")
+                    var dragTotal = 0f
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, amount ->
+                            dragTotal += amount
+                            if (abs(dragTotal) >= 80f) {
+                                val current = categories.indexOf(selectedCategory).coerceAtLeast(0)
+                                val next = (current + if (dragTotal < 0f) 1 else -1)
+                                    .coerceIn(0, categories.lastIndex)
+                                selectedCategory = categories[next]
+                                dragTotal = 0f
+                            }
+                        }
+                    )
+                }
+            },
         verticalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Small)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -1905,6 +1961,23 @@ private fun SettingsScreen(
             }
             "Home" -> {
         SettingsSectionTitle("Home screen")
+        SettingsSectionTitle("GESTURES")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Swipe between Settings categories", fontSize = 13.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
+                Text("Swipe left or right to move between General, Home, Icon and Live. No extra permission required.", fontSize = 12.sp, lineHeight = 15.sp, color = uiOnSurface.copy(alpha = .75f))
+                SettingsSwitch("SETTINGS CATEGORY SWIPE", "Enable horizontal swipes in Settings.", settingsSwipeEnabled, BrutalColors.Cyan, onSettingsSwipeChange)
+            }
+        }
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Home clock gestures", fontSize = 13.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
+                Text("Use the clock tile as a shortcut. These gestures do not need Accessibility, Device Admin or other special access.", fontSize = 12.sp, lineHeight = 15.sp, color = uiOnSurface.copy(alpha = .75f))
+                SettingsSwitch("DOUBLE-TAP CLOCK → SETTINGS", "Open Settings by double-tapping the Home clock.", homeClockDoubleTapEnabled, BrutalColors.Yellow, onHomeClockDoubleTapChange)
+                SettingsSwitch("LONG-PRESS CLOCK → APPS", "Open the Apps page by long-pressing the Home clock.", homeClockLongPressEnabled, BrutalColors.Pink, onHomeClockLongPressChange)
+                Text("Permissions needed: none.", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .7f))
+            }
+        }
 
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -336,6 +336,21 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
     }
 
+    fun settingsSwipeEnabled(): Boolean = prefs.getBoolean(KEY_SETTINGS_SWIPE, true)
+    fun setSettingsSwipeEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_SETTINGS_SWIPE, value).apply()
+    }
+
+    fun homeClockDoubleTapEnabled(): Boolean = prefs.getBoolean(KEY_HOME_CLOCK_DOUBLE_TAP, true)
+    fun setHomeClockDoubleTapEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_HOME_CLOCK_DOUBLE_TAP, value).apply()
+    }
+
+    fun homeClockLongPressEnabled(): Boolean = prefs.getBoolean(KEY_HOME_CLOCK_LONG_PRESS, true)
+    fun setHomeClockLongPressEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_HOME_CLOCK_LONG_PRESS, value).apply()
+    }
+
     fun customQuotes(): List<String> {
         val raw = prefs.getString(KEY_CUSTOM_QUOTES, null)
         if (raw.isNullOrBlank()) return emptyList()
@@ -539,6 +554,9 @@ class LauncherPreferences(context: Context) {
             remove(KEY_CUSTOM_QUOTES)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
+            remove(KEY_SETTINGS_SWIPE)
+            remove(KEY_HOME_CLOCK_DOUBLE_TAP)
+            remove(KEY_HOME_CLOCK_LONG_PRESS)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
         }
@@ -627,6 +645,9 @@ class LauncherPreferences(context: Context) {
         private const val KEY_CUSTOM_QUOTES = "custom_quotes"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
+        private const val KEY_SETTINGS_SWIPE = "settings_swipe_enabled"
+        private const val KEY_HOME_CLOCK_DOUBLE_TAP = "home_clock_double_tap_enabled"
+        private const val KEY_HOME_CLOCK_LONG_PRESS = "home_clock_long_press_enabled"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_LAST_MUSIC_PACKAGE = "last_music_package"

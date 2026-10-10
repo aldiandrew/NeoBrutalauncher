@@ -18,6 +18,8 @@ object NeoQuotes {
         "Design boldly. Let every element earn its place.",
         "Clarity is powerful. Noise is optional.",
         "Build for people, not for applause.",
+        "Small details decide whether an interface feels alive.",
+        "Fast is a feature. Calm is a feature too.",
     )
 
     fun builtInQuotes(): List<String> = defaultQuotes
