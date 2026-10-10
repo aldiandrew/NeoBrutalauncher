@@ -85,12 +85,12 @@ fun LivePage(
             .fillMaxSize()
             .background(Color.Transparent)
             .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 80.dp,
+                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp,
                 start = 16.dp,
                 end = 16.dp
             ),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item(key = "live-clock") {
             BrutalBlock(
