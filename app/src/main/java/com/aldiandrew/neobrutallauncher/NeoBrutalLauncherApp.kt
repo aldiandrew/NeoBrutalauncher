@@ -1550,6 +1550,7 @@ private fun SettingsScreen(
     motionSmoothness: MotionSmoothness,
     reduceMotion: Boolean,
     wallpaperUri: String?,
+    quoteImageUri: String?,
     favorites: Set<String>,
     favoritesCount: Int,
     locationPermissionGranted: Boolean,
@@ -1573,6 +1574,8 @@ private fun SettingsScreen(
     onReduceMotionChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
+    onChooseQuoteImage: () -> Unit,
+    onClearQuoteImage: () -> Unit,
     onClearFavorites: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
@@ -2287,9 +2290,9 @@ private fun SettingsActionButton(
     BrutalPressableBlock(
         modifier = modifier.fillMaxWidth(),
         background = resolvedBackground,
-        borderWidth = NeoBrutalTokens.Border.Primary,
-        shadowX = 3.dp,
-        shadowY = 3.dp,
+        borderWidth = 2.dp,
+        shadowX = 0.dp,
+        shadowY = 0.dp,
         onClick = onClick
     ) {
         Text(
