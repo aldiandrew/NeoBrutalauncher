@@ -1628,23 +1628,21 @@ private fun SettingsScreen(
             vertical = NeoBrutalTokens.Spacing.Medium
         )
             .verticalScroll(rememberScrollState())
-            .pointerInput(settingsSwipeEnabled, selectedCategory) {
-                if (settingsSwipeEnabled) {
-                    val categories = listOf("General", "Home", "Icon", "Live")
-                    var dragTotal = 0f
-                    detectHorizontalDragGestures(
-                        onHorizontalDrag = { _, amount ->
-                            dragTotal += amount
-                            if (abs(dragTotal) >= 80f) {
-                                val current = categories.indexOf(selectedCategory).coerceAtLeast(0)
-                                val next = (current + if (dragTotal < 0f) 1 else -1)
-                                    .coerceIn(0, categories.lastIndex)
-                                selectedCategory = categories[next]
-                                dragTotal = 0f
-                            }
+            .pointerInput(selectedCategory) {
+                val categories = listOf("General", "Home", "Icon", "Live")
+                var dragTotal = 0f
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { _, amount ->
+                        dragTotal += amount
+                        if (abs(dragTotal) >= 80f) {
+                            val current = categories.indexOf(selectedCategory).coerceAtLeast(0)
+                            val next = (current + if (dragTotal < 0f) 1 else -1)
+                                .coerceIn(0, categories.lastIndex)
+                            selectedCategory = categories[next]
+                            dragTotal = 0f
                         }
-                    )
-                }
+                    }
+                )
             },
         verticalArrangement = Arrangement.spacedBy(NeoBrutalTokens.Spacing.Small)
     ) {
@@ -1961,24 +1959,6 @@ private fun SettingsScreen(
             }
             "Home" -> {
         SettingsSectionTitle("Home screen")
-        SettingsSectionTitle("GESTURES")
-        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Swipe between Settings categories", fontSize = 13.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
-                Text("Swipe left or right to move between General, Home, Icon and Live. No extra permission required.", fontSize = 12.sp, lineHeight = 15.sp, color = uiOnSurface.copy(alpha = .75f))
-                SettingsSwitch("SETTINGS CATEGORY SWIPE", "Enable horizontal swipes in Settings.", settingsSwipeEnabled, BrutalColors.Cyan, onSettingsSwipeChange)
-            }
-        }
-        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Home clock gestures", fontSize = 13.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
-                Text("Use the clock tile as a shortcut. These gestures do not need Accessibility, Device Admin or other special access.", fontSize = 12.sp, lineHeight = 15.sp, color = uiOnSurface.copy(alpha = .75f))
-                SettingsSwitch("DOUBLE-TAP CLOCK → SETTINGS", "Open Settings by double-tapping the Home clock.", homeClockDoubleTapEnabled, BrutalColors.Yellow, onHomeClockDoubleTapChange)
-                SettingsSwitch("LONG-PRESS CLOCK → APPS", "Open the Apps page by long-pressing the Home clock.", homeClockLongPressEnabled, BrutalColors.Pink, onHomeClockLongPressChange)
-                Text("Permissions needed: none.", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .7f))
-            }
-        }
-
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("App tile content", fontSize = 13.sp, fontWeight = FontWeight.Black)
@@ -2045,7 +2025,16 @@ private fun SettingsScreen(
             }
         }
 
-
+        SettingsSectionTitle("GESTURES")
+        BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Home clock gestures", fontSize = 13.sp, fontWeight = FontWeight.Black, color = uiOnSurface)
+                Text("Use the clock tile as a shortcut. These gestures do not need Accessibility, Device Admin or other special access.", fontSize = 12.sp, lineHeight = 15.sp, color = uiOnSurface.copy(alpha = .75f))
+                SettingsSwitch("DOUBLE-TAP CLOCK → SETTINGS", "Open Settings by double-tapping the Home clock.", homeClockDoubleTapEnabled, BrutalColors.Yellow, onHomeClockDoubleTapChange)
+                SettingsSwitch("LONG-PRESS CLOCK → APPS", "Open the Apps page by long-pressing the Home clock.", homeClockLongPressEnabled, BrutalColors.Pink, onHomeClockLongPressChange)
+                Text("Permissions needed: none.", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = uiOnSurface.copy(alpha = .7f))
+            }
+        }
 
             }
             "Icon" -> {
