@@ -222,6 +222,14 @@ fun NeoBrutalLauncherApp() {
                     preferences.setHomeAppsInitialized(true)
                 }
             }
+            // Shortcut discovery can be slow, so do it off the UI thread after
+            // the regular app list is already available. Persisted labels are reused.
+            if (repository.refreshShortcutLabelsIfNeeded(loadedApps)) {
+                val appsWithShortcutLabels = repository.loadApps()
+                withContext(Dispatchers.Main.immediate) {
+                    apps = appsWithShortcutLabels
+                }
+            }
         }
     }
 
