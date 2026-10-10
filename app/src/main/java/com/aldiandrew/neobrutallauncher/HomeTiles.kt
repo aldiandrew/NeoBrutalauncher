@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -177,6 +178,11 @@ fun NeoTileGrid(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(totalHeight.coerceAtLeast(1.dp))
+                .pointerInput(editMode) {
+                    if (editMode) {
+                        detectTapGestures(onTap = { onTileMoveFinished() })
+                    }
+                }
         ) {
             placements.forEach { placement ->
                 val isDragging = placement.tile.id == draggedId
@@ -217,11 +223,11 @@ fun NeoTileGrid(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(5.dp)
-                                .size(if (placement.tile.size == NeoTileSize.SMALL) 18.dp else 26.dp)
-                            .background(Color.Transparent)
+                                .size(width = 38.dp, height = 22.dp)
+                            .background(BrutalColors.Yellow)
                             .border(
                                 width = 2.dp,
-                                color = if (isDragging) MaterialTheme.colorScheme.onBackground else BrutalColors.Ink
+                                color = BrutalColors.Ink
                             )
                             .pointerInput(placement.tile.id) {
                                 detectDragGestures(
@@ -305,15 +311,11 @@ fun NeoTileGrid(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (placement.tile.size == NeoTileSize.SMALL) "↕" else "DRAG",
-                            fontSize = if (placement.tile.size == NeoTileSize.SMALL) 9.sp else 11.sp,
-                            lineHeight = 11.sp,
+                            text = "MOVE",
+                            fontSize = 8.sp,
+                            lineHeight = 9.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (isDragging) {
-                                MaterialTheme.colorScheme.onBackground
-                            } else {
-                                BrutalColors.Ink
-                            }
+                            color = BrutalColors.Ink
                         )
                     }
                         }
