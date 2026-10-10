@@ -1,0 +1,203 @@
+name: Extended Android Quality Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extended-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-quality:
+    name: Unit, lint, dependency and security checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Run unit tests and Android lint
+        run: gradle testReleaseUnitTest lintRelease --no-daemon
+
+      - name: Verify manifest security invariants and pinned dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import pathlib
+          import re
+          import xml.etree.ElementTree as ET
+
+          manifest_path = pathlib.Path("app/src/main/AndroidManifest.xml")
+          manifest_text = manifest_path.read_text(encoding="utf-8")
+          root = ET.fromstring(manifest_text)
+          android = "{http://schemas.android.com/apk/res/android}"
+          app = root.find("application")
+          if app is None:
+              raise SystemExit("Manifest has no application element")
+          if app.get(android + "usesCleartextTraffic", "false").lower() == "true":
+              raise SystemExit("Cleartext HTTP traffic must not be explicitly enabled")
+          for component in list(app):
+              exported = component.get(android + "exported")
+              if exported == "true" and component.tag in {"activity", "service", "receiver", "provider"}:
+                  has_permission = bool(component.get(android + "permission"))
+                  has_intent_filter = component.find("intent-filter") is not None
+                  is_main_activity = component.get(android + "name", "").endswith("MainActivity")
+                  is_protected_listener = (
+                      component.get(android + "name", "").endswith("NeoMusicNotificationListenerService")
+                      and component.get(android + "permission") == "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+                  )
+                  if not (has_permission or has_intent_filter or is_main_activity or is_protected_listener):
+                      raise SystemExit(f"Review exported component without intent filter/permission: {component.get(android + 'name')}")
+          gradle_text = pathlib.Path("app/build.gradle.kts").read_text(encoding="utf-8")
+          dynamic = re.findall(r'(?m)implementation\s*\(\s*["\'][^"\']+:[^"\']+:(?:latest\.|.+[+*])["\']', gradle_text)
+          if dynamic:
+              raise SystemExit("Dynamic dependency versions found: " + "; ".join(dynamic))
+          print("Manifest exported-component and cleartext checks passed; dependency declarations contain no detected dynamic versions.")
+          PY
+
+      - name: Record resolved release dependencies
+        run: |
+          mkdir -p quality-reports
+          gradle dependencies --configuration releaseRuntimeClasspath --no-daemon > quality-reports/release-runtime-dependencies.txt
+
+      - name: Upload static quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extended-static-quality-reports
+          path: |
+            app/build/reports/lint-results-release.html
+            app/build/reports/lint-results-release.xml
+            app/build/test-results/testReleaseUnitTest/
+            quality-reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+  device-matrix:
+    name: UI, compatibility, accessibility and startup performance (API ${{ matrix.api-level }})
+    needs: static-quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [26, 29, 35]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Run instrumented UI and accessibility-semantics tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            mkdir -p quality-reports
+            gradle connectedDebugAndroidTest --no-daemon
+            APK_PACKAGE="com.aldiandrew.neobrutallauncher"
+            adb shell wm size 360x800
+            adb shell wm density 320
+            adb shell am force-stop "$APK_PACKAGE"
+            adb shell am start -W -n "$APK_PACKAGE/.MainActivity" > quality-reports/startup-small-screen.txt
+            sleep 3
+            adb shell pidof "$APK_PACKAGE"
+            adb shell wm size 800x360
+            adb shell am force-stop "$APK_PACKAGE"
+            adb shell am start -W -n "$APK_PACKAGE/.MainActivity" > quality-reports/startup-landscape.txt
+            sleep 3
+            adb shell pidof "$APK_PACKAGE"
+            adb shell wm size 1080x1920
+            adb shell wm density 420
+            adb shell am force-stop "$APK_PACKAGE"
+            adb shell am start -W -n "$APK_PACKAGE/.MainActivity" > quality-reports/startup-default-screen.txt
+            sleep 3
+            adb shell pidof "$APK_PACKAGE"
+            adb shell dumpsys meminfo "$APK_PACKAGE" > quality-reports/memory-info.txt
+            adb logcat -d -s AndroidRuntime:E > quality-reports/runtime-errors.txt
+            python3 <<'PY'
+            import pathlib
+            import re
+
+            reports = pathlib.Path("quality-reports")
+            runtime = (reports / "runtime-errors.txt").read_text(encoding="utf-8", errors="replace")
+            if "FATAL EXCEPTION" in runtime or "Process: com.aldiandrew.neobrutallauncher" in runtime:
+                raise SystemExit("Fatal runtime exception found; inspect runtime-errors.txt")
+            for name in ("startup-small-screen.txt", "startup-landscape.txt", "startup-default-screen.txt"):
+                content = (reports / name).read_text(encoding="utf-8", errors="replace")
+                match = re.search(r"TotalTime\s*[:=]\s*(\d+)", content)
+                if not match:
+                    raise SystemExit(f"Startup duration missing from {name}: {content}")
+                elapsed = int(match.group(1))
+                print(f"{name}: TotalTime={elapsed} ms")
+                if elapsed > 12000:
+                    raise SystemExit(f"Startup exceeded 12 seconds in {name}: {elapsed} ms")
+            mem = (reports / "memory-info.txt").read_text(encoding="utf-8", errors="replace")
+            pss = re.search(r"TOTAL\s+PSS:\s*(\d+)", mem)
+            if pss:
+                pss_kb = int(pss.group(1))
+                print(f"Post-launch PSS: {pss_kb} KB")
+                if pss_kb > 512000:
+                    raise SystemExit(f"Post-launch PSS exceeded 512 MB: {pss_kb} KB")
+            else:
+                print("PSS summary format not recognized; memory report retained for inspection.")
+            print("No fatal runtime crash detected; startup, small-screen and landscape smoke checks passed.")
+            PY
+
+      - name: Upload device test and performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extended-device-reports-api-${{ matrix.api-level }}
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+            quality-reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+  dependency-review:
+    name: Pull request dependency vulnerability review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Review dependency changes for known vulnerabilities
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
