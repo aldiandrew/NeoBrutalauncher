@@ -350,7 +350,7 @@ fun NeoBrutalLauncherApp() {
                     },
                     onHomeAppCountChange = { count ->
                         val normalized = when (count) {
-                            3, 5, 7 -> count
+                            3, 5, 7, 8 -> count
                             else -> 5
                         }
                         homeAppCount = normalized
@@ -885,8 +885,11 @@ private fun HomeScreen(
                         tiles = buildList {
                             launchableApps.forEachIndexed { index, app ->
                                 val id = "app_" + app.packageName + "_" + app.activityName
-                                val defaultSize = when {
-                                    index < 2 -> NeoTileSize.HORIZONTAL
+                                val defaultSize = when (index) {
+                                    0, 1 -> NeoTileSize.HORIZONTAL
+                                    2, 7 -> NeoTileSize.FOUR_BY_ONE
+                                    3, 6 -> NeoTileSize.THREE_BY_ONE
+                                    4, 5 -> NeoTileSize.SMALL
                                     else -> NeoTileSize.SMALL
                                 }
                                 val size = tileSizes[id] ?: defaultSize
@@ -1250,7 +1253,7 @@ private fun AppTile(
             NeoTileSize.THREE_BY_ONE -> if (availableWidth < 220.dp) 18.sp else 23.sp
             NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
         }
-        val textMaxLines = if (compactTile) 1 else 2
+        val textMaxLines = 2
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1277,12 +1280,12 @@ private fun AppTile(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
-                            contentAlignment = if (isFourByOne) Alignment.CenterEnd else Alignment.CenterStart
+                            contentAlignment = if (isFourByOne) Alignment.CenterEnd else if (compactTile) Alignment.Center else Alignment.CenterStart
                         ) {
                             Text(
                                 text = app.label.uppercase(),
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
+                                textAlign = if (isFourByOne) TextAlign.End else if (compactTile) TextAlign.Center else TextAlign.Start,
                                 fontFamily = BrutalTypography.Display,
                                 fontSize = maxTextSize,
                                 lineHeight = (maxTextSize.value * 1.02f).sp,
@@ -1321,66 +1324,20 @@ private fun AppTile(
 
                         when (tileSize) {
                             NeoTileSize.SMALL -> {
-                                // Five compact compositions; all keep the icon and name legible.
-                                Box(
+                                // Match the compact Wi-Fi tile: centered icon, readable two-line label.
+                                Column(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(5.dp)
+                                        .padding(5.dp),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    when (layout) {
-                                        0 -> {
-                                            appIcon(Modifier.align(Alignment.TopCenter))
-                                            appTitle(
-                                                Modifier
-                                                    .align(Alignment.BottomCenter)
-                                                    .fillMaxWidth(),
-                                                TextAlign.Center,
-                                                1
-                                            )
-                                        }
-                                        1 -> {
-                                            appIcon(Modifier.align(Alignment.TopStart))
-                                            appTitle(
-                                                Modifier
-                                                    .align(Alignment.BottomStart)
-                                                    .fillMaxWidth(),
-                                                TextAlign.Start,
-                                                1
-                                            )
-                                        }
-                                        2 -> {
-                                            appIcon(Modifier.align(Alignment.TopEnd))
-                                            appTitle(
-                                                Modifier
-                                                    .align(Alignment.BottomStart)
-                                                    .fillMaxWidth()
-                                                    .padding(end = iconSize + 2.dp),
-                                                TextAlign.Start,
-                                                1
-                                            )
-                                        }
-                                        3 -> {
-                                            appTitle(
-                                                Modifier
-                                                    .align(Alignment.TopStart)
-                                                    .fillMaxWidth()
-                                                    .padding(end = iconSize + 2.dp),
-                                                TextAlign.Start,
-                                                1
-                                            )
-                                            appIcon(Modifier.align(Alignment.BottomEnd))
-                                        }
-                                        else -> {
-                                            appIcon(Modifier.align(Alignment.CenterStart))
-                                            appTitle(
-                                                Modifier
-                                                    .align(Alignment.BottomEnd)
-                                                    .fillMaxWidth(0.82f),
-                                                TextAlign.End,
-                                                1
-                                            )
-                                        }
-                                    }
+                                    appIcon(Modifier)
+                                    appTitle(
+                                        Modifier.fillMaxWidth(),
+                                        TextAlign.Center,
+                                        2
+                                    )
                                 }
                             }
 
@@ -1902,13 +1859,14 @@ private fun SettingsScreen(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf(3, 5, 7).forEach { count ->
+                    listOf(3, 5, 7, 8).forEach { count ->
                         ThemeButton(
                             count.toString(),
                             homeAppCount == count,
                             if (count == 3) BrutalColors.Cyan
                             else if (count == 5) BrutalColors.Yellow
-                            else BrutalColors.Pink,
+                            else if (count == 7) BrutalColors.Pink
+                            else BrutalColors.Cyan,
                             Modifier.weight(1f)
                         ) {
                             onHomeAppCountChange(count)
