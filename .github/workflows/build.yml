@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - redesign/home-polish-stable551
+      - redesign/after-stable-567
   pull_request:
     branches:
       - main
