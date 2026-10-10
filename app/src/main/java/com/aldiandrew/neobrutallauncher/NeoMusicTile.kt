@@ -276,6 +276,9 @@ private fun MusicTileContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    musicInfo?.takeIf { it.durationMs > 0L }?.let { info ->
+                        MusicProgressIndicator(musicInfo = info, textColor = controlColor)
+                    }
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(3.dp),
