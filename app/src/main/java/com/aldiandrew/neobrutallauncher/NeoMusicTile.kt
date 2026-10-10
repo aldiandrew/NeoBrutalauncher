@@ -110,8 +110,8 @@ fun NeoMusicTile(
     val lastMusicPackage = remember(musicInfo?.packageName) {
         preferences.lastMusicPackage()?.takeIf { NeoSupportedMusicApps.supports(it) }
     }
+    // Use the actual active media session first, including players not in the legacy allowlist.
     val musicPackage = musicInfo?.packageName
-        ?.takeIf { NeoSupportedMusicApps.supports(it) }
         ?: lastMusicPackage
         ?: fallbackApp?.packageName
     val lastMusicLabel = remember(lastMusicPackage) {
@@ -122,7 +122,7 @@ fun NeoMusicTile(
             }.getOrNull()
         }
     }
-    val supportedInfo = musicInfo?.takeIf { NeoSupportedMusicApps.supports(it.packageName) }
+    val supportedInfo = musicInfo
     val musicLabel = supportedInfo?.appLabel ?: lastMusicLabel ?: fallbackApp?.label ?: "SELECT MUSIC PLAYER"
     val iconBitmap = remember(musicPackage) {
         runCatching {
