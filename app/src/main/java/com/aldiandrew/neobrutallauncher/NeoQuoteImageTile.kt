@@ -116,12 +116,12 @@ fun NeoQuoteImageTile(
                             color = BrutalColors.Ink
                         )
                         Text(
-                            text = "Long-press to choose an image",
+                            text = "SET A WALLPAPER",
                             fontSize = 8.sp,
                             lineHeight = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrutalColors.Ink,
-                            maxLines = 3,
+                            color = BrutalColors.Red,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
