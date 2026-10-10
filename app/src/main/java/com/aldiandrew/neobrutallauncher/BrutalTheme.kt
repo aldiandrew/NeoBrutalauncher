@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.material3.LocalTextStyle
 
@@ -141,7 +140,6 @@ fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     designPreset: DesignPreset = DesignPreset.NEO_BRUTAL_CLASSIC,
     typographyStyle: TypographyStyle = TypographyStyle.DEFAULT,
-    hideStatusBar: Boolean = false,
     transparentStatusBar: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -164,11 +162,6 @@ fun NeoBrutalTheme(
         }
         controller.isAppearanceLightStatusBars = !isDark
         controller.isAppearanceLightNavigationBars = !isDark
-        if (hideStatusBar) {
-            controller.hide(WindowInsetsCompat.Type.statusBars())
-        } else {
-            controller.show(WindowInsetsCompat.Type.statusBars())
-        }
     }
 
     CompositionLocalProvider(

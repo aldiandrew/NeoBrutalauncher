@@ -4,9 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
@@ -91,7 +94,6 @@ fun NeoMusicTile(
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
-    liveLayout: Boolean = false
 ) {
     var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -157,8 +159,7 @@ fun NeoMusicTile(
             iconBitmap = iconBitmap,
             textColor = textColor,
             context = context,
-            musicPackage = musicPackage,
-            liveLayout = liveLayout
+            musicPackage = musicPackage
         )
     }
 }
@@ -171,165 +172,141 @@ private fun MusicTileContent(
     iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     textColor: Color,
     context: Context,
-    musicPackage: String?,
-    liveLayout: Boolean
-) {
-    if (liveLayout) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            MusicTileMainRow(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                hasAccess = hasAccess,
-                musicLabel = musicLabel,
-                musicInfo = musicInfo,
-                iconBitmap = iconBitmap,
-                textColor = textColor,
-                context = context,
-                musicPackage = musicPackage
-            )
-            Text(
-                text = "MUSIC",
-                modifier = Modifier.align(Alignment.Start),
-                fontSize = 8.sp,
-                lineHeight = 9.sp,
-                fontWeight = FontWeight.Black,
-                color = textColor,
-                maxLines = 1
-            )
-        }
-    } else {
-        MusicTileMainRow(
-            modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 4.dp),
-            hasAccess = hasAccess,
-            musicLabel = musicLabel,
-            musicInfo = musicInfo,
-            iconBitmap = iconBitmap,
-            textColor = textColor,
-            context = context,
-            musicPackage = musicPackage
-        )
-    }
-}
-
-@Composable
-private fun MusicTileMainRow(
-    modifier: Modifier,
-    hasAccess: Boolean,
-    musicLabel: String,
-    musicInfo: MusicInfo?,
-    iconBitmap: androidx.compose.ui.graphics.ImageBitmap?,
-    textColor: Color,
-    context: Context,
     musicPackage: String?
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+    val albumArt = musicInfo?.albumArt?.takeUnless { it.isRecycled }
+    val title = musicInfo?.title?.takeIf { it.isNotBlank() } ?: musicLabel
+    val artist = musicInfo?.artist?.takeIf { it.isNotBlank() }
+    val overlayColor = Color(0xE6111111)
+    val controlColor = BrutalColors.White
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (textColor == BrutalColors.DarkWhite) BrutalColors.DarkTile else BrutalColors.Pink)
     ) {
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier.size(52.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val albumArt = musicInfo?.albumArt
-            if (albumArt != null && !albumArt.isRecycled) {
-                Image(
-                    bitmap = albumArt.asImageBitmap(),
-                    contentDescription = "Album art",
-                    modifier = Modifier.size(48.dp),
-                    contentScale = ContentScale.Crop
-                )
-            } else if (iconBitmap != null) {
-                Image(
-                    bitmap = iconBitmap,
-                    contentDescription = musicLabel,
-                    modifier = Modifier.size(48.dp),
-                    contentScale = ContentScale.Fit
-                )
-            } else {
-                Icon(
-                    Icons.Default.MusicNote,
-                    "Music",
-                    tint = textColor,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        }
-        Spacer(Modifier.width(7.dp))
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-            Text(
-                text = if (hasAccess) "NOW PLAYING" else "MUSIC ACCESS NEEDED",
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Black,
-                color = textColor,
-                maxLines = 1
+        if (albumArt != null) {
+            Image(
+                bitmap = albumArt.asImageBitmap(),
+                contentDescription = "Album art",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
-            Text(
-                text = musicLabel.uppercase(Locale.getDefault()),
-                fontSize = 11.sp,
-                lineHeight = 12.sp,
-                fontWeight = FontWeight.Black,
-                color = textColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            musicInfo?.title?.takeIf { it.isNotBlank() }?.let { title ->
-                val artist = musicInfo.artist?.takeIf { it.isNotBlank() }
-                Text(
-                    text = if (artist != null) "$title — $artist" else title,
-                    fontSize = 8.sp,
-                    lineHeight = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            musicInfo?.takeIf { it.durationMs > 0L }?.let { info ->
-                MusicProgressIndicator(musicInfo = info, textColor = textColor)
-            }
-            if (!hasAccess) {
-                Text(
-                    text = "TAP TILE TO ALLOW MUSIC ACCESS",
-                    fontSize = 6.sp,
-                    lineHeight = 7.sp,
-                    fontWeight = FontWeight.Black,
-                    color = textColor,
-                    maxLines = 1
-                )
-            }
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            MusicControlButton(
-                Icons.Default.SkipPrevious,
-                "Previous",
-                textColor,
-                enabled = hasAccess && musicInfo != null,
-                onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("previous") }
-            )
-            MusicControlButton(
-                if (musicInfo?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
-                if (musicInfo?.isPlaying == true) "Pause" else "Play",
-                textColor,
-                enabled = hasAccess && musicPackage != null,
-                onClick = {
-                    if (musicInfo == null) {
-                        openMusicPlayer(context, musicPackage)
-                    } else {
-                        NeoNotificationServiceRegistry.service?.controlPlayback("toggle")
-                    }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(if (textColor == BrutalColors.DarkWhite) BrutalColors.DarkTile else BrutalColors.Cyan),
+                contentAlignment = Alignment.Center
+            ) {
+                if (iconBitmap != null) {
+                    Image(
+                        bitmap = iconBitmap,
+                        contentDescription = musicLabel,
+                        modifier = Modifier.size(64.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.MusicNote,
+                        contentDescription = "Music",
+                        tint = controlColor,
+                        modifier = Modifier.size(64.dp)
+                    )
                 }
-            )
-            MusicControlButton(
-                Icons.Default.SkipNext,
-                "Next",
-                textColor,
-                enabled = hasAccess && musicInfo != null,
-                onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("next") }
-            )
+            }
+        }
+
+        Text(
+            text = "MUSIC",
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(7.dp)
+                .background(BrutalColors.Yellow)
+                .padding(horizontal = 6.dp, vertical = 3.dp),
+            fontSize = 8.sp,
+            lineHeight = 9.sp,
+            fontWeight = FontWeight.Black,
+            color = BrutalColors.Ink,
+            maxLines = 1
+        )
+
+        if (maxWidth < 160.dp || maxHeight < 72.dp) {
+            Box(modifier = Modifier.align(Alignment.Center)) {
+                MusicControlButton(
+                    if (musicInfo?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    if (musicInfo?.isPlaying == true) "Pause" else "Play",
+                    controlColor,
+                    enabled = hasAccess && musicPackage != null,
+                    onClick = {
+                        if (musicInfo == null) openMusicPlayer(context, musicPackage)
+                        else NeoNotificationServiceRegistry.service?.controlPlayback("toggle")
+                    }
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(overlayColor)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = if (hasAccess) title.uppercase(Locale.getDefault()) else "ENABLE MUSIC ACCESS",
+                        fontSize = 10.sp,
+                        lineHeight = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        color = controlColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = artist?.uppercase(Locale.getDefault()) ?: musicLabel.uppercase(Locale.getDefault()),
+                        fontSize = 8.sp,
+                        lineHeight = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = controlColor.copy(alpha = 0.88f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MusicControlButton(
+                        Icons.Default.SkipPrevious,
+                        "Previous",
+                        controlColor,
+                        enabled = hasAccess && musicInfo != null,
+                        onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("previous") }
+                    )
+                    MusicControlButton(
+                        if (musicInfo?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        if (musicInfo?.isPlaying == true) "Pause" else "Play",
+                        controlColor,
+                        enabled = hasAccess && musicPackage != null,
+                        onClick = {
+                            if (musicInfo == null) openMusicPlayer(context, musicPackage)
+                            else NeoNotificationServiceRegistry.service?.controlPlayback("toggle")
+                        }
+                    )
+                    MusicControlButton(
+                        Icons.Default.SkipNext,
+                        "Next",
+                        controlColor,
+                        enabled = hasAccess && musicInfo != null,
+                        onClick = { NeoNotificationServiceRegistry.service?.controlPlayback("next") }
+                    )
+                }
+            }
         }
     }
 }
@@ -394,7 +371,7 @@ private fun MusicControlButton(
 ) {
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
-            .size(38.dp)
+            .size(30.dp)
             .border(2.dp, textColor.copy(alpha = if (enabled) 1f else 0.45f))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
@@ -403,7 +380,7 @@ private fun MusicControlButton(
             icon,
             description,
             tint = textColor.copy(alpha = if (enabled) 1f else 0.45f),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(16.dp)
         )
     }
 }

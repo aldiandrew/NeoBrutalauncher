@@ -66,7 +66,7 @@ fun LivePage(
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
     val headerText = BrutalColors.Ink
-    val liveClockTileHeight = 128.dp
+    val liveClockTileHeight = 112.dp
     var weatherRefreshToken by remember { mutableIntStateOf(0) }
 
     val timePattern = when {
@@ -138,7 +138,7 @@ fun LivePage(
                 ) {
                     NeoQuoteTile(
                         quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                        modifier = Modifier.weight(1f).height(168.dp),
+                        modifier = Modifier.weight(1f).height(148.dp),
                         emphasized = false,
                         paletteIndex = quoteRotation + 1,
                         showLabel = true
@@ -155,7 +155,7 @@ fun LivePage(
             } else {
                 NeoQuoteTile(
                     quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    modifier = Modifier.fillMaxWidth().height(100.dp),
                     emphasized = true,
                     paletteIndex = quoteRotation + 1,
                     showLabel = true
@@ -167,7 +167,7 @@ fun LivePage(
             NeoChatNotificationTile(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
-                modifier = Modifier.fillMaxWidth().height(128.dp),
+                modifier = Modifier.fillMaxWidth().height(116.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
@@ -177,17 +177,16 @@ fun LivePage(
         item(key = "live-music") {
             NeoMusicTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(142.dp),
+                modifier = Modifier.fillMaxWidth().height(124.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
-                liveLayout = true
             )
         }
 
         item(key = "live-calendar") {
             NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(208.dp),
+                modifier = Modifier.fillMaxWidth().height(194.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )

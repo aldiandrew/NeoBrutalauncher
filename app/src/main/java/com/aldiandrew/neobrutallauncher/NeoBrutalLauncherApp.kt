@@ -106,7 +106,6 @@ fun NeoBrutalLauncherApp() {
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
-    var hideStatusBar by remember { mutableStateOf(preferences.hideStatusBar()) }
     var transparentStatusBar by remember { mutableStateOf(preferences.transparentStatusBar()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
     var locationPermissionGranted by remember {
@@ -261,7 +260,6 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar,
                 transparentStatusBar = transparentStatusBar
             ) {
                 NeoOnboardingScreen(
@@ -309,7 +307,6 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar,
                 transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
@@ -329,7 +326,6 @@ fun NeoBrutalLauncherApp() {
                     wallpaperUri = wallpaperUri,
                     favorites = favorites,
                     favoritesCount = favorites.size,
-                    hideStatusBar = hideStatusBar,
                 transparentStatusBar = transparentStatusBar,
                     locationPermissionGranted = locationPermissionGranted,
                     notificationAccessGranted = notificationAccessGranted,
@@ -441,10 +437,6 @@ fun NeoBrutalLauncherApp() {
                         reduceMotion = it
                         preferences.setReduceMotion(it)
                     },
-                    onHideStatusBarChange = {
-                        hideStatusBar = it
-                        preferences.setHideStatusBar(it)
-                    },
                     onTransparentStatusBarChange = {
                         transparentStatusBar = it
                         preferences.setTransparentStatusBar(it)
@@ -476,7 +468,6 @@ fun NeoBrutalLauncherApp() {
                 themePreference = themePreference,
                 designPreset = designPreset,
                 typographyStyle = typographyStyle,
-                hideStatusBar = hideStatusBar,
                 transparentStatusBar = transparentStatusBar
             ) {
                 CompositionLocalProvider(LocalNeoMotionConfig provides motionConfig) {
@@ -705,9 +696,7 @@ private fun HomeScreen(
     var taskItems by remember { mutableStateOf(preferences.taskItems()) }
     var selectedTile by remember { mutableStateOf<NeoTileSpec?>(null) }
     var tileEditMode by remember { mutableStateOf(false) }
-    var showAppPicker by remember { mutableStateOf(false) }
     var excludedHomeApps by remember { mutableStateOf(preferences.excludedHomeApps()) }
-    var appShortcutKey by remember { mutableStateOf(preferences.appShortcutKey()) }
 
     val timePattern = when {
         use24Hour -> "HH:mm"
@@ -776,10 +765,9 @@ private fun HomeScreen(
             )
     }
 
-    val shortcutApp = remember(appShortcutKey, appsByKey) { appShortcutKey?.let { appsByKey[it] } }
     val palette = remember(BrutalColors.activePreset) { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
-        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
+        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_music"
     }
     val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
     val homeQuoteHeight = when {
@@ -923,68 +911,25 @@ private fun HomeScreen(
                                     }
                                 )
                             }
-
-                            val shortcutId = "home_app_shortcut"
-                            val shortcutSize = tileSizes[shortcutId] ?: NeoTileSize.SMALL
                             add(
                                 NeoTileSpec(
-                                    id = shortcutId,
-                                    size = shortcutSize,
-                                    label = shortcutApp?.label?.uppercase() ?: "ADD APP",
-                                    onClick = {
-                                        shortcutApp?.let(onLaunch) ?: run { showAppPicker = true }
-                                    }
+                                    id = "home_music",
+                                    size = tileSizes["home_music"] ?: NeoTileSize.FOUR_BY_ONE,
+                                    label = "MUSIC"
                                 ) {
-                                    if (shortcutApp != null) {
-                                        AppTile(
-                                            app = shortcutApp,
-                                            background = palette[Math.floorMod(shortcutApp.packageName.hashCode(), palette.size)],
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentMode = appTileContentMode,
-                                            tileSize = shortcutSize,
-                                            variant = appTileLayoutVariant(shortcutApp, shortcutSize)
-                                        )
-                                    } else {
-                                        BrutalBlock(
-                                            modifier = Modifier.fillMaxSize(),
-                                            background = BrutalColors.Pink,
-                                            borderWidth = 3.dp
-                                        ) {
-                                            Box(
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = "+\nADD APP",
-                                                    fontFamily = BrutalTypography.Display,
-                                                    fontSize = 13.sp,
-                                                    lineHeight = 15.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = BrutalColors.Ink,
-                                                    textAlign = TextAlign.Center
-                                                )
-                                            }
-                                        }
-                                    }
+                                    NeoMusicTile(
+                                        context = context,
+                                        modifier = Modifier.fillMaxSize(),
+                                        background = homeMusicBackground,
+                                        textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
+                                    )
                                 }
                             )
                         },
                         positions = tilePositions.filterKeys { appTileIds.contains(it) },
                         onPositionsChange = onTilePositionsChange,
-                        onTileLongPress = { tile ->
-                            if (tile.id == "home_app_shortcut") {
-                                showAppPicker = true
-                            } else {
-                                selectedTile = tile
-                            }
-                        },
-                        onTileEdit = {
-                            if (it.id == "home_app_shortcut") {
-                                showAppPicker = true
-                            } else {
-                                selectedTile = it
-                            }
-                        },
+                        onTileLongPress = { selectedTile = it },
+                        onTileEdit = { selectedTile = it },
                         onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
@@ -1045,121 +990,7 @@ private fun HomeScreen(
                 )
             }
 
-            item(key = "music") {
-                NeoMusicTile(
-                    context = context,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(3f),
-                    background = homeMusicBackground,
-                    textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
-                )
-            }
-
         }
-    }
-
-    if (showAppPicker) {
-        // AppRepository already sorts apps by case-insensitive label.
-        // Reuse that order instead of sorting again whenever this dialog recomposes.
-        val sortedPickerApps = apps
-
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showAppPicker = false },
-            title = {
-                Text(
-                    text = "APP SHORTCUT",
-                    fontWeight = FontWeight.Black
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "SELECT THE APP USED BY THE + APP SHORTCUT TILE.",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black
-                    )
-
-                    if (sortedPickerApps.isEmpty()) {
-                        Text(
-                            text = "NO LAUNCHABLE APPS",
-                            fontWeight = FontWeight.Black
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.heightIn(max = minOf(420.dp, (LocalConfiguration.current.screenHeightDp * 0.55f).dp)),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(
-                                sortedPickerApps,
-                                key = { it.packageName + "/" + it.activityName }
-                            ) { app ->
-                                val key = app.packageName + "/" + app.activityName
-                                val selected = key == appShortcutKey
-
-                                BrutalBlock(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            appShortcutKey = key
-                                            preferences.setAppShortcutKey(key)
-                                            showAppPicker = false
-                                        },
-                                    background = if (selected) {
-                                        BrutalColors.Yellow
-                                    } else {
-                                        MaterialTheme.colorScheme.background
-                                    },
-                                    borderWidth = 2.dp,
-                                    shadowX = if (selected) 0.dp else 3.dp,
-                                    shadowY = if (selected) 0.dp else 3.dp
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = app.label.uppercase(),
-                                            modifier = Modifier.weight(1f),
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = if (selected) {
-                                                BrutalColors.Ink
-                                            } else {
-                                                MaterialTheme.colorScheme.onBackground
-                                            },
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = if (selected) "SELECTED" else "USE",
-                                            fontSize = 8.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = BrutalColors.Yellow
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (appShortcutKey != null) {
-                        androidx.compose.material3.TextButton(
-                            onClick = {
-                                appShortcutKey = null
-                                preferences.setAppShortcutKey(null)
-                                showAppPicker = false
-                            }
-                        ) {
-                            Text("CLEAR SHORTCUT", fontWeight = FontWeight.Black)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { showAppPicker = false }) {
-                    Text("CLOSE", fontWeight = FontWeight.Black)
-                }
-            }
-        )
     }
 
     selectedTile?.let { tile ->
@@ -1799,7 +1630,6 @@ private fun SettingsScreen(
     wallpaperUri: String?,
     favorites: Set<String>,
     favoritesCount: Int,
-    hideStatusBar: Boolean,
     transparentStatusBar: Boolean,
     locationPermissionGranted: Boolean,
     notificationAccessGranted: Boolean,
@@ -1820,7 +1650,6 @@ private fun SettingsScreen(
     onCustomQuotesChange: (List<String>) -> Unit,
     onMotionSmoothnessChange: (MotionSmoothness) -> Unit,
     onReduceMotionChange: (Boolean) -> Unit,
-    onHideStatusBarChange: (Boolean) -> Unit,
     onTransparentStatusBarChange: (Boolean) -> Unit,
     onChooseWallpaper: () -> Unit,
     onClearWallpaper: () -> Unit,
@@ -1959,14 +1788,6 @@ private fun SettingsScreen(
             reduceMotion,
             BrutalColors.Cyan,
             onReduceMotionChange
-        )
-
-        SettingsSwitch(
-            "HIDE STATUS BAR",
-            "Hide the Android status bar while using the launcher.",
-            hideStatusBar,
-            BrutalColors.Yellow,
-            onHideStatusBarChange
         )
 
         SettingsSwitch(

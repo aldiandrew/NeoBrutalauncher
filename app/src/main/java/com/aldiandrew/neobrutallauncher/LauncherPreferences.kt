@@ -308,16 +308,6 @@ class LauncherPreferences(context: Context) {
         prefs.edit().putStringSet(KEY_EXCLUDED_HOME_APPS, values.toSet()).apply()
     }
 
-    fun appShortcutKey(): String? {
-        return prefs.getString(KEY_APP_SHORTCUT, null)?.takeIf { it.isNotBlank() }
-    }
-
-    fun setAppShortcutKey(value: String?) {
-        prefs.edit().apply {
-            if (value.isNullOrBlank()) remove(KEY_APP_SHORTCUT) else putString(KEY_APP_SHORTCUT, value)
-        }.apply()
-    }
-
     fun noteItems(): List<NeoListItem> = readItems(KEY_NOTE_ITEMS, KEY_NOTE_TEXT)
 
     fun setNoteItems(values: List<NeoListItem>) {
@@ -346,12 +336,6 @@ class LauncherPreferences(context: Context) {
 
     fun setReduceMotion(value: Boolean) {
         prefs.edit().putBoolean(KEY_REDUCE_MOTION, value).apply()
-    }
-
-    fun hideStatusBar(): Boolean = prefs.getBoolean(KEY_HIDE_STATUS_BAR, false)
-
-    fun setHideStatusBar(value: Boolean) {
-        prefs.edit().putBoolean(KEY_HIDE_STATUS_BAR, value).apply()
     }
 
     fun transparentStatusBar(): Boolean = prefs.getBoolean(KEY_TRANSPARENT_STATUS_BAR, true)
@@ -390,7 +374,6 @@ class LauncherPreferences(context: Context) {
             .put("schemaVersion", 1)
             .put("theme", theme().name)
             .put("designPreset", designPreset().name)
-            .put("hideStatusBar", hideStatusBar())
             .put("transparentStatusBar", transparentStatusBar())
             .put("use24Hour", use24Hour())
             .put("showAmPm", showAmPm())
@@ -411,7 +394,6 @@ class LauncherPreferences(context: Context) {
             .put("wallpaperUri", wallpaperUri())
             .put("homeAppOrder", JSONArray(homeAppOrder()))
             .put("excludedHomeApps", JSONArray(excludedHomeApps().toList()))
-            .put("appShortcut", appShortcutKey())
             .put("noteItems", itemsToJson(noteItems()))
             .put("taskItems", itemsToJson(taskItems()))
             .put("iconPackPackage", iconPackPackage())
@@ -509,7 +491,6 @@ class LauncherPreferences(context: Context) {
             }
 
             val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
-            val shortcut = root.optString("appShortcut", "").takeIf { it.length in 1..256 }
             val iconPack = root.optString("iconPackPackage", "").takeIf {
                 it.matches(Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+"))
             }
@@ -529,12 +510,10 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_CLOCK_STYLE, typography.name)
                 .putString(KEY_MOTION_SMOOTHNESS, motionSmoothness.name)
                 .putBoolean(KEY_REDUCE_MOTION, reduceMotion)
-                .putBoolean(KEY_HIDE_STATUS_BAR, root.optBoolean("hideStatusBar", false))
                 .putBoolean(KEY_TRANSPARENT_STATUS_BAR, root.optBoolean("transparentStatusBar", true))
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
-            if (shortcut == null) editor.remove(KEY_APP_SHORTCUT) else editor.putString(KEY_APP_SHORTCUT, shortcut)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
@@ -567,12 +546,10 @@ class LauncherPreferences(context: Context) {
             remove(KEY_TASK_ITEMS)
             remove(KEY_HOME_APP_ORDER)
             remove(KEY_EXCLUDED_HOME_APPS)
-            remove(KEY_APP_SHORTCUT)
             remove(KEY_ICON_PACK_PACKAGE)
             remove(KEY_CUSTOM_QUOTES)
             remove(KEY_MOTION_SMOOTHNESS)
             remove(KEY_REDUCE_MOTION)
-            remove(KEY_HIDE_STATUS_BAR)
             remove(KEY_TRANSPARENT_STATUS_BAR)
             remove(KEY_HOME_APPS_INITIALIZED)
             apply()
@@ -657,13 +634,11 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TASK_ITEMS = "task_items"
         private const val KEY_HOME_APP_ORDER = "home_app_order"
         private const val KEY_EXCLUDED_HOME_APPS = "excluded_home_apps"
-        private const val KEY_APP_SHORTCUT = "app_shortcut"
         private const val KEY_TASK_TEXT = "task_text"
         private const val KEY_ICON_PACK_PACKAGE = "icon_pack_package"
         private const val KEY_CUSTOM_QUOTES = "custom_quotes"
         private const val KEY_MOTION_SMOOTHNESS = "motion_smoothness"
         private const val KEY_REDUCE_MOTION = "reduce_motion"
-        private const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
         private const val KEY_TRANSPARENT_STATUS_BAR = "transparent_status_bar"
         private const val KEY_HOME_APPS_INITIALIZED = "home_apps_initialized"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
