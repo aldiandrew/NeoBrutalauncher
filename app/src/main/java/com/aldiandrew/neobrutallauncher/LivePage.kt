@@ -102,7 +102,10 @@ fun LivePage(
                 shadowY = 5.dp,
                 shadowColor = BrutalColors.Ink
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
                     Text(
                         text = "LIVE",
                         fontFamily = BrutalTypography.Display,
