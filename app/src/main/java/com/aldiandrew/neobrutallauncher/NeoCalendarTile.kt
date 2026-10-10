@@ -157,7 +157,7 @@ fun NeoCalendarTile(
             }
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.height(113.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 for (week in 0 until 6) {
