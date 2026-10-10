@@ -38,6 +38,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFFEAF4CE)
             DesignPreset.COBALT_POP -> Color(0xFFE4EBFF)
             DesignPreset.MONOCHROME -> Color(0xFFF0F0F0)
+            DesignPreset.SUNSET_POP -> Color(0xFFFFE9DC)
+            DesignPreset.FOREST_ACID -> Color(0xFFE8F2D6)
+            DesignPreset.VIOLET_GRID -> Color(0xFFEDE5FF)
+            DesignPreset.REDLINE -> Color(0xFFFFE5E5)
         }
 
     val Yellow: Color
@@ -46,6 +50,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
             DesignPreset.COBALT_POP -> Color(0xFFFFD166)
             DesignPreset.MONOCHROME -> Color(0xFFD0D0D0)
+            DesignPreset.SUNSET_POP -> Color(0xFFFFC857)
+            DesignPreset.FOREST_ACID -> Color(0xFFB8E986)
+            DesignPreset.VIOLET_GRID -> Color(0xFFB69CFF)
+            DesignPreset.REDLINE -> Color(0xFFFF4545)
         }
 
     val Pink: Color
@@ -54,6 +62,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFFFF4FD8)
             DesignPreset.COBALT_POP -> Color(0xFFFF9E80)
             DesignPreset.MONOCHROME -> Color(0xFF858585)
+            DesignPreset.SUNSET_POP -> Color(0xFFFF5B5B)
+            DesignPreset.FOREST_ACID -> Color(0xFF4F7D3A)
+            DesignPreset.VIOLET_GRID -> Color(0xFF9D4EDD)
+            DesignPreset.REDLINE -> Color(0xFFB00020)
         }
 
     val Cyan: Color
@@ -62,6 +74,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFF8A5CFF)
             DesignPreset.COBALT_POP -> Color(0xFF9CB4FF)
             DesignPreset.MONOCHROME -> Color(0xFFB8B8B8)
+            DesignPreset.SUNSET_POP -> Color(0xFFFF9B54)
+            DesignPreset.FOREST_ACID -> Color(0xFF4DD0A1)
+            DesignPreset.VIOLET_GRID -> Color(0xFF6C63FF)
+            DesignPreset.REDLINE -> Color(0xFFFF7777)
         }
 
     val DarkTile: Color
@@ -70,6 +86,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFF20251A)
             DesignPreset.COBALT_POP -> Color(0xFF171D35)
             DesignPreset.MONOCHROME -> Color(0xFF242424)
+            DesignPreset.SUNSET_POP -> Color(0xFF2D1B18)
+            DesignPreset.FOREST_ACID -> Color(0xFF17251A)
+            DesignPreset.VIOLET_GRID -> Color(0xFF21172E)
+            DesignPreset.REDLINE -> Color(0xFF260B0B)
         }
 
     val Red: Color
@@ -78,6 +98,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFFFF4F64)
             DesignPreset.COBALT_POP -> Color(0xFFE13A52)
             DesignPreset.MONOCHROME -> Color(0xFF555555)
+            DesignPreset.SUNSET_POP -> Color(0xFFCA2D45)
+            DesignPreset.FOREST_ACID -> Color(0xFF356B35)
+            DesignPreset.VIOLET_GRID -> Color(0xFF6930C3)
+            DesignPreset.REDLINE -> Color(0xFFE00000)
         }
 
     val Lime: Color
@@ -86,6 +110,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> Color(0xFFC5FF00)
             DesignPreset.COBALT_POP -> Color(0xFF9EC4FF)
             DesignPreset.MONOCHROME -> Color(0xFFD8D8D8)
+            DesignPreset.SUNSET_POP -> Color(0xFFFFD6A5)
+            DesignPreset.FOREST_ACID -> Color(0xFFCCFF90)
+            DesignPreset.VIOLET_GRID -> Color(0xFFD0BFFF)
+            DesignPreset.REDLINE -> Color(0xFFFFA3A3)
         }
 
     fun appPalette(seed: Int = 0): List<Color> {
@@ -94,6 +122,10 @@ object BrutalColors {
             DesignPreset.ACID_DARK -> listOf(Yellow, Pink, Cyan, White)
             DesignPreset.COBALT_POP -> listOf(Cyan, Yellow, Pink, White)
             DesignPreset.MONOCHROME -> listOf(White, Yellow, Pink, Cyan)
+            DesignPreset.SUNSET_POP -> listOf(Yellow, Pink, White, Cyan)
+            DesignPreset.FOREST_ACID -> listOf(Lime, Cyan, Yellow, White)
+            DesignPreset.VIOLET_GRID -> listOf(Cyan, Pink, White, Yellow)
+            DesignPreset.REDLINE -> listOf(Pink, White, Yellow, Cyan)
         }
         val shift = Math.floorMod(seed, base.size)
         return List(base.size) { index -> base[(index + shift) % base.size] }
