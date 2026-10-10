@@ -14,12 +14,6 @@ object NeoQuotes {
         "Make the grid visible. Make the interface honest.",
         "Strong borders turn space into architecture.",
         "Function first, decoration second, apology never.",
-        "Break the polish. Keep the hierarchy.",
-        "Let contrast do the talking.",
-        "Every box is a decision. Make it intentional.",
-        "Brutal does not mean chaotic. It means unapologetic.",
-        "Make every pixel earn its place.",
-        "A strong interface makes the next action obvious."
     )
 
     fun builtInQuotes(): List<String> = defaultQuotes
