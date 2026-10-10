@@ -105,12 +105,12 @@ fun NeoNetworkTile(context: Context, modifier: Modifier = Modifier) {
                 imageVector = icon,
                 contentDescription = state.primary,
                 tint = textColor,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
             Text(
                 text = state.primary,
-                fontSize = 8.sp,
-                lineHeight = 9.sp,
+                fontSize = 7.sp,
+                lineHeight = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = textColor,
                 maxLines = 1
