@@ -1487,7 +1487,6 @@ private fun AppTile(
         val iconBitmap = remember(app.packageName, app.icon) {
             app.icon.toBitmap(64, 64).asImageBitmap()
         }
-        val compactTile = tileSize == NeoTileSize.SMALL
         val iconSize = when (tileSize) {
             NeoTileSize.SMALL -> minOf(availableWidth * 0.34f, availableHeight * 0.36f, 26.dp)
             NeoTileSize.HORIZONTAL -> minOf(availableHeight * 0.38f, 30.dp)
