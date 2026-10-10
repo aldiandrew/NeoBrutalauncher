@@ -51,17 +51,35 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Build signed release APK
+      - name: Build release APK
         run: gradle assembleRelease --rerun-tasks
 
-      - name: Verify signed APK
+      - name: Verify APK signature, manifest, and archive integrity
         run: |
+          set -euo pipefail
           APK="app/build/outputs/apk/release/app-release.apk"
           test -f "$APK"
-          echo "Generated APK:"
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$SDK_DIR"
+          BUILD_TOOLS="$(find "$SDK_DIR/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          test -x "$BUILD_TOOLS/apksigner"
+          test -x "$BUILD_TOOLS/aapt"
+
+          echo "APK size:"
           ls -lh "$APK"
-          echo "APK type:"
-          file "$APK"
+
+          echo "Verifying APK signature:"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+
+          echo "Checking APK archive integrity:"
+          unzip -t "$APK"
+
+          echo "Checking application ID and minimum SDK:"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" > apk-badging.txt
+          grep -Fq "package: name='com.aldiandrew.neobrutallauncher'" apk-badging.txt
+          grep -Fq "sdkVersion:'26'" apk-badging.txt
+          cat apk-badging.txt
 
       - name: Upload installable APK Artifact
         uses: actions/upload-artifact@v4
