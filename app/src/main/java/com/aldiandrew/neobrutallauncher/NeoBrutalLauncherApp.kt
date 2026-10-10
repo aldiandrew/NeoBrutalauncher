@@ -1485,6 +1485,15 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
         }
         val textMaxLines = if (compactTile) 1 else 2
+        val contextText = app.contextLabels
+            .take(if (compactTile) 1 else 2)
+            .joinToString(" · ")
+        val contextFontSize = when (tileSize) {
+            NeoTileSize.SMALL -> 6.sp
+            NeoTileSize.HORIZONTAL -> 8.sp
+            NeoTileSize.THREE_BY_ONE -> 9.sp
+            NeoTileSize.FOUR_BY_ONE -> 10.sp
+        }
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1513,36 +1522,78 @@ private fun AppTile(
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
                             contentAlignment = if (isFourByOne) Alignment.CenterEnd else Alignment.CenterStart
                         ) {
-                            Text(
-                                text = app.label.uppercase(),
+                            Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
-                                fontFamily = BrutalTypography.Display,
-                                fontSize = maxTextSize,
-                                lineHeight = (maxTextSize.value * 1.02f).sp,
-                                fontWeight = FontWeight.Black,
-                                color = BrutalColors.Ink,
-                                maxLines = textMaxLines,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                                horizontalAlignment = if (isFourByOne) Alignment.End else Alignment.Start,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = app.label.uppercase(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
+                                    fontFamily = BrutalTypography.Display,
+                                    fontSize = maxTextSize,
+                                    lineHeight = (maxTextSize.value * 1.02f).sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = BrutalColors.Ink,
+                                    maxLines = textMaxLines,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                if (contextText.isNotEmpty()) {
+                                    Text(
+                                        text = contextText,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = if (isFourByOne) TextAlign.End else TextAlign.Start,
+                                        fontSize = contextFontSize,
+                                        lineHeight = (contextFontSize.value * 1.1f).sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = BrutalColors.Ink.copy(alpha = 0.72f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
 
                     TileContentMode.ICON_TEXT -> {
                         val appTitle: @Composable (Modifier, TextAlign, Int) -> Unit =
                             { textModifier, alignment, lines ->
-                                Text(
-                                    text = app.label.uppercase(),
+                                Column(
                                     modifier = textModifier,
-                                    textAlign = alignment,
-                                    fontFamily = BrutalTypography.Display,
-                                    fontSize = maxTextSize,
-                                    lineHeight = (maxTextSize.value * 1.02f).sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = BrutalColors.Ink,
-                                    maxLines = lines,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                    horizontalAlignment = when (alignment) {
+                                        TextAlign.Center -> Alignment.CenterHorizontally
+                                        TextAlign.End -> Alignment.End
+                                        else -> Alignment.Start
+                                    },
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = app.label.uppercase(),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = alignment,
+                                        fontFamily = BrutalTypography.Display,
+                                        fontSize = maxTextSize,
+                                        lineHeight = (maxTextSize.value * 1.02f).sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = BrutalColors.Ink,
+                                        maxLines = lines,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (contextText.isNotEmpty()) {
+                                        Text(
+                                            text = contextText,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textAlign = alignment,
+                                            fontSize = contextFontSize,
+                                            lineHeight = (contextFontSize.value * 1.1f).sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = BrutalColors.Ink.copy(alpha = 0.72f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
                             }
                         val appIcon: @Composable (Modifier) -> Unit = { iconModifier ->
                             Image(
