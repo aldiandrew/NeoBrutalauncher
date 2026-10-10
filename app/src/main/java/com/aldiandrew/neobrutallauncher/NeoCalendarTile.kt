@@ -177,7 +177,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(16.dp)
+                                    .height(18.dp)
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -212,7 +212,7 @@ fun NeoCalendarTile(
                     SimpleDateFormat("EEE, d MMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 8.sp,
-                lineHeight = 9.sp,
+                lineHeight = 10.sp,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Start,
                 color = textColor
