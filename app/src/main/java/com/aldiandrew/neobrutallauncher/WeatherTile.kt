@@ -57,7 +57,8 @@ fun NeoWeatherTile(
             return@LaunchedEffect
         }
 
-        if (refreshToken == 0 && cached != null) {
+        if (cached != null && !WeatherRepository.shouldRefreshForToken(context, refreshToken)) {
+            WeatherRepository.markRefreshHandled(refreshToken)
             weather = cached
             loading = false
             error = null
@@ -76,6 +77,7 @@ fun NeoWeatherTile(
             error = it
         }
 
+        WeatherRepository.markRefreshHandled(refreshToken)
         loading = false
     }
 

@@ -34,6 +34,24 @@ object WeatherRepository {
     @Volatile
     private var cachedWeather: WeatherData? = null
 
+    @Volatile
+    private var lastHandledRefreshToken: Int? = null
+
+    @Synchronized
+    fun shouldRefreshForToken(context: Context, token: Int): Boolean {
+        if (cachedWeather(context) == null) return true
+        val handled = lastHandledRefreshToken ?: return token > 0
+        return token > handled
+    }
+
+    @Synchronized
+    fun markRefreshHandled(token: Int) {
+        val handled = lastHandledRefreshToken
+        if (handled == null || token > handled) {
+            lastHandledRefreshToken = token
+        }
+    }
+
     fun cachedWeather(context: Context): WeatherData? {
         cachedWeather?.let { return it }
         val prefs = context.applicationContext.getSharedPreferences("neo_weather_cache", Context.MODE_PRIVATE)
