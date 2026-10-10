@@ -1,18 +1,23 @@
-name: Build APK
+name: Android CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-verify:
+    name: Lint, tests, release build and APK checks
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,16 +33,86 @@ jobs:
         with:
           gradle-version: "8.13"
 
+      - name: Check whitespace and patch integrity
+        run: git diff --check
+
+      - name: Validate Android manifest and project configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import pathlib
+          import re
+          import xml.etree.ElementTree as ET
+
+          root = pathlib.Path(".")
+          manifest_path = root / "app/src/main/AndroidManifest.xml"
+          gradle_path = root / "app/build.gradle.kts"
+          manifest = ET.parse(manifest_path).getroot()
+          gradle = gradle_path.read_text(encoding="utf-8")
+          ns = "{http://schemas.android.com/apk/res/android}"
+
+          required_config = {
+              'namespace': r'namespace\s*=\s*"com\.aldiandrew\.neobrutallauncher"',
+              'applicationId': r'applicationId\s*=\s*"com\.aldiandrew\.neobrutallauncher"',
+              'minSdk': r'minSdk\s*=\s*26',
+              'targetSdk': r'targetSdk\s*=\s*36',
+          }
+          for label, pattern in required_config.items():
+              if not re.search(pattern, gradle):
+                  raise SystemExit(f"Project configuration check failed: {label}")
+
+          app = manifest.find("application")
+          if app is None:
+              raise SystemExit("Manifest has no application element")
+          activities = app.findall("activity")
+          main = next((a for a in activities if a.get(ns + "name") == ".MainActivity"), None)
+          if main is None or main.get(ns + "exported") != "true":
+              raise SystemExit("MainActivity must exist and be explicitly exported")
+          filters = main.findall("intent-filter")
+          launcher_filter = any(
+              any(x.get(ns + "name") == "android.intent.action.MAIN" for x in f.findall("action"))
+              and any(x.get(ns + "name") == "android.intent.category.LAUNCHER" for x in f.findall("category"))
+              for f in filters
+          )
+          home_filter = any(
+              any(x.get(ns + "name") == "android.intent.action.MAIN" for x in f.findall("action"))
+              and any(x.get(ns + "name") == "android.intent.category.HOME" for x in f.findall("category"))
+              and any(x.get(ns + "name") == "android.intent.category.DEFAULT" for x in f.findall("category"))
+              for f in filters
+          )
+          if not launcher_filter or not home_filter:
+              raise SystemExit("MainActivity must retain both launcher and HOME intent filters")
+
+          listener = next((s for s in app.findall("service")
+                           if s.get(ns + "name") == ".NeoMusicNotificationListenerService"), None)
+          if listener is None or listener.get(ns + "permission") != "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE":
+              raise SystemExit("Music notification listener must retain its system binding permission")
+          if listener.get(ns + "exported") != "true":
+              raise SystemExit("Notification listener must be explicitly exported for Android")
+          print("Manifest XML, app identity, SDK levels, HOME/launcher filters, and notification-listener protection passed.")
+          PY
+
       - name: Run Android lint
         run: gradle lintRelease --rerun-tasks
 
       - name: Run JVM unit tests
         run: gradle testReleaseUnitTest --rerun-tasks
 
+      - name: Generate release dependency report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-reports
+          gradle :app:dependencies --configuration releaseRuntimeClasspath > build/ci-reports/release-runtime-dependencies.txt
+          gradle :app:dependencies --configuration releaseCompileClasspath > build/ci-reports/release-compile-dependencies.txt
+          test -s build/ci-reports/release-runtime-dependencies.txt
+          test -s build/ci-reports/release-compile-dependencies.txt
+
       - name: Build release APK
         run: gradle assembleRelease --rerun-tasks
 
-      - name: Verify APK exists and is installable-signed
+      - name: Verify APK signature, alignment, contents and metadata
         shell: bash
         run: |
           set -euo pipefail
@@ -46,36 +121,149 @@ jobs:
 
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -n 1)"
           test -n "$APKSIGNER"
           test -n "$AAPT"
+          test -n "$ZIPALIGN"
 
           "$APKSIGNER" verify --verbose "$APK"
-          "$AAPT" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          "$ZIPALIGN" -c -v 4 "$APK"
+          unzip -t "$APK"
+          unzip -l "$APK" > build/ci-reports/apk-contents.txt
+          "$AAPT" dump badging "$APK" > build/ci-reports/apk-badging.txt
+          "$AAPT" dump permissions "$APK" > build/ci-reports/apk-permissions.txt
 
-          python3 - "$RUNNER_TEMP/apk-badging.txt" <<'PY'
+          python3 - build/ci-reports/apk-badging.txt build/ci-reports/apk-contents.txt <<'PY'
           import pathlib
+          import re
           import sys
 
           badging = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
-          required = (
-              "package: name='com.aldiandrew.neobrutallauncher'",
-              "launchable-activity:",
-          )
-          missing = [item for item in required if item not in badging]
-          if missing:
-              raise SystemExit("APK verification failed; missing: " + ", ".join(missing))
-          print("APK package identity and launchable activity verified.")
+          contents = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
+          checks = {
+              "expected package id": "package: name='com.aldiandrew.neobrutallauncher'",
+              "launchable activity": "launchable-activity:",
+              "minimum Android SDK 26": "sdkVersion:'26'",
+              "target Android SDK 36": "targetSdkVersion:'36'",
+          }
+          for label, needle in checks.items():
+              if needle not in badging:
+                  raise SystemExit(f"APK metadata check failed: {label}")
+          if not re.search(r"\bclasses(?:\d+)?\.dex\b", contents):
+              raise SystemExit("APK has no DEX bytecode")
+          if "AndroidManifest.xml" not in contents or "resources.arsc" not in contents:
+              raise SystemExit("APK is missing its compiled manifest or resources table")
+          print("APK package, SDK levels, launchable activity, DEX, resources, ZIP integrity, alignment and signature verified.")
           PY
 
-          echo "Generated APK:"
+          echo "APK size:"
           ls -lh "$APK"
-          echo "APK file type:"
           file "$APK"
 
-      - name: Upload installable APK Artifact
+      - name: Upload APK and CI reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NeoBrutalauncher-release
-          path: app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
+          name: NeoBrutalauncher-ci-reports
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/reports/lint-results-release.html
+            app/build/reports/lint-results-release.xml
+            app/build/test-results/testReleaseUnitTest/
+            app/build/ci-reports/
+            build/ci-reports/
+          if-no-files-found: warn
           retention-days: 30
+
+  emulator-smoke-test:
+    name: Install and launch on Android emulator
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download release APK and reports
+        uses: actions/download-artifact@v4
+        with:
+          name: NeoBrutalauncher-ci-reports
+          path: .
+
+      - name: Boot emulator, install APK and verify app launch
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            APK="app/build/outputs/apk/release/app-release.apk"
+            test -s "$APK"
+            adb install -r "$APK"
+            adb logcat -c
+            adb shell am force-stop com.aldiandrew.neobrutallauncher
+            adb shell am start -W -n com.aldiandrew.neobrutallauncher/.MainActivity
+            sleep 8
+            adb shell pidof com.aldiandrew.neobrutallauncher
+            adb logcat -d -s AndroidRuntime:E > emulator-runtime-errors.txt
+            python3 - <<'PY'
+            from pathlib import Path
+            log = Path("emulator-runtime-errors.txt").read_text(encoding="utf-8", errors="replace")
+            if "FATAL EXCEPTION" in log or "Process: com.aldiandrew.neobrutallauncher" in log:
+                print(log)
+                raise SystemExit("App crashed during emulator launch smoke test")
+            print("APK installed and MainActivity remained alive on Android API 35 emulator.")
+            PY
+
+  codeql:
+    name: CodeQL static security analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          build-mode: manual
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Build for CodeQL analysis
+        run: gradle assembleDebug --no-daemon
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
+
+  dependency-review:
+    name: Dependency vulnerability review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
