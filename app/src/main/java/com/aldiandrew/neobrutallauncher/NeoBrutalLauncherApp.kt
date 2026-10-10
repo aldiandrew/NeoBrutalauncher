@@ -1778,7 +1778,7 @@ private fun SettingsScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("Built-in quotes", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = uiOnSurface)
-                NeoQuotes.builtInQuotes().take(5).forEachIndexed { index, quote ->
+                NeoQuotes.builtInQuotes().forEachIndexed { index, quote ->
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                         Text(
                             text = "${index + 1}.",
