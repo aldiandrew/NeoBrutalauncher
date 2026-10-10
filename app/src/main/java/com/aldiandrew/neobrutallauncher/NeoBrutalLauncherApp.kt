@@ -1531,6 +1531,7 @@ private fun SettingsScreen(
     onResetAll: () -> Unit
 ) {
     var editedQuotes by remember(customQuotes) { mutableStateOf(customQuotes) }
+    var selectedSettingsCategory by remember { mutableStateOf("GENERAL") }
     val context = androidx.compose.ui.platform.LocalContext.current
     val uiBackground = MaterialTheme.colorScheme.background
     val uiSurface = MaterialTheme.colorScheme.surface
@@ -1574,6 +1575,24 @@ private fun SettingsScreen(
             }
         }
 
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(
+                "GENERAL" to BrutalColors.Cyan,
+                "HOME" to BrutalColors.Yellow,
+                "APPS" to BrutalColors.Pink,
+                "LIVE" to BrutalColors.Cyan
+            ).forEach { (category, color) ->
+                ThemeButton(
+                    label = category,
+                    selected = selectedSettingsCategory == category,
+                    background = color,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedSettingsCategory = category }
+                )
+            }
+        }
+
+        if (selectedSettingsCategory == "GENERAL") {
         SettingsSectionTitle("THEME")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1609,9 +1628,15 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "LIVE") {
         SettingsSectionTitle("CLOCK")
         SettingsSwitch("24-HOUR TIME", "Use 24-hour time on Home.", use24Hour, BrutalColors.Yellow, onUse24HourChange)
         if (!use24Hour) SettingsSwitch("AM / PM", "Show the AM/PM marker with 12-hour time.", showAmPm, BrutalColors.Cyan, onShowAmPmChange)
+        }
+
+        if (selectedSettingsCategory == "GENERAL") {
         BrutalBlock(Modifier.fillMaxWidth(), background = BrutalColors.Cyan, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("TYPOGRAPHY", fontFamily = BrutalTypography.Display, fontSize = 17.sp, fontWeight = FontWeight.Normal)
@@ -1630,6 +1655,9 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "GENERAL") {
         SettingsSectionTitle("MOTION")
         BrutalBlock(
             Modifier.fillMaxWidth(),
@@ -1670,6 +1698,9 @@ private fun SettingsScreen(
             onTransparentStatusBarChange
         )
 
+        }
+
+        if (selectedSettingsCategory == "HOME") {
         SettingsSectionTitle("QUOTES")
         BrutalBlock(
             Modifier.fillMaxWidth(),
@@ -1777,6 +1808,9 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "APPS") {
         SettingsSectionTitle("ICON PACK")
         BrutalBlock(
             Modifier.fillMaxWidth(),
@@ -1810,6 +1844,9 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "LIVE") {
         SettingsSectionTitle("INTEGRATIONS")
         BrutalBlock(Modifier.fillMaxWidth(), background = if (uiBackground == BrutalColors.DarkPaper) BrutalColors.Pink else BrutalColors.Cyan, borderWidth = 4.dp, shadowX = 6.dp, shadowY = 6.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1830,6 +1867,9 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "HOME") {
         SettingsSectionTitle("PINNED APPS")
         BrutalBlock(
             Modifier.fillMaxWidth(),
@@ -1909,6 +1949,9 @@ private fun SettingsScreen(
             }
         }
 
+        }
+
+        if (selectedSettingsCategory == "GENERAL") {
         SettingsSectionTitle("DATA & RECOVERY")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 3.dp, shadowX = 5.dp, shadowY = 5.dp) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1939,6 +1982,8 @@ private fun SettingsScreen(
                 Text("A neo-brutalist launcher focused on fast access to your apps.", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, color = BrutalColors.White)
             }
         }
+        }
+
         Spacer(Modifier.height(12.dp))
     }
 
