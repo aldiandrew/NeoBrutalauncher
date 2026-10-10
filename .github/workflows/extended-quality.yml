@@ -126,6 +126,7 @@ jobs:
             set -euo pipefail
             mkdir -p quality-reports
             gradle connectedDebugAndroidTest --no-daemon
+            adb logcat -c
             APK_PACKAGE="com.aldiandrew.neobrutallauncher"
             adb shell wm size 360x800
             adb shell wm density 320
