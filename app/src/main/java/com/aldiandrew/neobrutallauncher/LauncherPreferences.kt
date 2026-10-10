@@ -277,14 +277,6 @@ class LauncherPreferences(context: Context) {
         }.apply()
     }
 
-    fun quoteImageUri(): String? = prefs.getString(KEY_QUOTE_IMAGE_URI, null)
-
-    fun setQuoteImageUri(value: String?) {
-        prefs.edit().apply {
-            if (value == null) remove(KEY_QUOTE_IMAGE_URI) else putString(KEY_QUOTE_IMAGE_URI, value)
-        }.apply()
-    }
-
     fun homeAppOrder(): List<String> {
         val raw = prefs.getString(KEY_HOME_APP_ORDER, null)
         if (raw.isNullOrBlank()) return emptyList()
@@ -390,7 +382,6 @@ class LauncherPreferences(context: Context) {
             .put("appTileContentMode", appTileContentMode().name)
             .put("typographyStyle", typographyStyle().name)
             .put("wallpaperUri", wallpaperUri())
-            .put("quoteImageUri", quoteImageUri())
             .put("homeAppOrder", JSONArray(homeAppOrder()))
             .put("excludedHomeApps", JSONArray(excludedHomeApps().toList()))
             .put("noteItems", itemsToJson(noteItems()))
@@ -490,7 +481,6 @@ class LauncherPreferences(context: Context) {
             }
 
             val wallpaper = root.optString("wallpaperUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
-            val quoteImage = root.optString("quoteImageUri", "").takeIf { it.startsWith("content://") && it.length <= 2048 }
             val iconPack = root.optString("iconPackPackage", "").takeIf {
                 it.matches(Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+"))
             }
@@ -513,7 +503,6 @@ class LauncherPreferences(context: Context) {
                 .putString(KEY_HOME_APP_ORDER, JSONArray(restoredOrder).toString())
                 .putStringSet(KEY_EXCLUDED_HOME_APPS, restoredExcluded)
             if (wallpaper == null) editor.remove(KEY_WALLPAPER_URI) else editor.putString(KEY_WALLPAPER_URI, wallpaper)
-            if (quoteImage == null) editor.remove(KEY_QUOTE_IMAGE_URI) else editor.putString(KEY_QUOTE_IMAGE_URI, quoteImage)
             if (iconPack == null) editor.remove(KEY_ICON_PACK_PACKAGE) else editor.putString(KEY_ICON_PACK_PACKAGE, iconPack)
             editor.putString(KEY_NOTE_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("noteItems"))).toString())
             editor.putString(KEY_TASK_ITEMS, itemsToJson(jsonToItems(root.optJSONArray("taskItems"))).toString())
@@ -541,7 +530,6 @@ class LauncherPreferences(context: Context) {
             remove(KEY_APP_TILE_CONTENT_MODE)
             remove(KEY_CLOCK_STYLE)
             remove(KEY_WALLPAPER_URI)
-            remove(KEY_QUOTE_IMAGE_URI)
             remove(KEY_NOTE_TEXT)
             remove(KEY_NOTE_ITEMS)
             remove(KEY_TASK_ITEMS)
@@ -629,7 +617,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_APP_TILE_CONTENT_MODE = "app_tile_content_mode"
         private const val KEY_CLOCK_STYLE = "clock_style"
         private const val KEY_WALLPAPER_URI = "wallpaper_uri"
-        private const val KEY_QUOTE_IMAGE_URI = "quote_image_uri"
         private const val KEY_NOTE_TEXT = "note_text"
         private const val KEY_NOTE_ITEMS = "note_items"
         private const val KEY_TASK_ITEMS = "task_items"
