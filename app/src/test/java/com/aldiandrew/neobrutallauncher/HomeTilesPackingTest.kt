@@ -3,6 +3,7 @@ package com.aldiandrew.neobrutallauncher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.random.Random
 
 class HomeTilesPackingTest {
     private fun tile(id: String, size: NeoTileSize) =
@@ -56,6 +57,28 @@ class HomeTilesPackingTest {
 
         assertEquals(tiles.map { it.id }, placements.map { it.first.id })
         assertEquals(tiles.size, placements.map { it.first.id }.toSet().size)
+    }
+
+    @Test
+    fun randomizedTileListsNeverOverlapOrExceedGridWidth() {
+        val random = Random(605)
+        val sizes = NeoTileSize.entries
+
+        repeat(100) { scenario ->
+            val tiles = List(random.nextInt(1, 101)) { index ->
+                tile("scenario-$scenario-tile-$index", sizes[random.nextInt(sizes.size)])
+            }
+            assertValidPacking(tiles)
+        }
+    }
+
+    @Test
+    fun resizingCycleReturnsToSmallAfterEverySupportedSize() {
+        assertEquals(NeoTileSize.HORIZONTAL, NeoTileSize.SMALL.next())
+        assertEquals(NeoTileSize.THREE_BY_ONE, NeoTileSize.HORIZONTAL.next())
+        assertEquals(NeoTileSize.FOUR_BY_ONE, NeoTileSize.THREE_BY_ONE.next())
+        assertEquals(NeoTileSize.SMALL, NeoTileSize.FOUR_BY_ONE.next())
+        assertEquals(NeoTileSize.SMALL, NeoTileSize.FOUR_BY_TWO.next())
     }
 
     private fun assertValidPacking(tiles: List<NeoTileSpec>) {
