@@ -1600,7 +1600,7 @@ private fun SettingsScreen(
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("General", "Home", "Apps", "Live").forEach { category ->
+            listOf("General", "Home", "Icon", "Live").forEach { category ->
                 SettingsOptionButton(
                     label = category,
                     selected = selectedCategory == category,
@@ -1711,10 +1711,6 @@ private fun SettingsScreen(
                 }
             }
         }
-
-        SettingsSectionTitle("Weather")
-        SettingsSwitch("WEATHER", "Show current weather on Home and Live. Location permission is required.", showWeather, BrutalColors.Cyan, onShowWeatherChange)
-        if (!locationPermissionGranted) SettingsActionButton("Allow location access", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
 
         SettingsSectionTitle("Quotes")
         BrutalBlock(
@@ -1979,7 +1975,7 @@ private fun SettingsScreen(
 
 
             }
-            "Apps" -> {
+            "Icon" -> {
         SettingsSectionTitle("Icon")
         BrutalBlock(
             Modifier.fillMaxWidth(),
@@ -2016,7 +2012,11 @@ private fun SettingsScreen(
 
 
             }
-            else -> {
+            "Live" -> {
+        SettingsSectionTitle("Weather")
+        SettingsSwitch("WEATHER", "Show current weather on Home and Live. Location permission is required.", showWeather, BrutalColors.Cyan, onShowWeatherChange)
+        if (!locationPermissionGranted) SettingsActionButton("Allow location access", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
+
         SettingsSectionTitle("INTEGRATIONS")
         BrutalBlock(Modifier.fillMaxWidth(), background = uiSurface, borderWidth = 2.dp, shadowX = 0.dp, shadowY = 0.dp, shadowColor = if (isDark) BrutalColors.Yellow else BrutalColors.Ink) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
