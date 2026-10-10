@@ -1457,21 +1457,24 @@ private fun AppTile(
     variant: Int
 ) {
     BoxWithConstraints(modifier = modifier) {
+        // Capture the tile constraints before entering nested Box/Row content scopes.
+        val availableWidth = maxWidth
+        val availableHeight = maxHeight
         val iconBitmap = remember(app.packageName, app.icon) {
             app.icon.toBitmap(64, 64).asImageBitmap()
         }
         val compactTile = tileSize == NeoTileSize.SMALL
         val iconSize = when (tileSize) {
-            NeoTileSize.SMALL -> minOf(maxWidth * 0.34f, maxHeight * 0.36f, 26.dp)
-            NeoTileSize.HORIZONTAL -> minOf(maxHeight * 0.38f, 30.dp)
-            NeoTileSize.THREE_BY_ONE -> minOf(maxHeight * 0.42f, 34.dp)
-            NeoTileSize.FOUR_BY_ONE -> minOf(maxHeight * 0.72f, 72.dp)
+            NeoTileSize.SMALL -> minOf(availableWidth * 0.34f, availableHeight * 0.36f, 26.dp)
+            NeoTileSize.HORIZONTAL -> minOf(availableHeight * 0.38f, 30.dp)
+            NeoTileSize.THREE_BY_ONE -> minOf(availableHeight * 0.42f, 34.dp)
+            NeoTileSize.FOUR_BY_ONE -> minOf(availableHeight * 0.72f, 72.dp)
         }
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
             NeoTileSize.HORIZONTAL -> 15.sp
-            NeoTileSize.THREE_BY_ONE -> if (maxWidth < 220.dp) 18.sp else 23.sp
-            NeoTileSize.FOUR_BY_ONE -> if (maxWidth < 300.dp) 23.sp else 30.sp
+            NeoTileSize.THREE_BY_ONE -> if (availableWidth < 220.dp) 18.sp else 23.sp
+            NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
         }
         val textMaxLines = if (compactTile) 1 else 2
 
@@ -1608,7 +1611,7 @@ private fun AppTile(
                             }
 
                             NeoTileSize.HORIZONTAL -> {
-                                if (maxHeight < 66.dp || maxWidth < 130.dp) {
+                                if (availableHeight < 66.dp || availableWidth < 130.dp) {
                                     Row(
                                         modifier = Modifier.fillMaxSize().padding(6.dp),
                                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1672,7 +1675,7 @@ private fun AppTile(
                             NeoTileSize.THREE_BY_ONE,
                             NeoTileSize.FOUR_BY_ONE -> {
                                 // Width/height checks keep the selected composition from colliding.
-                                if (maxHeight < 66.dp || maxWidth < 190.dp) {
+                                if (availableHeight < 66.dp || availableWidth < 190.dp) {
                                     Row(
                                         modifier = Modifier.fillMaxSize().padding(8.dp),
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
