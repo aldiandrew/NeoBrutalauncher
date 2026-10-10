@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -50,7 +51,7 @@ fun NeoCalendarTile(
     }
 
     val monthTitle = remember(displayedMonth.timeInMillis) {
-        SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
+        SimpleDateFormat("MMM yyyy", Locale.ENGLISH)
             .format(displayedMonth.time)
             .uppercase(Locale.ENGLISH)
     }
@@ -113,10 +114,12 @@ fun NeoCalendarTile(
                     text = monthTitle,
                     modifier = Modifier.weight(1f),
                     fontFamily = BrutalTypography.Display,
-                    fontSize = NeoBrutalTokens.Type.Tile,
-                    fontWeight = FontWeight.Normal,
-                    letterSpacing = 0.8.sp,
-                    color = textColor
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.3.sp,
+                    color = textColor,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     CalendarNavButton(
@@ -160,7 +163,7 @@ fun NeoCalendarTile(
             ) {
                 for (week in 0 until 6) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         for (dayOfWeek in 0 until 7) {
@@ -175,7 +178,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(16.dp)
+                                    .fillMaxHeight()
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -207,7 +210,7 @@ fun NeoCalendarTile(
 
             Text(
                 text = "TODAY  /  " +
-                    SimpleDateFormat("EEEE, d MMMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH),
+                    SimpleDateFormat("EEE, d MMM yyyy", Locale.ENGLISH).format(today.time).uppercase(Locale.ENGLISH),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 8.sp,
                 lineHeight = 9.sp,
@@ -226,7 +229,7 @@ private fun CalendarNavButton(
 ) {
     Box(
         modifier = Modifier
-            .size(22.dp)
+            .size(18.dp)
             .background(BrutalColors.White)
             .border(2.dp, BrutalColors.Ink)
             .clickable(onClick = onClick),
@@ -234,7 +237,7 @@ private fun CalendarNavButton(
     ) {
         Text(
             text = label,
-            fontSize = 18.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Black,
             color = BrutalColors.Ink
         )
