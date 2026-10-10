@@ -147,6 +147,7 @@ fun NeoMusicTile(
         },
         background = background,
         borderWidth = 4.dp,
+        contentPadding = 0.dp,
         borderColor = if (background == BrutalColors.DarkTile || background == BrutalColors.DarkPaper) BrutalColors.DarkWhite else BrutalColors.Ink,
         shadowX = 6.dp,
         shadowY = 6.dp,
