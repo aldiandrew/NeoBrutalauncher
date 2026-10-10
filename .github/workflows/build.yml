@@ -9,6 +9,7 @@ on:
       - fixes/after-stable-593
       - fixes/after-stable-598
       - fixes/after-stable-603
+      - fixes/after-stable-605
   pull_request:
     branches:
       - main
