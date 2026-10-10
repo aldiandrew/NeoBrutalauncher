@@ -778,6 +778,13 @@ private fun HomeScreen(
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
+    val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
+    val homeQuoteHeight = when {
+        homeQuote.length > 150 -> 164.dp
+        homeQuote.length > 95 -> 144.dp
+        homeQuote.length > 55 -> 128.dp
+        else -> 112.dp
+    }
 
     Box(
         modifier = Modifier
@@ -790,12 +797,12 @@ private fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 10.dp,
-                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp,
-                    start = 18.dp,
-                    end = 18.dp
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 52.dp,
+                    start = 16.dp,
+                    end = 16.dp
                 ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item(key = "top-bar") {
                 Row(
@@ -874,8 +881,8 @@ private fun HomeScreen(
 
             item(key = "home-quote") {
                 NeoQuoteTile(
-                    quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first,
-                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    quote = homeQuote,
+                    modifier = Modifier.fillMaxWidth().height(homeQuoteHeight),
                     emphasized = true,
                     paletteIndex = quoteRotation
                 )
@@ -978,7 +985,7 @@ private fun HomeScreen(
                         onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
-                        gap = 8.dp
+                        gap = 10.dp
                     )
                 }
             }
@@ -1031,7 +1038,7 @@ private fun HomeScreen(
                     positions = emptyMap(),
                     onPositionsChange = {},
                     modifier = Modifier.fillMaxWidth(),
-                    gap = 8.dp
+                    gap = 10.dp
                 )
             }
 
