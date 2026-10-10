@@ -280,7 +280,7 @@ object WeatherRepository {
         }
     }
 
-    private fun weatherDescription(code: Int): String {
+    internal fun weatherDescription(code: Int): String {
         return when (code) {
             0 -> "Clear"
             1, 2, 3 -> "Cloudy"
