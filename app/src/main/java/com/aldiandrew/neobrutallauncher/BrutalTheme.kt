@@ -140,7 +140,6 @@ fun NeoBrutalTheme(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     designPreset: DesignPreset = DesignPreset.NEO_BRUTAL_CLASSIC,
     typographyStyle: TypographyStyle = TypographyStyle.DEFAULT,
-    transparentStatusBar: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val isDark = when (themePreference) {
@@ -155,11 +154,6 @@ fun NeoBrutalTheme(
         BrutalColors.configure(designPreset, isDark)
         val window = (view.context as? Activity)?.window ?: return@SideEffect
         val controller = WindowInsetsControllerCompat(window, view)
-        window.statusBarColor = if (transparentStatusBar) {
-            android.graphics.Color.TRANSPARENT
-        } else {
-            (if (isDark) BrutalColors.DarkPaper else BrutalColors.Paper).toArgb()
-        }
         controller.isAppearanceLightStatusBars = !isDark
         controller.isAppearanceLightNavigationBars = !isDark
     }
