@@ -6,6 +6,7 @@ on:
       - main
       - redesign/home-polish-stable551
       - redesign/after-stable-567
+      - fixes/after-stable-593
   pull_request:
     branches:
       - main
