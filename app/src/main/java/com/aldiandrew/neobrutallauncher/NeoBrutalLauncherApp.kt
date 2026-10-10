@@ -1654,7 +1654,7 @@ private fun SettingsScreen(
                                 preset.label,
                                 designPreset == preset,
                                 presetColor,
-                                Modifier.weight(1f)
+                                Modifier.weight(1f).height(52.dp)
                             ) { onDesignPresetChange(preset) }
                         }
                     }
