@@ -1488,6 +1488,7 @@ private fun AppTile(
         val iconBitmap = remember(app.packageName, app.icon) {
             app.icon.toBitmap(64, 64).asImageBitmap()
         }
+        val compactTile = tileSize == NeoTileSize.SMALL
         val iconSize = when (tileSize) {
             NeoTileSize.SMALL -> minOf(availableWidth * 0.34f, availableHeight * 0.36f, 26.dp)
             NeoTileSize.HORIZONTAL -> minOf(availableHeight * 0.38f, 30.dp)
@@ -1495,32 +1496,12 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> minOf(availableHeight * 0.72f, 72.dp)
         }
         val maxTextSize = when (tileSize) {
-            NeoTileSize.SMALL -> when {
-                app.label.length > 18 -> 7.sp
-                app.label.length > 12 -> 8.sp
-                else -> 9.sp
-            }
-            NeoTileSize.HORIZONTAL -> when {
-                app.label.length > 24 -> 10.sp
-                app.label.length > 16 -> 12.sp
-                else -> 14.sp
-            }
-            NeoTileSize.THREE_BY_ONE -> when {
-                app.label.length > 26 -> 14.sp
-                app.label.length > 18 -> 17.sp
-                availableWidth < 220.dp -> 18.sp
-                else -> 21.sp
-            }
-            NeoTileSize.FOUR_BY_ONE -> when {
-                app.label.length > 30 -> 18.sp
-                app.label.length > 22 -> 22.sp
-                availableWidth < 300.dp -> 23.sp
-                else -> 28.sp
-            }
+            NeoTileSize.SMALL -> 9.sp
+            NeoTileSize.HORIZONTAL -> 15.sp
+            NeoTileSize.THREE_BY_ONE -> if (availableWidth < 220.dp) 18.sp else 23.sp
+            NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
         }
-        // Allow longer app names to wrap across two lines instead of being
-        // cut off after a single line in compact tiles.
-        val textMaxLines = 2
+        val textMaxLines = if (compactTile) 1 else 2
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
@@ -1749,7 +1730,7 @@ private fun AppTile(
                                             1 -> {
                                                 appTitle(
                                                     Modifier.align(Alignment.CenterStart)
-                                                        .fillMaxWidth()
+                                                        .fillMaxWidth(0.76f)
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1760,7 +1741,7 @@ private fun AppTile(
                                                 appIcon(Modifier.align(Alignment.TopEnd))
                                                 appTitle(
                                                     Modifier.align(Alignment.BottomStart)
-                                                        .fillMaxWidth()
+                                                        .fillMaxWidth(0.82f)
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1769,7 +1750,7 @@ private fun AppTile(
                                             3 -> {
                                                 appTitle(
                                                     Modifier.align(Alignment.TopStart)
-                                                        .fillMaxWidth()
+                                                        .fillMaxWidth(0.82f)
                                                         .padding(end = iconSize + 8.dp),
                                                     TextAlign.Start,
                                                     2
@@ -1780,7 +1761,7 @@ private fun AppTile(
                                                 appIcon(Modifier.align(Alignment.BottomStart))
                                                 appTitle(
                                                     Modifier.align(Alignment.TopEnd)
-                                                        .fillMaxWidth()
+                                                        .fillMaxWidth(0.78f)
                                                         .padding(start = iconSize + 8.dp),
                                                     TextAlign.End,
                                                     2
