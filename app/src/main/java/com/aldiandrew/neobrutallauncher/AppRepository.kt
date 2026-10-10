@@ -38,28 +38,30 @@ class AppRepository(private val context: Context) {
             val user = Process.myUserHandle()
 
             val loaded = launcherApps
-            .getActivityList(null, user)
-            .mapNotNull { launcherActivity ->
-                val activityInfo = launcherActivity.activityInfo
-                val label = launcherActivity.label?.toString()?.trim().orEmpty()
+                .getActivityList(null, user)
+                .mapNotNull { launcherActivity ->
+                    val componentName = launcherActivity.componentName
+                    val packageName = componentName.packageName
+                    val activityName = componentName.className
+                    val label = launcherActivity.label?.toString()?.trim().orEmpty()
 
-                if (label.isEmpty()) return@mapNotNull null
+                    if (label.isEmpty()) return@mapNotNull null
 
-                val baseIcon = launcherActivity.getIcon(0)
-                AppInfo(
-                    label = label,
-                    packageName = activityInfo.packageName,
-                    activityName = activityInfo.name,
-                    icon = iconPackManager.iconFor(
-                        activityInfo.packageName,
-                        activityInfo.name,
-                        baseIcon,
-                        iconPackPackage
+                    val baseIcon = launcherActivity.getIcon(0)
+                    AppInfo(
+                        label = label,
+                        packageName = packageName,
+                        activityName = activityName,
+                        icon = iconPackManager.iconFor(
+                            packageName,
+                            activityName,
+                            baseIcon,
+                            iconPackPackage
+                        )
                     )
-                )
-            }
-            .distinctBy { it.packageName + "/" + it.activityName }
-            .sortedBy { it.label.lowercase() }
+                }
+                .distinctBy { it.packageName + "/" + it.activityName }
+                .sortedBy { it.label.lowercase() }
 
             cachedApps = loaded
             cachedIconPackPackage = iconPackPackage
