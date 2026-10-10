@@ -121,7 +121,10 @@ fun NeoCalendarTile(
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     CalendarNavButton(
                         label = "‹",
                         onClick = {
@@ -232,7 +235,7 @@ private fun CalendarNavButton(
 ) {
     Box(
         modifier = Modifier
-            .size(22.dp)
+            .size(24.dp)
             .background(BrutalColors.White)
             .border(2.dp, BrutalColors.Ink)
             .clickable(onClick = onClick),
@@ -240,8 +243,10 @@ private fun CalendarNavButton(
     ) {
         Text(
             text = label,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
+            lineHeight = 22.sp,
             fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center,
             color = BrutalColors.Ink
         )
     }
