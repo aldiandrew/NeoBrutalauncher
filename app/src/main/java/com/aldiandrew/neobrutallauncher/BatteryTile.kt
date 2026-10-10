@@ -17,6 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -103,19 +107,31 @@ fun BatteryTile(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(
+                        imageVector = if (battery.charging) {
+                            Icons.Default.BatteryChargingFull
+                        } else {
+                            Icons.Default.BatteryFull
+                        },
+                        contentDescription = if (battery.charging) "Charging" else "Battery",
+                        tint = BrutalColors.Ink,
+                        modifier = Modifier.size(22.dp)
+                    )
                     Text(
                         text = "${battery.percentage}%",
-                        fontSize = 18.sp,
-                        lineHeight = 19.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 14.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1
                     )
                     Text(
                         text = if (battery.charging) "CHG" else "BAT",
-                        fontSize = 7.sp,
+                        fontSize = 6.sp,
+                        lineHeight = 7.sp,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = BrutalColors.Ink,
+                        maxLines = 1
                     )
                 }
             } else {
