@@ -97,8 +97,8 @@ fun NeoCalendarTile(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -156,12 +156,12 @@ fun NeoCalendarTile(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 for (week in 0 until 6) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         for (dayOfWeek in 0 until 7) {
                             val cellIndex = week * 7 + dayOfWeek
@@ -175,7 +175,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(18.dp)
+                                    .height(16.dp)
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -226,7 +226,7 @@ private fun CalendarNavButton(
 ) {
     Box(
         modifier = Modifier
-            .size(24.dp)
+            .size(22.dp)
             .background(BrutalColors.White)
             .border(2.dp, BrutalColors.Ink)
             .clickable(onClick = onClick),
