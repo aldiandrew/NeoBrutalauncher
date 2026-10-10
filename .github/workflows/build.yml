@@ -28,16 +28,48 @@ jobs:
         with:
           gradle-version: "8.13"
 
-      - name: Build signed release APK
+      - name: Run Android lint
+        run: gradle lintRelease --rerun-tasks
+
+      - name: Run JVM unit tests
+        run: gradle testReleaseUnitTest --rerun-tasks
+
+      - name: Build release APK
         run: gradle assembleRelease --rerun-tasks
 
-      - name: Verify signed APK
+      - name: Verify APK exists and is installable-signed
+        shell: bash
         run: |
+          set -euo pipefail
           APK="app/build/outputs/apk/release/app-release.apk"
-          test -f "$APK"
+          test -s "$APK"
+
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          test -n "$AAPT"
+
+          "$APKSIGNER" verify --verbose "$APK"
+          "$AAPT" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+
+          python3 - "$RUNNER_TEMP/apk-badging.txt" <<'PY'
+          import pathlib
+          import sys
+
+          badging = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+          required = (
+              "package: name='com.aldiandrew.neobrutallauncher'",
+              "launchable-activity:",
+          )
+          missing = [item for item in required if item not in badging]
+          if missing:
+              raise SystemExit("APK verification failed; missing: " + ", ".join(missing))
+          print("APK package identity and launchable activity verified.")
+          PY
+
           echo "Generated APK:"
           ls -lh "$APK"
-          echo "APK type:"
+          echo "APK file type:"
           file "$APK"
 
       - name: Upload installable APK Artifact
