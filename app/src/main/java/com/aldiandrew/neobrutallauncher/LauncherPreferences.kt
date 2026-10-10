@@ -14,7 +14,11 @@ enum class DesignPreset(val label: String) {
     NEO_BRUTAL_CLASSIC("NEO-BRUTAL CLASSIC"),
     ACID_DARK("ACID DARK"),
     COBALT_POP("COBALT POP"),
-    MONOCHROME("MONOCHROME")
+    MONOCHROME("MONOCHROME"),
+    SUNSET_POP("SUNSET POP"),
+    FOREST_ACID("FOREST ACID"),
+    VIOLET_GRID("VIOLET GRID"),
+    REDLINE("REDLINE")
 }
 
 class LauncherPreferences(context: Context) {
