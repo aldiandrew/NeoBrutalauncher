@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
@@ -339,7 +337,7 @@ private fun MusicProgressIndicator(
             if (musicInfo.isPlaying) {
                 while (isActive) {
                     progressClock = System.currentTimeMillis()
-                    delay(1000L)
+                    delay(2000L)
                 }
             } else {
                 progressClock = System.currentTimeMillis()
