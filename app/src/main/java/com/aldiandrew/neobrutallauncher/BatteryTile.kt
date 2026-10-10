@@ -112,54 +112,6 @@ fun BatteryTile(
                         imageVector = if (battery.charging) {
                             Icons.Default.BatteryChargingFull
                         } else {
-                            Icons.Default.BatteryFull
-                        },
-                        contentDescription = if (battery.charging) "Charging" else "Battery",
-                        tint = BrutalColors.Ink,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = "${battery.percentage}%",
-                        fontSize = 7.sp,
-                        lineHeight = 8.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = if (battery.charging) "CHG" else "BAT",
-                        fontSize = 6.sp,
-                        lineHeight = 7.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                }
-            } else {
-                            Icons.Default.BatteryFull
-                        },
-                        contentDescription = if (battery.charging) "Charging" else "Battery",
-                        tint = BrutalColors.Ink,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = "${battery.percentage}%",
-                        fontSize = 17.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = if (battery.charging) "CHG" else "BAT",
-                        fontSize = 7.sp,
-                        lineHeight = 8.sp,
-                        fontWeight = FontWeight.Black,
-                        color = BrutalColors.Ink,
-                        maxLines = 1
-                    )
-                }
-            } else {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center
