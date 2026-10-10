@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -37,6 +40,9 @@ fun LivePage(
     apps: List<AppInfo>,
     customQuotes: List<String>,
     selectedChatPackages: List<String>,
+    showWeather: Boolean,
+    use24Hour: Boolean,
+    showAmPm: Boolean,
     onSelectChatPackage: (String) -> Unit,
     onOpenHome: () -> Unit
 ) {
@@ -60,11 +66,16 @@ fun LivePage(
         (System.currentTimeMillis() / (30L * 60L * 1000L)).toInt()
     }.value ?: 0
     val isDark = MaterialTheme.colorScheme.background == BrutalColors.DarkPaper
-    val accentSurface = BrutalColors.Yellow
-    val pageText = MaterialTheme.colorScheme.onBackground
     val headerText = BrutalColors.Ink
-    val liveClockTileHeight = 148.dp
+    val liveClockTileHeight = 128.dp
+    var weatherRefreshToken by remember { mutableIntStateOf(0) }
 
+    val timePattern = when {
+        use24Hour -> "HH:mm"
+        showAmPm -> "hh:mm a"
+        else -> "hh:mm"
+    }
+    val timeText = SimpleDateFormat(timePattern, Locale.getDefault()).format(now)
     val dateText = SimpleDateFormat(
         "EEEE, d MMMM yyyy",
         Locale.getDefault()
@@ -75,24 +86,24 @@ fun LivePage(
             .fillMaxSize()
             .background(Color.Transparent)
             .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 16.dp,
+                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 80.dp,
-                start = 20.dp,
-                end = 20.dp
+                start = 16.dp,
+                end = 16.dp
             ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
+        item(key = "live-clock") {
             BrutalBlock(
                 modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
-                background = accentSurface,
-                borderWidth = 4.dp,
+                background = BrutalColors.Yellow,
+                borderWidth = 3.dp,
                 borderColor = BrutalColors.Ink,
-                shadowX = 6.dp,
-                shadowY = 6.dp,
+                shadowX = 5.dp,
+                shadowY = 5.dp,
                 shadowColor = BrutalColors.Ink
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     Text(
                         text = "LIVE",
                         fontFamily = BrutalTypography.Display,
@@ -101,7 +112,7 @@ fun LivePage(
                         color = BrutalColors.Red
                     )
                     Text(
-                        text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
+                        text = timeText,
                         fontSize = 38.sp,
                         lineHeight = 40.sp,
                         fontWeight = FontWeight.Black,
@@ -120,41 +131,66 @@ fun LivePage(
             }
         }
 
-        item {
-            NeoCalendarTile(
-                context = context,
-                modifier = Modifier.fillMaxWidth().height(224.dp),
-                background = BrutalColors.Cyan,
-                textColor = BrutalColors.Ink
-            )
+        item(key = "live-quote-weather") {
+            if (showWeather) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    NeoQuoteTile(
+                        quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
+                        modifier = Modifier.weight(1f).height(168.dp),
+                        emphasized = false,
+                        paletteIndex = quoteRotation + 1,
+                        showLabel = true
+                    )
+                    NeoWeatherTile(
+                        context = context,
+                        refreshToken = weatherRefreshToken,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(168.dp)
+                            .clickable { weatherRefreshToken++ }
+                    )
+                }
+            } else {
+                NeoQuoteTile(
+                    quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
+                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    emphasized = true,
+                    paletteIndex = quoteRotation + 1,
+                    showLabel = true
+                )
+            }
         }
 
-        item {
+        item(key = "live-chat") {
             NeoChatNotificationTile(
                 context = context,
                 packageName = selectedChatPackages.firstOrNull(),
-                modifier = Modifier.fillMaxWidth().height(126.dp),
+                modifier = Modifier.fillMaxWidth().height(128.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Yellow,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
                 onChooseApp = { showChatAppPicker = true }
             )
         }
 
-        item {
+        item(key = "live-music") {
             NeoMusicTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(126.dp),
+                modifier = Modifier.fillMaxWidth().height(142.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
-                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink,
+                liveLayout = true
             )
         }
 
-        item {
-            NeoQuoteTile(
-                quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                modifier = Modifier.fillMaxWidth().height(liveClockTileHeight),
-                emphasized = true,
-                paletteIndex = quoteRotation + 1
+        item(key = "live-calendar") {
+            NeoCalendarTile(
+                context = context,
+                modifier = Modifier.fillMaxWidth().height(208.dp),
+                background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
+                textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
         }
     }
