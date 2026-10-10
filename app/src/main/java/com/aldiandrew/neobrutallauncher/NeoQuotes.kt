@@ -15,6 +15,9 @@ object NeoQuotes {
         "Strong borders turn space into architecture.",
         "Function first, decoration second, apology never.",
         "Break the polish. Keep the hierarchy.",
+        "Design boldly. Let every element earn its place.",
+        "Clarity is powerful. Noise is optional.",
+        "Build for people, not for applause.",
     )
 
     fun builtInQuotes(): List<String> = defaultQuotes
