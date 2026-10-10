@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -92,6 +93,7 @@ fun NeoMusicTile(
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.surface,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
+    onLongClick: (() -> Unit)? = null
 ) {
     var hasAccess by remember { mutableStateOf(hasMusicAccess(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -132,8 +134,7 @@ fun NeoMusicTile(
         }.getOrNull()
     }
 
-    BrutalBlock(
-        modifier = modifier.clickable {
+    val tileClick: () -> Unit = {
             if (!hasAccess) {
                 context.startActivity(
                     Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
@@ -142,7 +143,15 @@ fun NeoMusicTile(
             } else {
                 openMusicPlayer(context, musicPackage)
             }
-        },
+        }
+    val tileModifier = if (onLongClick == null) {
+        modifier.clickable(onClick = tileClick)
+    } else {
+        modifier.combinedClickable(onClick = tileClick, onLongClick = onLongClick)
+    }
+
+    BrutalBlock(
+        modifier = tileModifier,
         background = background,
         borderWidth = 4.dp,
         contentPadding = 0.dp,
