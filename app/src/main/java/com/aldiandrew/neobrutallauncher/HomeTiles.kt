@@ -178,9 +178,23 @@ fun NeoTileGrid(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(totalHeight.coerceAtLeast(1.dp))
-                .pointerInput(editMode) {
+                .pointerInput(editMode, placements) {
                     if (editMode) {
-                        detectTapGestures(onTap = { onTileMoveFinished() })
+                        detectTapGestures(onTap = { tap ->
+                            val tappedTile = latestPlacements.value.any { placement ->
+                                val left = with(density) {
+                                    (cellWidth * placement.column + gap * placement.column).toPx()
+                                }
+                                val top = with(density) {
+                                    (cellHeight * placement.row + gap * placement.row).toPx()
+                                }
+                                val width = with(density) { placement.width.toPx() }
+                                val height = with(density) { placement.height.toPx() }
+                                tap.x >= left && tap.x <= left + width &&
+                                    tap.y >= top && tap.y <= top + height
+                            }
+                            if (!tappedTile) onTileMoveFinished()
+                        })
                     }
                 }
         ) {
