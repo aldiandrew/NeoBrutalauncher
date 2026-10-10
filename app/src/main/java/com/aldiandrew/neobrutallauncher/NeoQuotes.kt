@@ -22,6 +22,8 @@ object NeoQuotes {
         "A strong interface makes the next action obvious."
     )
 
+    fun builtInQuotes(): List<String> = defaultQuotes
+
     fun allQuotes(customQuotes: List<String> = emptyList()): List<String> =
         (defaultQuotes + customQuotes)
             .map { it.trim() }
