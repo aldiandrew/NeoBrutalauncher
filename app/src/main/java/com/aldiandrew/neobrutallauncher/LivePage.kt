@@ -188,7 +188,7 @@ fun LivePage(
         item(key = "live-calendar") {
             NeoCalendarTile(
                 context = context,
-                modifier = Modifier.fillMaxWidth().height(264.dp),
+                modifier = Modifier.fillMaxWidth().height(240.dp),
                 background = if (isDark) BrutalColors.DarkTile else BrutalColors.Cyan,
                 textColor = if (isDark) BrutalColors.DarkWhite else BrutalColors.Ink
             )
