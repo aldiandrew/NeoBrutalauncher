@@ -116,7 +116,7 @@ fun BatteryTile(
                         },
                         contentDescription = if (battery.charging) "Charging" else "Battery",
                         tint = BrutalColors.Ink,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = "${battery.percentage}%",
