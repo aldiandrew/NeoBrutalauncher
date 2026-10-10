@@ -140,7 +140,7 @@ fun LivePage(
                 ) {
                     NeoQuoteTile(
                         quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).second,
-                        modifier = Modifier.weight(1f).height(164.dp),
+                        modifier = Modifier.weight(1f).height(112.dp),
                         emphasized = false,
                         paletteIndex = quoteRotation + 1,
                         showLabel = true
@@ -150,7 +150,7 @@ fun LivePage(
                         refreshToken = weatherRefreshToken,
                         modifier = Modifier
                             .weight(1f)
-                            .height(164.dp)
+                            .height(112.dp)
                             .clickable(onClick = onRefreshWeather)
                     )
                 }
