@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -163,7 +162,7 @@ fun NeoCalendarTile(
             ) {
                 for (week in 0 until 6) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         for (dayOfWeek in 0 until 7) {
@@ -178,7 +177,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
+                                    .height(16.dp)
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -229,7 +228,7 @@ private fun CalendarNavButton(
 ) {
     Box(
         modifier = Modifier
-            .size(18.dp)
+            .size(22.dp)
             .background(BrutalColors.White)
             .border(2.dp, BrutalColors.Ink)
             .clickable(onClick = onClick),
@@ -237,7 +236,7 @@ private fun CalendarNavButton(
     ) {
         Text(
             text = label,
-            fontSize = 15.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Black,
             color = BrutalColors.Ink
         )
