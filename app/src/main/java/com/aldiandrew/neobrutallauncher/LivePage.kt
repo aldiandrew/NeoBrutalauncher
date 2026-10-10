@@ -148,7 +148,7 @@ fun LivePage(
                         refreshToken = weatherRefreshToken,
                         modifier = Modifier
                             .weight(1f)
-                            .height(168.dp)
+                            .height(148.dp)
                             .clickable { weatherRefreshToken++ }
                     )
                 }
