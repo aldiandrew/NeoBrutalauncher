@@ -157,7 +157,7 @@ fun NeoCalendarTile(
             }
 
             Column(
-                modifier = Modifier.height(113.dp),
+                modifier = Modifier.height(107.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 for (week in 0 until 6) {
@@ -177,7 +177,7 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(18.dp)
+                                    .height(17.dp)
                                     .then(
                                         if (isToday) {
                                             Modifier
@@ -215,7 +215,10 @@ fun NeoCalendarTile(
                 lineHeight = 10.sp,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Start,
-                color = textColor
+                color = textColor,
+                maxLines = 1,
+                softWrap = false,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
         }
     }
