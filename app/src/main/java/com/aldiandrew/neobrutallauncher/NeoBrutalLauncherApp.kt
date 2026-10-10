@@ -537,6 +537,9 @@ fun NeoBrutalLauncherApp() {
                             apps = apps,
                             customQuotes = customQuotes,
                             selectedChatPackages = selectedChatPackages,
+                            showWeather = showWeather,
+                            use24Hour = use24Hour,
+                            showAmPm = showAmPm,
                             onSelectChatPackage = { packageName ->
                                 val normalized = listOfNotNull(packageName).take(1)
                                 selectedChatPackages = normalized
@@ -1371,7 +1374,8 @@ fun NeoQuoteTile(
     quote: String,
     modifier: Modifier = Modifier,
     emphasized: Boolean = false,
-    paletteIndex: Int = 0
+    paletteIndex: Int = 0,
+    showLabel: Boolean = false
 ) {
     val palette = NeoQuotes.paletteForRotation(paletteIndex)
 
@@ -1390,8 +1394,11 @@ fun NeoQuoteTile(
                 .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 10.dp)
         ) {
                 val compact = minOf(maxWidth, maxHeight)
-                val availableHeight = (maxHeight.value - if (emphasized) 43f else 30f)
-                    .coerceAtLeast(18f)
+                val availableHeight = (
+                    maxHeight.value -
+                        (if (emphasized) 43f else 30f) -
+                        if (showLabel) 12f else 0f
+                    ).coerceAtLeast(18f)
                 var quoteSize = if (emphasized) {
                     minOf(34f, maxWidth.value * 0.11f, availableHeight * 0.34f)
                 } else {
@@ -1424,6 +1431,16 @@ fun NeoQuoteTile(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(if (emphasized) 6.dp else 5.dp)
                 ) {
+                    if (showLabel) {
+                        Text(
+                            text = "QUOTE",
+                            fontSize = 8.sp,
+                            lineHeight = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            color = palette.text,
+                            maxLines = 1
+                        )
+                    }
                     Text(
                         text = "“$quote”",
                         modifier = Modifier.fillMaxWidth(),
