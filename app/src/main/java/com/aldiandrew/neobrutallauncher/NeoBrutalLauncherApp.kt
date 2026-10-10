@@ -103,6 +103,7 @@ fun NeoBrutalLauncherApp() {
     var typographyStyle by remember { mutableStateOf(preferences.typographyStyle()) }
     var iconPackPackage by remember { mutableStateOf(preferences.iconPackPackage()) }
     var wallpaperUri by remember { mutableStateOf(preferences.wallpaperUri()) }
+    var quoteImageUri by remember { mutableStateOf(preferences.quoteImageUri()) }
     var motionSmoothness by remember { mutableStateOf(preferences.motionSmoothness()) }
     var reduceMotion by remember { mutableStateOf(preferences.reduceMotion()) }
     var customQuotes by remember { mutableStateOf(preferences.customQuotes()) }
@@ -135,6 +136,21 @@ fun NeoBrutalLauncherApp() {
             }
             wallpaperUri = uri.toString()
             preferences.setWallpaperUri(uri.toString())
+        }
+    }
+
+    val quoteImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            quoteImageUri = uri.toString()
+            preferences.setQuoteImageUri(uri.toString())
         }
     }
 
@@ -320,6 +336,7 @@ fun NeoBrutalLauncherApp() {
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
+                    quoteImageUri = quoteImageUri,
                     favorites = favorites,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -444,6 +461,13 @@ fun NeoBrutalLauncherApp() {
                     onClearWallpaper = {
                         wallpaperUri = null
                         preferences.setWallpaperUri(null)
+                    },
+                    onChooseQuoteImage = {
+                        quoteImagePickerLauncher.launch(arrayOf("image/*"))
+                    },
+                    onClearQuoteImage = {
+                        quoteImageUri = null
+                        preferences.setQuoteImageUri(null)
                     },
                     onClearFavorites = {
                         favorites = emptySet()
@@ -1232,13 +1256,13 @@ private fun AppTile(
             NeoTileSize.SMALL -> minOf(availableWidth * 0.34f, availableHeight * 0.36f, 26.dp)
             NeoTileSize.HORIZONTAL -> minOf(availableHeight * 0.38f, 30.dp)
             NeoTileSize.THREE_BY_ONE -> minOf(availableHeight * 0.42f, 34.dp)
-            NeoTileSize.FOUR_BY_ONE -> minOf(availableHeight * 0.72f, 72.dp)
+            NeoTileSize.FOUR_BY_ONE, NeoTileSize.FOUR_BY_TWO -> minOf(availableHeight * 0.72f, 72.dp)
         }
         val maxTextSize = when (tileSize) {
             NeoTileSize.SMALL -> 9.sp
             NeoTileSize.HORIZONTAL -> 15.sp
             NeoTileSize.THREE_BY_ONE -> if (availableWidth < 220.dp) 18.sp else 23.sp
-            NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
+            NeoTileSize.FOUR_BY_ONE, NeoTileSize.FOUR_BY_TWO -> if (availableWidth < 300.dp) 23.sp else 30.sp
         }
         val textMaxLines = 2
 
@@ -1262,7 +1286,7 @@ private fun AppTile(
                     }
 
                     TileContentMode.TEXT -> {
-                        val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE
+                        val isFourByOne = tileSize == NeoTileSize.FOUR_BY_ONE || tileSize == NeoTileSize.FOUR_BY_TWO
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -1391,7 +1415,7 @@ private fun AppTile(
                             }
 
                             NeoTileSize.THREE_BY_ONE,
-                            NeoTileSize.FOUR_BY_ONE -> {
+                            NeoTileSize.FOUR_BY_ONE, NeoTileSize.FOUR_BY_TWO -> {
                                 // Width/height checks keep the selected composition from colliding.
                                 if (availableHeight < 66.dp || availableWidth < 190.dp) {
                                     Row(
@@ -1407,7 +1431,7 @@ private fun AppTile(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .padding(
-                                                horizontal = if (tileSize == NeoTileSize.FOUR_BY_ONE) 14.dp else 9.dp,
+                                                horizontal = if (tileSize == NeoTileSize.FOUR_BY_ONE || tileSize == NeoTileSize.FOUR_BY_TWO) 14.dp else 9.dp,
                                                 vertical = 7.dp
                                             )
                                     ) {
