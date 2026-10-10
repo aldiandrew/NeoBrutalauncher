@@ -8,6 +8,7 @@ on:
       - redesign/after-stable-567
       - fixes/after-stable-593
       - fixes/after-stable-598
+      - fixes/after-stable-603
   pull_request:
     branches:
       - main
