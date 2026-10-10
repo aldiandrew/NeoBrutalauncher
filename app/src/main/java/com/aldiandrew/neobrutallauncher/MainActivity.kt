@@ -1,5 +1,6 @@
 package com.aldiandrew.neobrutallauncher
 
+import android.os.Build
 import android.os.Bundle
 import android.graphics.Color
 import androidx.activity.ComponentActivity
@@ -13,7 +14,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.navigationBarColor = Color.TRANSPARENT
-        window.isNavigationBarContrastEnforced = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
         setContent {
             NeoBrutalLauncherApp()
         }
