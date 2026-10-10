@@ -34,7 +34,21 @@ object WeatherRepository {
     @Volatile
     private var cachedWeather: WeatherData? = null
 
-    fun cachedWeather(): WeatherData? = cachedWeather
+    fun cachedWeather(context: Context): WeatherData? {
+        cachedWeather?.let { return it }
+        val prefs = context.applicationContext.getSharedPreferences("neo_weather_cache", Context.MODE_PRIVATE)
+        val temperature = prefs.getString("temperature", null)?.toDoubleOrNull() ?: return null
+        val code = prefs.getInt("code", Int.MIN_VALUE)
+        if (code == Int.MIN_VALUE) return null
+        return WeatherData(
+            locationName = prefs.getString("location", "LAST KNOWN LOCATION") ?: "LAST KNOWN LOCATION",
+            temperatureC = temperature,
+            weatherCode = code,
+            description = weatherDescription(code),
+            humidityPercent = prefs.getInt("humidity", 0),
+            windKph = prefs.getFloat("wind_kph", 0f).toDouble()
+        ).also { cachedWeather = it }
+    }
 
     @SuppressLint("MissingPermission")
     suspend fun loadCurrentWeather(context: Context): WeatherData {
@@ -42,17 +56,19 @@ object WeatherRepository {
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED
         ) {
-            throw IllegalStateException("Location permission is required")
+            return cachedWeather(context)
+                ?: throw IllegalStateException("Location permission is required")
         }
 
         val locationManager =
             context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         val location = getLocation(locationManager, context)
-            ?: throw IllegalStateException("Unable to determine current location")
+            ?: return cachedWeather(context)
+                ?: throw IllegalStateException("No location or saved weather data is available")
 
         val locationName = resolveLocationName(context, location)
-        return fetchWeather(location.latitude, location.longitude, locationName)
+        return fetchWeather(context, location.latitude, location.longitude, locationName)
     }
 
     @SuppressLint("MissingPermission")
@@ -185,6 +201,7 @@ object WeatherRepository {
     }
 
     private suspend fun fetchWeather(
+        context: Context,
         latitude: Double,
         longitude: Double,
         locationName: String
@@ -229,7 +246,17 @@ object WeatherRepository {
                 description = weatherDescription(weatherCode),
                 humidityPercent = humidity,
                 windKph = windKph
-            ).also { cachedWeather = it }
+            ).also { data ->
+                cachedWeather = data
+                context.applicationContext.getSharedPreferences("neo_weather_cache", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("location", data.locationName)
+                    .putString("temperature", data.temperatureC.toString())
+                    .putInt("code", data.weatherCode)
+                    .putInt("humidity", data.humidityPercent)
+                    .putFloat("wind_kph", data.windKph.toFloat())
+                    .apply()
+            }
         } finally {
             connection.disconnect()
         }
