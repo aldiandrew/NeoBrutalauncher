@@ -66,7 +66,7 @@ class LauncherPreferences(context: Context) {
     }
 
     fun homeAppCount(): Int {
-        return normalizePinnedCount(prefs.getInt(KEY_HOME_APP_COUNT, 5))
+        return normalizePinnedCount(prefs.getInt(KEY_HOME_APP_COUNT, 8))
     }
 
     fun homeAppsInitialized(): Boolean = prefs.getBoolean(KEY_HOME_APPS_INITIALIZED, false)
@@ -106,7 +106,8 @@ class LauncherPreferences(context: Context) {
         return when (value) {
             in Int.MIN_VALUE..3 -> 3
             in 4..6 -> 5
-            else -> 7
+            7 -> 7
+            else -> 8
         }
     }
 
