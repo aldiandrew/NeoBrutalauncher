@@ -102,7 +102,7 @@ fun BatteryTile(
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = minOf(maxWidth, maxHeight)
 
-            if (compact < 78.dp) {
+            if (compact < 110.dp) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -120,16 +120,16 @@ fun BatteryTile(
                     )
                     Text(
                         text = "${battery.percentage}%",
-                        fontSize = 13.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 17.sp,
+                        lineHeight = 18.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1
                     )
                     Text(
                         text = if (battery.charging) "CHG" else "BAT",
-                        fontSize = 6.sp,
-                        lineHeight = 7.sp,
+                        fontSize = 7.sp,
+                        lineHeight = 8.sp,
                         fontWeight = FontWeight.Black,
                         color = BrutalColors.Ink,
                         maxLines = 1
