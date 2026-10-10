@@ -14,6 +14,7 @@ object NeoQuotes {
         "Make the grid visible. Make the interface honest.",
         "Strong borders turn space into architecture.",
         "Function first, decoration second, apology never.",
+        "Break the polish. Keep the hierarchy.",
     )
 
     fun builtInQuotes(): List<String> = defaultQuotes
