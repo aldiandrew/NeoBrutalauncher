@@ -781,7 +781,8 @@ private fun HomeScreen(
 
     val palette = remember(BrutalColors.activePreset) { BrutalColors.appPalette(0) }
     val appTileIds = remember(launchableApps) {
-        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_music"
+        launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() +
+            setOf("home_music", "home_quote_image")
     }
     val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
     val homeQuoteHeight = when {
@@ -935,7 +936,27 @@ private fun HomeScreen(
                                         context = context,
                                         modifier = Modifier.fillMaxSize(),
                                         background = homeMusicBackground,
-                                        textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
+                                        textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink,
+                                        onLongClick = {
+                                            selectedTile = NeoTileSpec(
+                                                id = "home_music",
+                                                size = tileSizes["home_music"] ?: NeoTileSize.FOUR_BY_ONE,
+                                                label = "MUSIC"
+                                            ) {}
+                                        }
+                                    )
+                                }
+                            )
+                            add(
+                                NeoTileSpec(
+                                    id = "home_quote_image",
+                                    size = NeoTileSize.FOUR_BY_TWO,
+                                    label = "QUOTE + IMAGE"
+                                ) {
+                                    NeoQuoteImageTile(
+                                        quote = homeQuote,
+                                        imageUri = quoteImageUri,
+                                        modifier = Modifier.fillMaxSize()
                                     )
                                 }
                             )
@@ -1035,6 +1056,7 @@ private fun HomeScreen(
                         fontWeight = FontWeight.Black
                     )
 
+                    if (tile.id != "home_quote_image") {
                     listOf(
                         NeoTileSize.SMALL,
                         NeoTileSize.HORIZONTAL,
@@ -1046,6 +1068,16 @@ private fun HomeScreen(
                             background = if (tile.size == option) BrutalColors.Yellow else BrutalColors.White
                         ) {
                             onTileSizeChange(tile.id, option)
+                            selectedTile = null
+                            tileEditMode = false
+                        }
+                    }
+                    } else {
+                        BrutalActionButton(
+                            title = "CHOOSE IMAGE",
+                            background = BrutalColors.Yellow
+                        ) {
+                            onChooseQuoteImage()
                             selectedTile = null
                             tileEditMode = false
                         }
