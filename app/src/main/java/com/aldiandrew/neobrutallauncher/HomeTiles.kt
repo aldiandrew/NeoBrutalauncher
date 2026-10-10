@@ -97,7 +97,7 @@ private fun orderedTiles(
  * where it fits. This keeps the grid filled after resizing instead of leaving
  * artificial gaps caused by fixed row groups.
  */
-private fun packDense(tiles: List<NeoTileSpec>): List<Pair<NeoTileSpec, Pair<Int, Int>>> {
+internal fun packDense(tiles: List<NeoTileSpec>): List<Pair<NeoTileSpec, Pair<Int, Int>>> {
     val occupied = mutableSetOf<Pair<Int, Int>>()
     val placements = mutableListOf<Pair<NeoTileSpec, Pair<Int, Int>>>()
 
