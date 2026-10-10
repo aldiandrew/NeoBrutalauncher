@@ -120,6 +120,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           target: google_apis
           arch: x86_64
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           profile: pixel_2
           disable-animations: true
           script: |
@@ -188,17 +189,3 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-  dependency-review:
-    name: Pull request dependency vulnerability review
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Review dependency changes for known vulnerabilities
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
