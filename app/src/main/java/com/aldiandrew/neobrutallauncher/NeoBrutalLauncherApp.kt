@@ -781,6 +781,13 @@ private fun HomeScreen(
     val appTileIds = remember(launchableApps) {
         launchableApps.map { "app_" + it.packageName + "_" + it.activityName }.toSet() + "home_app_shortcut"
     }
+    val homeQuote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first
+    val homeQuoteHeight = when {
+        homeQuote.length > 135 -> 120.dp
+        homeQuote.length > 90 -> 108.dp
+        homeQuote.length > 50 -> 96.dp
+        else -> 88.dp
+    }
 
     Box(
         modifier = Modifier
@@ -793,12 +800,12 @@ private fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 10.dp,
-                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp,
-                    start = 18.dp,
-                    end = 18.dp
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 56.dp,
+                    start = 16.dp,
+                    end = 16.dp
                 ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item(key = "top-bar") {
                 Row(
@@ -877,8 +884,8 @@ private fun HomeScreen(
 
             item(key = "home-quote") {
                 NeoQuoteTile(
-                    quote = NeoQuotes.pairForRotation(quoteRotation, customQuotes).first,
-                    modifier = Modifier.fillMaxWidth().height(112.dp),
+                    quote = homeQuote,
+                    modifier = Modifier.fillMaxWidth().height(homeQuoteHeight),
                     emphasized = true,
                     paletteIndex = quoteRotation
                 )
@@ -981,7 +988,7 @@ private fun HomeScreen(
                         onTileMoveFinished = { tileEditMode = false },
                         editMode = tileEditMode,
                         modifier = Modifier.fillMaxWidth(),
-                        gap = 8.dp
+                        gap = 10.dp
                     )
                 }
             }
@@ -1034,14 +1041,14 @@ private fun HomeScreen(
                     positions = emptyMap(),
                     onPositionsChange = {},
                     modifier = Modifier.fillMaxWidth(),
-                    gap = 8.dp
+                    gap = 10.dp
                 )
             }
 
             item(key = "music") {
                 NeoMusicTile(
                     context = context,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(3f),
                     background = homeMusicBackground,
                     textColor = if (isDarkTheme) BrutalColors.DarkWhite else BrutalColors.Ink
                 )
@@ -1488,12 +1495,32 @@ private fun AppTile(
             NeoTileSize.FOUR_BY_ONE -> minOf(availableHeight * 0.72f, 72.dp)
         }
         val maxTextSize = when (tileSize) {
-            NeoTileSize.SMALL -> 9.sp
-            NeoTileSize.HORIZONTAL -> 15.sp
-            NeoTileSize.THREE_BY_ONE -> if (availableWidth < 220.dp) 18.sp else 23.sp
-            NeoTileSize.FOUR_BY_ONE -> if (availableWidth < 300.dp) 23.sp else 30.sp
+            NeoTileSize.SMALL -> when {
+                app.label.length > 18 -> 7.sp
+                app.label.length > 12 -> 8.sp
+                else -> 9.sp
+            }
+            NeoTileSize.HORIZONTAL -> when {
+                app.label.length > 24 -> 10.sp
+                app.label.length > 16 -> 12.sp
+                else -> 14.sp
+            }
+            NeoTileSize.THREE_BY_ONE -> when {
+                app.label.length > 26 -> 14.sp
+                app.label.length > 18 -> 17.sp
+                availableWidth < 220.dp -> 18.sp
+                else -> 21.sp
+            }
+            NeoTileSize.FOUR_BY_ONE -> when {
+                app.label.length > 30 -> 18.sp
+                app.label.length > 22 -> 22.sp
+                availableWidth < 300.dp -> 23.sp
+                else -> 28.sp
+            }
         }
-        val textMaxLines = if (compactTile) 1 else 2
+        // Allow longer app names to wrap across two lines instead of being
+        // cut off after a single line in compact tiles.
+        val textMaxLines = 2
 
         BrutalBlock(
             modifier = Modifier.fillMaxSize(),
