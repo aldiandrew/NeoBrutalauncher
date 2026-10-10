@@ -1793,6 +1793,7 @@ private fun SettingsScreen(
 
             }
             "Home" -> {
+        SettingsSectionTitle("Home screen")
         SettingsSwitch("WEATHER", "Show local weather. Location permission is required.", showWeather, BrutalColors.Cyan, onShowWeatherChange)
         if (!locationPermissionGranted) SettingsActionButton("ALLOW WEATHER LOCATION", BrutalColors.Yellow, onClick = onRequestWeatherPermission)
 
@@ -2018,6 +2019,7 @@ private fun SettingsScreen(
 
             }
             "Apps" -> {
+        SettingsSectionTitle("App icons")
         BrutalBlock(
             Modifier.fillMaxWidth(),
             background = uiSurface,
@@ -2279,8 +2281,10 @@ private fun SettingsActionButton(
 ) {
     val surface = MaterialTheme.colorScheme.surface
     val onSurface = MaterialTheme.colorScheme.onSurface
+    val normalizedTitle = title.uppercase(Locale.getDefault())
     val destructive = background == BrutalColors.Pink ||
-        title.startsWith("CLEAR") || title.contains("RESET") || title == "DELETE" || title.startsWith("REMOVE")
+        normalizedTitle.startsWith("CLEAR") || normalizedTitle.contains("RESET") ||
+        normalizedTitle == "DELETE" || normalizedTitle.startsWith("REMOVE")
     val neutral = !destructive && title == "CANCEL"
     val resolvedBackground = when {
         destructive -> BrutalColors.Pink
