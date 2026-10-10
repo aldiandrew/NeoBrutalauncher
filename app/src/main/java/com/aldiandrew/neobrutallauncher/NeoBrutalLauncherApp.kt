@@ -1216,7 +1216,7 @@ fun NeoQuoteTile(
                     }
                 }.coerceAtLeast(7f)
 
-                while (quoteSize > 9f) {
+                while (quoteSize > 7f) {
                     val estimatedCharsPerLine =
                         (maxWidth.value / (quoteSize * 0.58f)).toInt().coerceAtLeast(8)
                     val estimatedLines =
@@ -1224,7 +1224,7 @@ fun NeoQuoteTile(
                             .coerceAtLeast(1)
                     val neededHeight = estimatedLines * quoteSize * 1.08f
                     if (neededHeight <= availableHeight) break
-                    quoteSize -= 1f
+                    quoteSize -= 0.5f
                 }
 
                 val charsPerLine =
@@ -1258,7 +1258,7 @@ fun NeoQuoteTile(
                         color = palette.text,
                         maxLines = estimatedLines,
                         softWrap = true,
-                        overflow = TextOverflow.Clip
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
