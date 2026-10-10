@@ -322,7 +322,6 @@ fun NeoBrutalLauncherApp() {
                     motionSmoothness = motionSmoothness,
                     reduceMotion = reduceMotion,
                     wallpaperUri = wallpaperUri,
-                    quoteImageUri = quoteImageUri,
                     favorites = favorites,
                     favoritesCount = favorites.size,
                     locationPermissionGranted = locationPermissionGranted,
@@ -1051,7 +1050,6 @@ private fun HomeScreen(
                         fontWeight = FontWeight.Black
                     )
 
-                    if (tile.id != "home_quote_image") {
                     listOf(
                         NeoTileSize.SMALL,
                         NeoTileSize.HORIZONTAL,
@@ -1067,17 +1065,6 @@ private fun HomeScreen(
                             tileEditMode = false
                         }
                     }
-                    } else {
-                        BrutalActionButton(
-                            title = "CHOOSE IMAGE",
-                            background = BrutalColors.Yellow
-                        ) {
-                            onChooseQuoteImage()
-                            selectedTile = null
-                            tileEditMode = false
-                        }
-                    }
-
                     BrutalActionButton(
                         title = "MOVE TILE",
                         background = BrutalColors.Cyan
