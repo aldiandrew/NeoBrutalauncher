@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Preferences contain notes, tasks, quotes, wallpaper URI and app selections.
+         Use the app's explicit JSON export/import instead of cloud/device auto-backup. -->
+    <exclude domain="sharedpref" path="neo_brutal_launcher_preferences.xml" />
+</full-backup-content>
