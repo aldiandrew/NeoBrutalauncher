@@ -40,6 +40,8 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="Neo Brutal Launcher"
         android:icon="@drawable/ic_launcher"
         android:supportsRtl="true"
