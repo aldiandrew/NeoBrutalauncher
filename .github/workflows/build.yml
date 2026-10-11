@@ -11,6 +11,7 @@ on:
       - fixes/after-stable-603
       - fixes/after-stable-605
       - fixes/home-gestures-live-quote
+      - fixes/security-ui-font-cleanup
   pull_request:
     branches:
       - main

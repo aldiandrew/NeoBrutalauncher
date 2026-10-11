@@ -28,10 +28,7 @@ import androidx.compose.ui.unit.sp
 
 enum class TypographyStyle(val label: String) {
     DEFAULT("DEFAULT"),
-    CONDENSED("CONDENSED"),
-    POSTER("POSTER"),
-    MONO("MONO"),
-    HUGE("HUGE")
+    CONDENSED("CONDENSED")
 }
 
 val LocalBrutalTypographyStyle = staticCompositionLocalOf { TypographyStyle.DEFAULT }
@@ -53,11 +50,8 @@ object BrutalTypography {
     @get:Composable
     val Display: FontFamily
         get() = when (LocalBrutalTypographyStyle.current) {
-            TypographyStyle.DEFAULT -> DisplayBase
+            TypographyStyle.DEFAULT,
             TypographyStyle.CONDENSED -> DisplayBase
-            TypographyStyle.POSTER -> DisplayBase
-            TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.HUGE -> DisplayBase
         }
 
     @get:Composable
@@ -65,19 +59,12 @@ object BrutalTypography {
         get() = when (LocalBrutalTypographyStyle.current) {
             TypographyStyle.DEFAULT -> BodyBase
             TypographyStyle.CONDENSED -> DisplayBase
-            TypographyStyle.POSTER -> BodyBase
-            TypographyStyle.MONO -> FontFamily.Monospace
-            TypographyStyle.HUGE -> BodyBase
         }
 
     @get:Composable
     val Bricolage: FontFamily
         get() = Body
 
-    val Poster: FontFamily
-        @Composable get() = DisplayBase
-
-    val Mono = FontFamily.Monospace
     val Black = FontWeight.ExtraBold
     val ExtraBold = FontWeight.ExtraBold
 }

@@ -181,29 +181,33 @@ fun NeoCalendarTile(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
-                                    .then(
-                                        if (isToday) {
+                                    .fillMaxHeight(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (inMonth) {
+                                    Box(
+                                        modifier = if (isToday) {
                                             Modifier
+                                                .size(22.dp)
                                                 .background(BrutalColors.Yellow)
                                                 .border(2.dp, BrutalColors.Ink)
                                         } else {
                                             Modifier
-                                        }
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (inMonth) {
-                                    Text(
-                                        text = dayNumber.toString(),
-                                        fontSize = 9.sp,
-                                        fontWeight = if (isToday) {
-                                            FontWeight.Black
-                                        } else {
-                                            FontWeight.Bold
                                         },
-                                        color = textColor
-                                    )
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = dayNumber.toString(),
+                                            fontFamily = BrutalTypography.Body,
+                                            fontSize = 9.sp,
+                                            fontWeight = if (isToday) {
+                                                FontWeight.Black
+                                            } else {
+                                                FontWeight.Bold
+                                            },
+                                            color = if (isToday) BrutalColors.Ink else textColor
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -243,8 +247,10 @@ private fun CalendarNavButton(
     ) {
         Text(
             text = label,
-            fontSize = 20.sp,
-            lineHeight = 22.sp,
+            modifier = Modifier.fillMaxSize(),
+            fontFamily = BrutalTypography.Display,
+            fontSize = 16.sp,
+            lineHeight = 18.sp,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             color = BrutalColors.Ink
