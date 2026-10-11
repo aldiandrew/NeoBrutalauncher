@@ -243,8 +243,10 @@ private fun CalendarNavButton(
     ) {
         Text(
             text = label,
-            fontSize = 20.sp,
-            lineHeight = 22.sp,
+            modifier = Modifier.fillMaxSize(),
+            fontFamily = BrutalTypography.Display,
+            fontSize = 16.sp,
+            lineHeight = 18.sp,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             color = BrutalColors.Ink
