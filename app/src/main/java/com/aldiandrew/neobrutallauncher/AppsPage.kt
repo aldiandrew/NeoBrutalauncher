@@ -125,18 +125,11 @@ fun AppsPage(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "ICON",
+                            text = "Apps",
                             fontFamily = BrutalTypography.Display,
                             fontSize = NeoBrutalTokens.Type.Title,
                             fontWeight = FontWeight.Normal,
                             letterSpacing = 1.2.sp,
-                            color = BrutalColors.Ink
-                        )
-                        Text(
-                            text = "ALL YOUR APPS",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.9.sp,
                             color = BrutalColors.Ink
                         )
                     }
